@@ -25,12 +25,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowVueFrontend", policy =>
     {
-       policy.WithOrigins(
-        "http://localhost:5173",
-        "https://skill-job-ai-platform.vercel.app"
-    )
-    .AllowAnyHeader()
-    .AllowAnyMethod();
+        policy.WithOrigins(
+         "http://localhost:5173",
+         "https://skill-job-ai-platform.vercel.app"
+     )
+     .AllowAnyHeader()
+     .AllowAnyMethod();
     });
 });
 
@@ -94,8 +94,8 @@ var app = builder.Build();
 //if (app.Environment.IsDevelopment()){}
 
 
-  app.UseSwagger();
-    app.UseSwaggerUI();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 // app.UseHttpsRedirection();
 
@@ -107,5 +107,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapGet("/", () => "SkillJob AI Backend is running.");
+
 app.Run();
