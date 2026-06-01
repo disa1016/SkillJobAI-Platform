@@ -104,5 +104,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
+app.MapGet("/", () => "SkillJob AI Backend is running.");
 app.Run();
