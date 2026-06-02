@@ -91,23 +91,7 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-app.UseDeveloperExceptionPage();
 
-app.UseExceptionHandler(errorApp =>
-{
-    errorApp.Run(async context =>
-    {
-        var exceptionHandlerPathFeature =
-            context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
-
-        var ex = exceptionHandlerPathFeature?.Error;
-
-        context.Response.StatusCode = 500;
-        context.Response.ContentType = "text/plain";
-
-        await context.Response.WriteAsync(ex?.ToString() ?? "Unknown error");
-    });
-});
 
 app.UseSwagger();
 app.UseSwaggerUI();
