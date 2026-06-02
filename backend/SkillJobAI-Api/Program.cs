@@ -91,8 +91,21 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-//if (app.Environment.IsDevelopment()){}
+app.UseDeveloperExceptionPage();
 
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("FULL ERROR:");
+        Console.WriteLine(ex.ToString());
+        throw;
+    }
+});
 
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -109,3 +122,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+//if (app.Environment.IsDevelopment()){}
