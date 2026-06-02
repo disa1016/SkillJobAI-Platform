@@ -93,18 +93,20 @@ var app = builder.Build();
 
 app.UseDeveloperExceptionPage();
 
-app.Use(async (context, next) =>
+app.UseExceptionHandler(errorApp =>
 {
-    try
+    errorApp.Run(async context =>
     {
-        await next();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine("FULL ERROR:");
-        Console.WriteLine(ex.ToString());
-        throw;
-    }
+        var exceptionHandlerPathFeature =
+            context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+
+        var ex = exceptionHandlerPathFeature?.Error;
+
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "text/plain";
+
+        await context.Response.WriteAsync(ex?.ToString() ?? "Unknown error");
+    });
 });
 
 app.UseSwagger();
