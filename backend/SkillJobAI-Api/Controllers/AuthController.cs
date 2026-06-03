@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SkillJobAI.Api.Constants;
 using SkillJobAI.Api.Data;
 using SkillJobAI.Api.Entities;
 using SkillJobAI.Api.Models;
@@ -44,7 +45,7 @@ public class AuthController : ControllerBase
             FullName = request.FullName,
             Email = request.Email,
             PasswordHash = _passwordService.HashPassword(request.Password),
-            Role = "Student",
+            Role = AppRoles.Candidate,
             CreatedAt = DateTime.UtcNow
         };
 

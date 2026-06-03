@@ -21,7 +21,10 @@ public class JobsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetJobs()
     {
-        var jobs = await _context.Jobs.ToListAsync();
+        var jobs = await _context.Jobs
+            .Include(j => j.Company)
+            .ToListAsync();
+
         return Ok(jobs);
     }
 
@@ -29,7 +32,9 @@ public class JobsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetJob(int id)
     {
-        var job = await _context.Jobs.FindAsync(id);
+        var job = await _context.Jobs
+            .Include(j => j.Company)
+            .FirstOrDefaultAsync(j => j.Id == id);
 
         if (job == null)
             return NotFound();
@@ -37,11 +42,22 @@ public class JobsController : ControllerBase
         return Ok(job);
     }
 
-    // Job erstellen (nur eingeloggte User)
+    // Job erstellen
     [Authorize]
     [HttpPost]
     public async Task<IActionResult> CreateJob(Job job)
     {
+        var companyExists = await _context.Companies
+            .AnyAsync(c => c.Id == job.CompanyId);
+
+        if (!companyExists)
+        {
+            return BadRequest(new
+            {
+                message = "Company not found."
+            });
+        }
+
         job.CreatedAt = DateTime.UtcNow;
 
         _context.Jobs.Add(job);
