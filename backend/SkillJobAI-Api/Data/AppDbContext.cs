@@ -29,6 +29,15 @@ public class AppDbContext : DbContext
 
     public DbSet<CompanyMember> CompanyMembers => Set<CompanyMember>();
 
+    public DbSet<Skill> Skills => Set<Skill>();
+
+    public DbSet<JobSkill> JobSkills => Set<JobSkill>();
+
+    public DbSet<CourseSkill> CourseSkills => Set<CourseSkill>();
+
+    public DbSet<UserSkill> UserSkills => Set<UserSkill>();
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -50,5 +59,35 @@ public class AppDbContext : DbContext
             .WithMany(c => c.Members)
             .HasForeignKey(cm => cm.CompanyId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<JobSkill>()
+            .HasOne(js => js.Job)
+            .WithMany()
+            .HasForeignKey(js => js.JobId);
+
+        modelBuilder.Entity<JobSkill>()
+            .HasOne(js => js.Skill)
+            .WithMany()
+            .HasForeignKey(js => js.SkillId);
+
+        modelBuilder.Entity<CourseSkill>()
+            .HasOne(cs => cs.Course)
+            .WithMany()
+            .HasForeignKey(cs => cs.CourseId);
+
+        modelBuilder.Entity<CourseSkill>()
+            .HasOne(cs => cs.Skill)
+            .WithMany()
+            .HasForeignKey(cs => cs.SkillId);
+
+        modelBuilder.Entity<UserSkill>()
+            .HasOne(us => us.User)
+            .WithMany()
+            .HasForeignKey(us => us.UserId);
+
+        modelBuilder.Entity<UserSkill>()
+            .HasOne(us => us.Skill)
+            .WithMany()
+            .HasForeignKey(us => us.SkillId);
     }
 }
