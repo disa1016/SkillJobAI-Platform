@@ -38,8 +38,8 @@ onMounted(async () => {
                             {{ job.title }}
                         </h5>
 
-                        <p class="text-muted mb-1">
-                            {{ job.company }}
+                        <p v-if="job.company">
+                            {{ job.company.name }}
                         </p>
 
                         <p class="card-text">

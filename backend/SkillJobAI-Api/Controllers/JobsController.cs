@@ -23,6 +23,22 @@ public class JobsController : ControllerBase
     {
         var jobs = await _context.Jobs
             .Include(j => j.Company)
+            .Select(j => new
+            {
+                id = j.Id,
+                title = j.Title,
+                description = j.Description,
+                location = j.Location,
+                salary = j.Salary,
+                createdAt = j.CreatedAt,
+                companyId = j.CompanyId,
+                company = j.Company == null ? null : new
+                {
+                    id = j.Company.Id,
+                    name = j.Company.Name,
+                    location = j.Company.Location
+                }
+            })
             .ToListAsync();
 
         return Ok(jobs);
@@ -34,7 +50,27 @@ public class JobsController : ControllerBase
     {
         var job = await _context.Jobs
             .Include(j => j.Company)
-            .FirstOrDefaultAsync(j => j.Id == id);
+            .Where(j => j.Id == id)
+            .Select(j => new
+            {
+                id = j.Id,
+                title = j.Title,
+                description = j.Description,
+                location = j.Location,
+                salary = j.Salary,
+                createdAt = j.CreatedAt,
+                companyId = j.CompanyId,
+                company = j.Company == null ? null : new
+                {
+                    id = j.Company.Id,
+                    name = j.Company.Name,
+                    description = j.Company.Description,
+                    websiteUrl = j.Company.WebsiteUrl,
+                    logoUrl = j.Company.LogoUrl,
+                    location = j.Company.Location
+                }
+            })
+            .FirstOrDefaultAsync();
 
         if (job == null)
             return NotFound();
@@ -63,6 +99,15 @@ public class JobsController : ControllerBase
         _context.Jobs.Add(job);
         await _context.SaveChangesAsync();
 
-        return Ok(job);
+        return Ok(new
+        {
+            id = job.Id,
+            title = job.Title,
+            description = job.Description,
+            location = job.Location,
+            salary = job.Salary,
+            createdAt = job.CreatedAt,
+            companyId = job.CompanyId
+        });
     }
 }

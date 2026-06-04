@@ -19,6 +19,7 @@ import JobMatchView from "../views/JobMatchView.vue";
 import JobRecommendationsView from "@/views/JobRecommendationsView.vue";
 
 
+
 const routes = [
   {
     path: "/",
@@ -70,13 +71,18 @@ const routes = [
     component: JobMatchView,
   },
   {
-  path: "/ai/job-recommendations",
-  component: JobRecommendationsView,
-},
-{
-  path: "/ai/cover-letter",
-  component: CoverLetterView,
-},
+    path: "/ai/job-recommendations",
+    component: JobRecommendationsView,
+  },
+  {
+    path: "/ai/cover-letter",
+    component: CoverLetterView,
+  },
+  {
+    path: "/recruiter/dashboard",
+    name: "RecruiterDashboard",
+    component: () => import("../views/RecruiterDashboard.vue"),
+  },
 ];
 
 const router = createRouter({

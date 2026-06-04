@@ -90,10 +90,9 @@ const applyToJob = async () => {
       <div class="card-body">
         <h1>{{ job.title }}</h1>
 
-        <p class="text-muted">
-          {{ job.company }} · {{ job.location }}
+        <p v-if="job.company">
+          <strong>{{ job.company.name }}</strong> · {{ job.company.location }}
         </p>
-
         <span class="badge bg-success mb-3">
           {{ job.salary }}
         </span>
@@ -109,34 +108,18 @@ const applyToJob = async () => {
             CV Zusammenfassung für AI Anschreiben
           </label>
 
-          <textarea
-            v-model="cvSummary"
-            class="form-control"
-            rows="4"
-            placeholder="z.B. Ich habe Erfahrung mit C#, ASP.NET Core, Vue.js, PostgreSQL und GitHub."
-          ></textarea>
+          <textarea v-model="cvSummary" class="form-control" rows="4"
+            placeholder="z.B. Ich habe Erfahrung mit C#, ASP.NET Core, Vue.js, PostgreSQL und GitHub."></textarea>
         </div>
 
-        <button
-          class="btn btn-outline-primary mb-3"
-          @click="generateCoverLetter"
-          :disabled="generating || !cvSummary"
-        >
+        <button class="btn btn-outline-primary mb-3" @click="generateCoverLetter" :disabled="generating || !cvSummary">
           {{ generating ? "Generiere..." : "AI Anschreiben generieren" }}
         </button>
 
-        <textarea
-          v-model="coverLetter"
-          class="form-control mb-3"
-          rows="8"
-          placeholder="Schreibe dein Anschreiben oder generiere es mit AI..."
-        ></textarea>
+        <textarea v-model="coverLetter" class="form-control mb-3" rows="8"
+          placeholder="Schreibe dein Anschreiben oder generiere es mit AI..."></textarea>
 
-        <button
-          class="btn btn-primary"
-          @click="applyToJob"
-          :disabled="!coverLetter"
-        >
+        <button class="btn btn-primary" @click="applyToJob" :disabled="!coverLetter">
           Bewerbung senden
         </button>
       </div>
