@@ -83,6 +83,11 @@ const routes = [
     name: "RecruiterDashboard",
     component: () => import("../views/RecruiterDashboard.vue"),
   },
+  {
+  path: "/jobs/:id/skill-gap",
+  name: "SkillGap",
+  component: () => import("../views/SkillGapView.vue"),
+},
 ];
 
 const router = createRouter({
