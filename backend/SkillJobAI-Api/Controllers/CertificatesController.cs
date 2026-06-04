@@ -20,7 +20,7 @@ public class CertificatesController : ControllerBase
         _context = context;
     }
 
-    [Authorize(Roles = "Student")]
+    [Authorize]
     [HttpGet("course/{courseId}")]
     public async Task<IActionResult> DownloadCertificate(int courseId)
     {

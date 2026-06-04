@@ -18,7 +18,7 @@ public class ProgressController : ControllerBase
         _context = context;
     }
 
-    [Authorize(Roles = "Student")]
+    [Authorize]
     [HttpPost("complete")]
     public async Task<IActionResult> CompleteLesson(LessonProgress progress)
     {
@@ -50,7 +50,7 @@ public class ProgressController : ControllerBase
         return Ok(progress);
     }
 
-    [Authorize(Roles = "Student")]
+    [Authorize]
     [HttpGet("my")]
     public async Task<IActionResult> MyProgress()
     {

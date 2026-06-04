@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SkillJobAI.Api.Data;
+using SkillJobAI.Api.Constants;
+using SkillJobAI.Api.Models;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -43,6 +45,28 @@ public class UsersController : ControllerBase
             email = user.Email,
             role = user.Role,
             createdAt = user.CreatedAt
+        });
+    }
+    [Authorize]
+    [HttpPut("{id}/role")]
+    public async Task<IActionResult> UpdateUserRole(int id, [FromBody] UpdateUserRoleRequest request)
+    {
+        var user = await _context.Users.FindAsync(id);
+
+        if (user == null)
+            return NotFound(new { message = "User not found." });
+
+        user.Role = request.Role;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            message = "User role updated successfully.",
+            user.Id,
+            user.FullName,
+            user.Email,
+            user.Role
         });
     }
 }
