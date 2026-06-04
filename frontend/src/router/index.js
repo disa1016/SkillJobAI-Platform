@@ -98,6 +98,11 @@ const routes = [
   name: "RecruiterApplications",
   component: () => import("../views/RecruiterApplicationsView.vue"),
 },
+{
+  path: "/my-applications",
+  name: "MyApplications",
+  component: () => import("../views/MyApplicationsView.vue"),
+},
 ];
 
 const router = createRouter({

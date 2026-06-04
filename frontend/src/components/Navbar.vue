@@ -29,6 +29,7 @@ const logout = () => {
                 <router-link class="nav-link" to="/recruiter/dashboard">Recruiter</router-link>
                 <router-link class="nav-link" to="/profile/skills">My Skills</router-link>
                 <router-link class="nav-link" to="/recruiter/applications">Applications</router-link>
+                <router-link class="nav-link" to="/my-applications">Meine Bewerbungen</router-link>
 
 
                 <button class="btn btn-light btn-sm ms-3" @click="logout">
