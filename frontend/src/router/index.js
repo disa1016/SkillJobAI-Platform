@@ -88,6 +88,16 @@ const routes = [
   name: "SkillGap",
   component: () => import("../views/SkillGapView.vue"),
 },
+{
+  path: "/profile/skills",
+  name: "MySkills",
+  component: () => import("../views/MySkillsView.vue"),
+},
+{
+  path: "/recruiter/applications",
+  name: "RecruiterApplications",
+  component: () => import("../views/RecruiterApplicationsView.vue"),
+},
 ];
 
 const router = createRouter({

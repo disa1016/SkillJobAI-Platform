@@ -26,10 +26,10 @@ const logout = () => {
                 <router-link class="nav-link" to="/ai/job-match">Job Matcher</router-link>
                 <router-link class="nav-link" to="/ai/job-recommendations">Job Recommendations</router-link>
                 <router-link class="nav-link" to="/ai/cover-letter">Cover Letter</router-link>
-                
-                <router-link class="nav-link" to="/recruiter/dashboard">
-  Recruiter
-</router-link>
+                <router-link class="nav-link" to="/recruiter/dashboard">Recruiter</router-link>
+                <router-link class="nav-link" to="/profile/skills">My Skills</router-link>
+                <router-link class="nav-link" to="/recruiter/applications">Applications</router-link>
+
 
                 <button class="btn btn-light btn-sm ms-3" @click="logout">
                     Logout
