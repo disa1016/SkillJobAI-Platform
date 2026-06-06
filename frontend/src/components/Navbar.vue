@@ -74,6 +74,13 @@ const logout = () => {
                 <router-link class="nav-link" to="/recruiter/jobs">
   Recruiter Jobs
 </router-link>
+<router-link
+  v-if="user?.role === 'Admin'"
+  class="nav-link"
+  to="/admin/dashboard"
+>
+  Admin
+</router-link>
 
                 <span v-if="user" class="navbar-text text-white mx-3">
                     Rolle: {{ user.role }}

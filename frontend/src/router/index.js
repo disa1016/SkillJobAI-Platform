@@ -117,6 +117,12 @@ const routes = [
       roles: ["Recruiter", "Admin"],
     },
   },
+  {
+  path: "/admin/dashboard",
+  name: "AdminDashboard",
+  component: () => import("../views/AdminDashboardView.vue"),
+  meta: { requiresAuth: true, roles: ["Admin"] },
+},
 ];
 
 const router = createRouter({
