@@ -110,4 +110,46 @@ public class JobsController : ControllerBase
             companyId = job.CompanyId
         });
     }
+
+    [Authorize]
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateJob(int id, Job request)
+    {
+        var job = await _context.Jobs.FindAsync(id);
+
+        if (job == null)
+            return NotFound(new { message = "Job not found." });
+
+        var companyExists = await _context.Companies
+            .AnyAsync(c => c.Id == request.CompanyId);
+
+        if (!companyExists)
+            return BadRequest(new { message = "Company not found." });
+
+        job.Title = request.Title;
+        job.Description = request.Description;
+        job.Location = request.Location;
+        job.Salary = request.Salary;
+        job.CompanyId = request.CompanyId;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(job);
+    }
+
+    [Authorize]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteJob(int id)
+    {
+        var job = await _context.Jobs.FindAsync(id);
+
+        if (job == null)
+            return NotFound(new { message = "Job not found." });
+
+        _context.Jobs.Remove(job);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+
+    }
 }

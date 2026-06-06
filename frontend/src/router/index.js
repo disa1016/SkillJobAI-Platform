@@ -15,6 +15,7 @@ import CoverLetterView from "@/views/CoverLetterView.vue";
 import CourseDetailsView from "@/views/CourseDetailsView.vue";
 import JobDetailsView from "@/views/JobDetailsView.vue";
 
+
 import JobMatchView from "../views/JobMatchView.vue";
 import JobRecommendationsView from "@/views/JobRecommendationsView.vue";
 
@@ -93,6 +94,28 @@ const routes = [
     name: "MyApplications",
     component: () => import("../views/MyApplicationsView.vue"),
     meta: { requiresAuth: true },
+  },
+  {
+    path: "/recruiter/jobs",
+    name: "RecruiterJobs",
+    component: () => import("../views/RecruiterJobsView.vue"),
+    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
+  },
+
+  {
+    path: "/recruiter/jobs/create",
+    name: "CreateRecruiterJob",
+    component: () => import("../views/CreateRecruiterJobView.vue"),
+    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
+  },
+  {
+    path: "/recruiter/jobs/edit/:id",
+    name: "EditRecruiterJob",
+    component: () => import("../views/EditRecruiterJobView.vue"),
+    meta: {
+      requiresAuth: true,
+      roles: ["Recruiter", "Admin"],
+    },
   },
 ];
 
