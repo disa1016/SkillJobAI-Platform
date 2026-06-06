@@ -96,13 +96,10 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-       </div>
+    </div>
 
     <div class="mt-4">
-      <router-link
-        to="/recruiter/applications"
-        class="btn btn-primary"
-      >
+      <router-link to="/recruiter/applications" class="btn btn-primary">
         Bewerbungen verwalten
       </router-link>
     </div>

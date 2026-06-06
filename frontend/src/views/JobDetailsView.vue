@@ -98,12 +98,9 @@ const applyToJob = async () => {
         </span>
 
         <p>{{ job.description }}</p>
-        <router-link
-  :to="`/jobs/${job.id}/skill-gap`"
-  class="btn btn-warning mb-3"
->
-  Skill Gap Analyse
-</router-link>
+        <router-link :to="`/jobs/${job.id}/skill-gap`" class="btn btn-warning mb-3">
+          Skill Gap Analyse
+        </router-link>
 
         <hr />
 

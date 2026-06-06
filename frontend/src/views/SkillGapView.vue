@@ -35,23 +35,19 @@ onMounted(async () => {
         </div>
 
         <div v-if="skillGap">
-           <div class="card mb-4 shadow-sm">
-  <div class="card-body">
-    <h4>{{ skillGap.jobTitle }}</h4>
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h4>{{ skillGap.jobTitle }}</h4>
 
-    <p class="mb-2">Match Score</p>
+                    <p class="mb-2">Match Score</p>
 
-    <div class="progress mb-3" style="height: 30px;">
-      <div
-        class="progress-bar"
-        role="progressbar"
-        :style="`width: ${skillGap.matchPercentage}%`"
-      >
-        {{ skillGap.matchPercentage }}%
-      </div>
-    </div>
-  </div>
-</div>
+                    <div class="progress mb-3" style="height: 30px;">
+                        <div class="progress-bar" role="progressbar" :style="`width: ${skillGap.matchPercentage}%`">
+                            {{ skillGap.matchPercentage }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div class="row">
                 <div class="col-md-4">
