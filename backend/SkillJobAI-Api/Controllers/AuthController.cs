@@ -45,7 +45,8 @@ public class AuthController : ControllerBase
             FullName = request.FullName,
             Email = request.Email,
             PasswordHash = _passwordService.HashPassword(request.Password),
-            Role = AppRoles.Candidate,
+            Role = request.Role == AppRoles.Recruiter?
+            AppRoles.Recruiter : AppRoles.Candidate,
             CreatedAt = DateTime.UtcNow
         };
 

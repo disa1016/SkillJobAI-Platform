@@ -15,12 +15,14 @@ import CoverLetterView from "@/views/CoverLetterView.vue";
 import CourseDetailsView from "@/views/CourseDetailsView.vue";
 import JobDetailsView from "@/views/JobDetailsView.vue";
 
-
 import JobMatchView from "../views/JobMatchView.vue";
 import JobRecommendationsView from "@/views/JobRecommendationsView.vue";
 
+import LandingView from "@/views/LandingView.vue";
+import NotFoundView from "@/views/NotFoundView.vue";
+
 const routes = [
-  { path: "/", redirect: "/login" },
+  { path: "/", component: LandingView },
   { path: "/login", component: LoginView },
   { path: "/register", component: RegisterView },
   { path: "/forgot-password", component: ForgotPasswordView },
@@ -118,10 +120,15 @@ const routes = [
     },
   },
   {
-  path: "/admin/dashboard",
-  name: "AdminDashboard",
-  component: () => import("../views/AdminDashboardView.vue"),
-  meta: { requiresAuth: true, roles: ["Admin"] },
+    path: "/admin/dashboard",
+    name: "AdminDashboard",
+    component: () => import("../views/AdminDashboardView.vue"),
+    meta: { requiresAuth: true, roles: ["Admin"] },
+  },
+  {
+  path: "/:pathMatch(.*)*",
+  name: "NotFound",
+  component: () => import("../views/NotFoundView.vue"),
 },
 ];
 
@@ -134,12 +141,32 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "null");
 
+  if (to.path === "/" && token) {
+    if (user?.role === "Admin") {
+      return next("/admin/dashboard");
+    }
+
+    if (user?.role === "Recruiter") {
+      return next("/recruiter/dashboard");
+    }
+
+    return next("/dashboard");
+  }
+
   if (to.meta.requiresAuth && !token) {
     return next("/login");
   }
 
   if (to.meta.roles && !to.meta.roles.includes(user?.role)) {
     return next("/dashboard");
+  }
+
+  if (to.path === "/dashboard" && user?.role === "Recruiter") {
+    return next("/recruiter/dashboard");
+  }
+
+  if (to.path === "/dashboard" && user?.role === "Admin") {
+    return next("/admin/dashboard");
   }
 
   next();

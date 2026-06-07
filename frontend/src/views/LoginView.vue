@@ -19,6 +19,7 @@ const login = async () => {
             email: email.value,
             password: password.value,
         });
+        const user = response.data.user;
 
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
@@ -61,10 +62,10 @@ const login = async () => {
                 <router-link to="/register">Registrieren</router-link>
             </p>
             <p class="text-center mt-3">
-  <router-link to="/forgot-password">
-    Passwort vergessen?
-  </router-link>
-</p>
+                <router-link to="/forgot-password">
+                    Passwort vergessen?
+                </router-link>
+            </p>
         </div>
     </div>
 </template>
