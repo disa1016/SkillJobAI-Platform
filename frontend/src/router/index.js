@@ -19,10 +19,11 @@ import JobMatchView from "../views/JobMatchView.vue";
 import JobRecommendationsView from "@/views/JobRecommendationsView.vue";
 
 import LandingView from "@/views/LandingView.vue";
-import NotFoundView from "@/views/NotFoundView.vue";
 
 const routes = [
   { path: "/", component: LandingView },
+  { path: "/home", component: LandingView },
+
   { path: "/login", component: LoginView },
   { path: "/register", component: RegisterView },
   { path: "/forgot-password", component: ForgotPasswordView },
@@ -32,9 +33,21 @@ const routes = [
     component: DashboardView,
     meta: { requiresAuth: true },
   },
-  { path: "/courses", component: CoursesView, meta: { requiresAuth: true } },
-  { path: "/jobs", component: JobsView, meta: { requiresAuth: true } },
-  { path: "/profile", component: ProfileView, meta: { requiresAuth: true } },
+  {
+    path: "/courses",
+    component: CoursesView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/jobs",
+    component: JobsView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/profile",
+    component: ProfileView,
+    meta: { requiresAuth: true },
+  },
   {
     path: "/courses/:id",
     component: CourseDetailsView,
@@ -80,6 +93,25 @@ const routes = [
     meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
   },
   {
+    path: "/recruiter/jobs",
+    name: "RecruiterJobs",
+    component: () => import("../views/RecruiterJobsView.vue"),
+    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
+  },
+  {
+    path: "/recruiter/jobs/create",
+    name: "CreateRecruiterJob",
+    component: () => import("../views/CreateRecruiterJobView.vue"),
+    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
+  },
+  {
+    path: "/recruiter/jobs/edit/:id",
+    name: "EditRecruiterJob",
+    component: () => import("../views/EditRecruiterJobView.vue"),
+    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
+  },
+
+  {
     path: "/jobs/:id/skill-gap",
     name: "SkillGap",
     component: () => import("../views/SkillGapView.vue"),
@@ -97,39 +129,19 @@ const routes = [
     component: () => import("../views/MyApplicationsView.vue"),
     meta: { requiresAuth: true },
   },
-  {
-    path: "/recruiter/jobs",
-    name: "RecruiterJobs",
-    component: () => import("../views/RecruiterJobsView.vue"),
-    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
-  },
 
-  {
-    path: "/recruiter/jobs/create",
-    name: "CreateRecruiterJob",
-    component: () => import("../views/CreateRecruiterJobView.vue"),
-    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
-  },
-  {
-    path: "/recruiter/jobs/edit/:id",
-    name: "EditRecruiterJob",
-    component: () => import("../views/EditRecruiterJobView.vue"),
-    meta: {
-      requiresAuth: true,
-      roles: ["Recruiter", "Admin"],
-    },
-  },
   {
     path: "/admin/dashboard",
     name: "AdminDashboard",
     component: () => import("../views/AdminDashboardView.vue"),
     meta: { requiresAuth: true, roles: ["Admin"] },
   },
+
   {
-  path: "/:pathMatch(.*)*",
-  name: "NotFound",
-  component: () => import("../views/NotFoundView.vue"),
-},
+    path: "/:pathMatch(.*)*",
+    name: "NotFound",
+    component: () => import("../views/NotFoundView.vue"),
+  },
 ];
 
 const router = createRouter({
@@ -158,6 +170,14 @@ router.beforeEach((to, from, next) => {
   }
 
   if (to.meta.roles && !to.meta.roles.includes(user?.role)) {
+    if (user?.role === "Admin") {
+      return next("/admin/dashboard");
+    }
+
+    if (user?.role === "Recruiter") {
+      return next("/recruiter/dashboard");
+    }
+
     return next("/dashboard");
   }
 

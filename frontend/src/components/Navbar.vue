@@ -15,6 +15,7 @@ const isCandidate = computed(
 const logout = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
+  user.value = null;
   router.push("/login");
 };
 </script>
@@ -22,54 +23,61 @@ const logout = () => {
 <template>
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid px-4">
-      <router-link
-        class="navbar-brand fw-bold"
-        :to="isAdmin ? '/admin/dashboard' : isRecruiter ? '/recruiter/dashboard' : '/dashboard'"
-      >
+      <router-link class="navbar-brand fw-bold"
+        :to="user ? (isAdmin ? '/admin/dashboard' : isRecruiter ? '/recruiter/dashboard' : '/dashboard') : '/home'">
         SkillJob AI
       </router-link>
 
       <div class="navbar-nav ms-auto align-items-center">
-        <!-- Candidate / Student -->
-        <template v-if="isCandidate">
-          <router-link class="nav-link" to="/dashboard">Dashboard</router-link>
-          <router-link class="nav-link" to="/courses">Courses</router-link>
-          <router-link class="nav-link" to="/jobs">Jobs</router-link>
-          <router-link class="nav-link" to="/profile/skills">My Skills</router-link>
-          <router-link class="nav-link" to="/my-applications">Meine Bewerbungen</router-link>
-          <router-link class="nav-link" to="/profile">Profile</router-link>
-          <router-link class="nav-link" to="/ai/cv-analyzer">AI Analyzer</router-link>
-          <router-link class="nav-link" to="/ai/job-match">Job Matcher</router-link>
-          <router-link class="nav-link" to="/ai/job-recommendations">Job Recommendations</router-link>
-          <router-link class="nav-link" to="/ai/cover-letter">Cover Letter</router-link>
+        <template v-if="!user">
+          <router-link to="/home" class="btn btn-outline-light btn-sm">
+            Startseite
+          </router-link>
         </template>
 
-        <!-- Recruiter -->
-        <template v-if="isRecruiter">
-          <router-link class="nav-link" to="/recruiter/dashboard">Recruiter Dashboard</router-link>
-          <router-link class="nav-link" to="/recruiter/jobs">Jobs verwalten</router-link>
-          <router-link class="nav-link" to="/recruiter/applications">Bewerbungen</router-link>
-          <router-link class="nav-link" to="/profile">Profile</router-link>
+        <template v-else>
+          <template v-if="isCandidate">
+            <router-link class="nav-link" to="/dashboard">Dashboard</router-link>
+            <router-link class="nav-link" to="/courses">Courses</router-link>
+            <router-link class="nav-link" to="/jobs">Jobs</router-link>
+            <router-link class="nav-link" to="/profile/skills">My Skills</router-link>
+            <router-link class="nav-link" to="/my-applications">Meine Bewerbungen</router-link>
+            <router-link class="nav-link" to="/profile">Profile</router-link>
+            <router-link class="nav-link" to="/ai/cv-analyzer">AI Analyzer</router-link>
+            <router-link class="nav-link" to="/ai/job-match">Job Matcher</router-link>
+            <router-link class="nav-link" to="/ai/job-recommendations">Job Recommendations</router-link>
+            <router-link class="nav-link" to="/ai/cover-letter">Cover Letter</router-link>
+          </template>
+
+          <template v-if="isRecruiter">
+            <router-link class="nav-link" to="/recruiter/dashboard">Recruiter Dashboard</router-link>
+            <router-link class="nav-link" to="/recruiter/jobs">Jobs verwalten</router-link>
+            <router-link class="nav-link" to="/recruiter/applications">Bewerbungen</router-link>
+            <router-link class="nav-link" to="/profile">Profile</router-link>
+          </template>
+
+          <template v-if="isAdmin">
+            <router-link class="nav-link" to="/admin/dashboard">Admin Dashboard</router-link>
+            <router-link class="nav-link" to="/recruiter/dashboard">Recruiter Dashboard</router-link>
+            <router-link class="nav-link" to="/recruiter/jobs">Jobs verwalten</router-link>
+            <router-link class="nav-link" to="/recruiter/applications">Bewerbungen</router-link>
+            <router-link class="nav-link" to="/jobs">Alle Jobs</router-link>
+            <router-link class="nav-link" to="/courses">Courses</router-link>
+            <router-link class="nav-link" to="/profile">Profile</router-link>
+          </template>
+
+          <span class="navbar-text text-white mx-3">
+            {{ user.fullName }} · {{ user.role }}
+          </span>
+
+          <router-link to="/home" class="btn btn-outline-light btn-sm me-2">
+            Startseite
+          </router-link>
+
+          <button class="btn btn-light btn-sm" @click="logout">
+            Logout
+          </button>
         </template>
-
-        <!-- Admin -->
-        <template v-if="isAdmin">
-          <router-link class="nav-link" to="/admin/dashboard">Admin Dashboard</router-link>
-          <router-link class="nav-link" to="/recruiter/dashboard">Recruiter Dashboard</router-link>
-          <router-link class="nav-link" to="/recruiter/jobs">Jobs verwalten</router-link>
-          <router-link class="nav-link" to="/recruiter/applications">Bewerbungen</router-link>
-          <router-link class="nav-link" to="/jobs">Alle Jobs</router-link>
-          <router-link class="nav-link" to="/courses">Courses</router-link>
-          <router-link class="nav-link" to="/profile">Profile</router-link>
-        </template>
-
-        <span v-if="user" class="navbar-text text-white mx-3">
-          {{ user.fullName }} · {{ user.role }}
-        </span>
-
-        <button class="btn btn-light btn-sm" @click="logout">
-          Logout
-        </button>
       </div>
     </div>
   </nav>
