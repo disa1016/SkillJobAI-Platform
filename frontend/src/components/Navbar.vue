@@ -58,6 +58,7 @@ const logout = () => {
 
           <template v-if="isAdmin">
             <router-link class="nav-link" to="/admin/dashboard">Admin Dashboard</router-link>
+            <router-link class="nav-link" to="/admin/users">User Management</router-link>
             <router-link class="nav-link" to="/recruiter/dashboard">Recruiter Dashboard</router-link>
             <router-link class="nav-link" to="/recruiter/jobs">Jobs verwalten</router-link>
             <router-link class="nav-link" to="/recruiter/applications">Bewerbungen</router-link>

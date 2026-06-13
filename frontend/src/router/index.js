@@ -142,6 +142,12 @@ const routes = [
     name: "NotFound",
     component: () => import("../views/NotFoundView.vue"),
   },
+ {
+  path: "/admin/users",
+  name: "AdminUsers",
+  component: () => import("../views/AdminUsersView.vue"),
+  meta: { requiresAuth: true, roles: ["Admin"] },
+},
 ];
 
 const router = createRouter({
