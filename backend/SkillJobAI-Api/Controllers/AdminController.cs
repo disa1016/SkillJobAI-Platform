@@ -21,6 +21,9 @@ public class AdminController : ControllerBase
     [HttpGet("dashboard")]
     public async Task<IActionResult> GetDashboard()
     {
+        var today = DateTime.UtcNow.Date;
+        var tomorrow = today.AddDays(1);
+
         return Ok(new
         {
             totalUsers = await _context.Users.CountAsync(),
@@ -28,7 +31,19 @@ public class AdminController : ControllerBase
             totalJobs = await _context.Jobs.CountAsync(),
             totalApplications = await _context.Applications.CountAsync(),
             totalCourses = await _context.Courses.CountAsync(),
-            totalSkills = await _context.Skills.CountAsync()
+            totalSkills = await _context.Skills.CountAsync(),
+
+            newUsersToday = await _context.Users
+                .CountAsync(u => u.CreatedAt >= today && u.CreatedAt < tomorrow),
+
+            newApplicationsToday = await _context.Applications
+                .CountAsync(a => a.CreatedAt >= today && a.CreatedAt < tomorrow),
+
+            totalRecruiters = await _context.Users
+                .CountAsync(u => u.Role == "Recruiter"),
+
+            totalAdmins = await _context.Users
+                .CountAsync(u => u.Role == "Admin")
         });
     }
     [HttpGet("users")]
