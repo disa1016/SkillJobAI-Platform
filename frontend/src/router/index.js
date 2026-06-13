@@ -142,12 +142,27 @@ const routes = [
     name: "NotFound",
     component: () => import("../views/NotFoundView.vue"),
   },
- {
-  path: "/admin/users",
-  name: "AdminUsers",
-  component: () => import("../views/AdminUsersView.vue"),
-  meta: { requiresAuth: true, roles: ["Admin"] },
-},
+  {
+    path: "/admin/users",
+    name: "AdminUsers",
+    component: () => import("../views/AdminUsersView.vue"),
+    meta: { requiresAuth: true, roles: ["Admin"] },
+  },
+  {
+    path: "/impressum",
+    name: "Impressum",
+    component: () => import("../views/ImpressumView.vue"),
+  },
+  {
+    path: "/privacy",
+    name: "Privacy",
+    component: () => import("../views/PrivacyView.vue"),
+  },
+  {
+    path: "/contact",
+    name: "Contact",
+    component: () => import("../views/ContactView.vue"),
+  },
 ];
 
 const router = createRouter({

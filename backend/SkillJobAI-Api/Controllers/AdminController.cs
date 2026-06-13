@@ -89,7 +89,7 @@ public class AdminController : ControllerBase
             {
                 message = "Du kannst deinen eigenen Account nicht löschen."
             });
-        }>
+        }
 
         if (user == null)
             return NotFound(new { message = "User not found." });
