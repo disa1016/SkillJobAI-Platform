@@ -30,10 +30,12 @@ public class SkillGapController : ControllerBase
             .FirstOrDefaultAsync(j => j.Id == jobId);
 
         if (job == null)
+        {
             return NotFound(new
             {
                 message = "Job not found."
             });
+        }
 
         var jobSkills = await _context.JobSkills
             .Where(js => js.JobId == jobId)
@@ -47,16 +49,19 @@ public class SkillGapController : ControllerBase
             .Select(us => us.Skill.Name)
             .ToListAsync();
 
+        var matchedSkills = jobSkills
+            .Intersect(userSkills)
+            .ToList();
+
         var missingSkills = jobSkills
             .Except(userSkills)
             .ToList();
 
-        var matchPercentage =
-            jobSkills.Count == 0
-            ? 100
-            : (int)Math.Round(
-                ((double)(jobSkills.Count - missingSkills.Count)
-                / jobSkills.Count) * 100);
+        var hasJobSkills = jobSkills.Any();
+
+        var matchPercentage = hasJobSkills
+            ? (int)Math.Round(((double)matchedSkills.Count / jobSkills.Count) * 100)
+            : 0;
 
         var recommendedCourses = await _context.CourseSkills
             .Where(cs => missingSkills.Contains(cs.Skill.Name))
@@ -68,12 +73,16 @@ public class SkillGapController : ControllerBase
             })
             .Distinct()
             .ToListAsync();
+
         return Ok(new
         {
             jobId = job.Id,
             jobTitle = job.Title,
+            hasJobSkills,
             matchPercentage,
+            jobSkills,
             userSkills,
+            matchedSkills,
             missingSkills,
             recommendedCourses
         });

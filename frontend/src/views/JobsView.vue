@@ -34,12 +34,16 @@ onMounted(async () => {
             <div v-for="job in jobs" :key="job.id" class="col-md-4 mb-3">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
+
                         <h5 class="card-title">
                             {{ job.title }}
                         </h5>
 
-                        <p v-if="job.company">
-                            {{ job.company.name }}
+                        <p v-if="job.company" class="mb-2 text-muted">
+                            Firma:
+                            <router-link :to="`/companies/${job.company.id}`" class="text-decoration-none fw-semibold">
+                                {{ job.company.name }}
+                            </router-link>
                         </p>
 
                         <p class="card-text">

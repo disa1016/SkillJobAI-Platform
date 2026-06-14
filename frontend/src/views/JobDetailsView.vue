@@ -1,3 +1,4 @@
+hier ist der Code :
 <script setup>
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
@@ -13,6 +14,8 @@ const loading = ref(true);
 const generating = ref(false);
 const error = ref("");
 const success = ref("");
+
+const skillGap = ref(null);
 
 const user = JSON.parse(localStorage.getItem("user"));
 
@@ -90,9 +93,16 @@ const applyToJob = async () => {
       <div class="card-body">
         <h1>{{ job.title }}</h1>
 
-        <p v-if="job.company">
-          <strong>{{ job.company.name }}</strong> · {{ job.company.location }}
+        <p v-if="job.company" class="text-muted mb-2">
+          Firma:
+          <router-link :to="`/companies/${job.company.id}`" class="text-decoration-none fw-semibold">
+            {{ job.company.name }}
+          </router-link>
+          <span v-if="job.company.location">
+            · {{ job.company.location }}
+          </span>
         </p>
+
         <span class="badge bg-success mb-3">
           {{ job.salary }}
         </span>

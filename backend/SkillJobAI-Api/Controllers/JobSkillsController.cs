@@ -40,7 +40,7 @@ public class JobSkillsController : ControllerBase
         return Ok(skills);
     }
 
-    [Authorize]
+    [Authorize (Roles = "Recruiter,Admin")]
     [HttpPost("{skillId}")]
     public async Task<IActionResult> AddSkillToJob(int jobId, int skillId)
     {
@@ -83,7 +83,7 @@ public class JobSkillsController : ControllerBase
         });
     }
 
-    [Authorize]
+    [Authorize (Roles = "Recruiter, Admin")]
     [HttpDelete("{skillId}")]
     public async Task<IActionResult> RemoveSkillFromJob(int jobId, int skillId)
     {

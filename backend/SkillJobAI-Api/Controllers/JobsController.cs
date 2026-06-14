@@ -52,24 +52,25 @@ public class JobsController : ControllerBase
             .Include(j => j.Company)
             .Where(j => j.Id == id)
             .Select(j => new
-            {
-                id = j.Id,
-                title = j.Title,
-                description = j.Description,
-                location = j.Location,
-                salary = j.Salary,
-                createdAt = j.CreatedAt,
-                companyId = j.CompanyId,
-                company = j.Company == null ? null : new
-                {
-                    id = j.Company.Id,
-                    name = j.Company.Name,
-                    description = j.Company.Description,
-                    websiteUrl = j.Company.WebsiteUrl,
-                    logoUrl = j.Company.LogoUrl,
-                    location = j.Company.Location
-                }
-            })
+{
+    id = j.Id,
+    title = j.Title,
+    description = j.Description,
+    location = j.Location,
+    salary = j.Salary,
+    createdAt = j.CreatedAt,
+    companyId = j.CompanyId,
+    companyName = j.Company != null ? j.Company.Name : null,
+    company = j.Company == null ? null : new
+    {
+        id = j.Company.Id,
+        name = j.Company.Name,
+        description = j.Company.Description,
+        websiteUrl = j.Company.WebsiteUrl,
+        logoUrl = j.Company.LogoUrl,
+        location = j.Company.Location
+    }
+})
             .FirstOrDefaultAsync();
 
         if (job == null)
