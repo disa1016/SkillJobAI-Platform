@@ -7,8 +7,8 @@ const loading = ref(true);
 const error = ref("");
 
 const getStatusClass = (status) => {
-    if (status === "Pending") return "bg-warning";
-    if (status === "Reviewed") return "bg-info";
+    if (status === "Pending") return "bg-warning text-dark";
+    if (status === "Reviewed") return "bg-info text-dark";
     if (status === "Accepted") return "bg-success";
     if (status === "Rejected") return "bg-danger";
     return "bg-secondary";
@@ -63,8 +63,35 @@ onMounted(async () => {
                             {{ application.status }}
                         </span>
 
+                        <div v-if="application.status === 'Rejected'" class="alert alert-warning mt-3">
+                            Deine Bewerbung wurde abgelehnt. Du kannst deine fehlenden Skills prüfen,
+                            passende Kurse machen und dich danach erneut bewerben.
+                        </div>
+
+                        <div v-if="application.status === 'Accepted'" class="alert alert-success mt-3">
+                            Glückwunsch! Deine Bewerbung wurde angenommen.
+                        </div>
+
+                        <div class="d-flex gap-2 mt-3 flex-wrap">
+                            <router-link v-if="application.job?.id" :to="`/jobs/${application.job.id}`"
+                                class="btn btn-outline-primary btn-sm">
+                                Job ansehen
+                            </router-link>
+
+                            <router-link v-if="application.job?.id" :to="`/jobs/${application.job.id}/skill-gap`"
+                                class="btn btn-outline-warning btn-sm">
+                                Skill Gap ansehen
+                            </router-link>
+
+                            <router-link v-if="application.status === 'Rejected' && application.job?.id"
+                                :to="`/jobs/${application.job.id}`" class="btn btn-primary btn-sm">
+                                Erneut bewerben
+                            </router-link>
+                        </div>
+
                         <p class="text-muted mt-3 mb-0">
-                            Beworben am: {{ new Date(application.createdAt).toLocaleDateString() }}
+                            Beworben am:
+                            {{ new Date(application.createdAt).toLocaleDateString("de-DE") }}
                         </p>
                     </div>
                 </div>

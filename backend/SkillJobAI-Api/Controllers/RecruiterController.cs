@@ -16,7 +16,7 @@ public class RecruiterController : ControllerBase
         _context = context;
     }
 
-    [Authorize]
+    [Authorize(Roles = "Recruiter,Admin")]
     [HttpGet("dashboard")]
     public async Task<IActionResult> GetDashboard()
     {
@@ -36,6 +36,56 @@ public class RecruiterController : ControllerBase
         var rejectedApplications = await _context.Applications
             .CountAsync(a => a.Status == "Rejected");
 
+        var recentApplications = await _context.Applications
+            .OrderByDescending(a => a.CreatedAt)
+            .Take(5)
+            .Select(a => new
+            {
+                id = a.Id,
+                status = a.Status,
+                createdAt = a.CreatedAt,
+                coverLetter = a.CoverLetter,
+                job = _context.Jobs
+                    .Where(j => j.Id == a.JobId)
+                    .Select(j => new
+                    {
+                        id = j.Id,
+                        title = j.Title,
+                        company = j.Company != null ? j.Company.Name : null
+                    })
+                    .FirstOrDefault(),
+                candidate = _context.Users
+                    .Where(u => u.Id == a.UserId)
+                    .Select(u => new
+                    {
+                        id = u.Id,
+                        fullName = u.FullName,
+                        email = u.Email
+                    })
+                    .FirstOrDefault()
+            })
+            .ToListAsync();
+
+        var topJobsByApplications = await _context.Applications
+            .GroupBy(a => a.JobId)
+            .Select(g => new
+            {
+                jobId = g.Key,
+                applicationsCount = g.Count(),
+                job = _context.Jobs
+                    .Where(j => j.Id == g.Key)
+                    .Select(j => new
+                    {
+                        id = j.Id,
+                        title = j.Title,
+                        company = j.Company != null ? j.Company.Name : null
+                    })
+                    .FirstOrDefault()
+            })
+            .OrderByDescending(x => x.applicationsCount)
+            .Take(5)
+            .ToListAsync();
+
         return Ok(new
         {
             totalCompanies,
@@ -44,7 +94,9 @@ public class RecruiterController : ControllerBase
             pendingApplications,
             reviewedApplications,
             acceptedApplications,
-            rejectedApplications
+            rejectedApplications,
+            recentApplications,
+            topJobsByApplications
         });
     }
 }

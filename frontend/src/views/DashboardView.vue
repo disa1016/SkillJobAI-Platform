@@ -4,22 +4,21 @@ import api from "../services/api";
 
 const user = JSON.parse(localStorage.getItem("user"));
 
-const applications = ref([]);
-const enrollments = ref([]);
-const progress = ref([]);
+const dashboard = ref(null);
 
 const loading = ref(true);
 const error = ref("");
 
+const getMatchClass = (score) => {
+  if (score >= 70) return "bg-success";
+  if (score >= 40) return "bg-warning text-dark";
+  return "bg-danger";
+};
+
 onMounted(async () => {
   try {
-    const applicationsResponse = await api.get("/applications/my");
-    const enrollmentsResponse = await api.get("/enrollments/my");
-    const progressResponse = await api.get("/progress/my");
-
-    applications.value = applicationsResponse.data;
-    enrollments.value = enrollmentsResponse.data;
-    progress.value = progressResponse.data;
+    const response = await api.get("/candidate/dashboard");
+    dashboard.value = response.data;
   } catch {
     error.value = "Dashboard-Daten konnten nicht geladen werden.";
   } finally {
@@ -27,6 +26,7 @@ onMounted(async () => {
   }
 });
 </script>
+
 
 <template>
   <div class="container mt-4">
@@ -46,39 +46,116 @@ onMounted(async () => {
       {{ error }}
     </div>
 
-    <div class="row">
-      <div class="col-md-4 mb-3">
-        <div class="card shadow-sm border-primary h-100">
-          <div class="card-body">
-            <h5>Meine Bewerbungen</h5>
-            <p class="display-5 text-primary">
-              {{ applications.length }}
-            </p>
+    <div v-if="dashboard">
+
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <div class="card shadow-sm border-primary h-100">
+            <div class="card-body">
+              <h5>Meine Bewerbungen</h5>
+              <p class="display-5 text-primary">
+                {{ dashboard.applicationsCount }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <div class="card shadow-sm border-success h-100">
+            <div class="card-body">
+              <h5>Meine Kurse</h5>
+              <p class="display-5 text-success">
+                {{ dashboard.enrollmentsCount }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <div class="card shadow-sm border-warning h-100">
+            <div class="card-body">
+              <h5>Abgeschlossene Lektionen</h5>
+              <p class="display-5 text-warning">
+                {{ dashboard.completedLessonsCount }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="col-md-4 mb-3">
-        <div class="card shadow-sm border-success h-100">
-          <div class="card-body">
-            <h5>Meine Kurse</h5>
-            <p class="display-5 text-success">
-              {{ enrollments.length }}
-            </p>
+      <!-- Meine Skills -->
+
+      <div class="card shadow-sm mt-4">
+        <div class="card-body">
+          <h4>Meine Skills</h4>
+
+          <div class="mt-3">
+            <span v-for="skill in dashboard.userSkills" :key="skill" class="badge bg-success me-2 mb-2">
+               {{ skill }}
+            </span>
           </div>
         </div>
       </div>
 
-      <div class="col-md-4 mb-3">
-        <div class="card shadow-sm border-warning h-100">
-          <div class="card-body">
-            <h5>Abgeschlossene Lektionen</h5>
-            <p class="display-5 text-warning">
-              {{ progress.length }}
-            </p>
+      <!-- Fehlende Skills -->
+
+      <div v-if="dashboard.missingSkills?.length" class="card shadow-sm mt-4">
+        <div class="card-body">
+          <h4>Empfohlene Skills</h4>
+
+          <div class="mt-3">
+            <span v-for="skill in dashboard.missingSkills" :key="skill" class="badge bg-danger me-2 mb-2">
+              ✗ {{ skill }}
+            </span>
           </div>
         </div>
       </div>
+
+      <!-- Kursempfehlungen -->
+
+      <div v-if="dashboard.recommendedCourses?.length" class="card shadow-sm mt-4">
+        <div class="card-body">
+          <h4>Empfohlene Kurse</h4>
+
+          <div class="mt-3">
+            <router-link v-for="course in dashboard.recommendedCourses" :key="course.id" :to="`/courses/${course.id}`"
+              class="badge bg-primary me-2 mb-2 text-decoration-none">
+               {{ course.title }}
+            </router-link>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Job Matches -->
+
+      <div v-if="dashboard.topJobMatches?.length" class="card shadow-sm mt-4">
+        <div class="card-body">
+          <h4>Top Job Matches</h4>
+
+          <div v-for="job in dashboard.topJobMatches" :key="job.id" class="border rounded p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div>
+                <h5 class="mb-1">
+                  {{ job.title }}
+                </h5>
+
+                <p class="text-muted mb-0">
+                  {{ job.company?.name }}
+                </p>
+              </div>
+
+              <span class="badge" :class="getMatchClass(job.matchPercentage)">
+                {{ job.matchPercentage }}%
+              </span>
+            </div>
+
+            <router-link :to="`/jobs/${job.id}`" class="btn btn-outline-primary btn-sm">
+              Job ansehen
+            </router-link>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>

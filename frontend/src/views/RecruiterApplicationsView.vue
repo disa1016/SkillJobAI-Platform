@@ -52,9 +52,21 @@ const updateStatus = async (applicationId, status) => {
     }
 };
 
+const getScoreBadgeClass = (score) => {
+    if (score >= 70) return "bg-success";
+    if (score >= 40) return "bg-warning text-dark";
+    return "bg-danger";
+};
+
+const getStatusBadgeClass = (status) => {
+    if (status === "Accepted") return "bg-success";
+    if (status === "Rejected") return "bg-danger";
+    if (status === "Reviewed") return "bg-info text-dark";
+    return "bg-warning text-dark";
+};
+
 onMounted(loadJobs);
 </script>
-
 <template>
     <div class="container py-4">
         <h2 class="mb-4">Recruiter Applications</h2>
@@ -92,20 +104,79 @@ onMounted(loadJobs);
 
         <div v-if="applications.length > 0" class="card shadow-sm">
             <div class="card-body">
-                <h5>Bewerbungen</h5>
+                <h5 class="mb-3">Bewerbungen Ranking</h5>
 
-                <div v-for="application in applications" :key="application.id" class="border rounded p-3 mb-3">
-                    <h6>{{ application.candidate?.fullName }}</h6>
-                    <p class="text-muted mb-1">
-                        {{ application.candidate?.email }}
-                    </p>
+                <div v-for="(application, index) in applications" :key="application.id" class="border rounded p-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h5 class="mb-1">
+                                #{{ index + 1 }} {{ application.candidate?.fullName }}
+                            </h5>
+
+                            <p class="text-muted mb-1">
+                                {{ application.candidate?.email }}
+                            </p>
+                        </div>
+
+                        <span class="badge fs-6" :class="getScoreBadgeClass(application.matchPercentage)">
+                            Match {{ application.matchPercentage }}%
+                        </span>
+                    </div>
+
+                    <div class="progress mb-3" style="height: 24px;">
+                        <div class="progress-bar" role="progressbar"
+                            :class="getScoreBadgeClass(application.matchPercentage)"
+                            :style="`width: ${application.matchPercentage}%`">
+                            {{ application.matchPercentage }}%
+                        </div>
+                    </div>
 
                     <p>
                         <strong>Status:</strong>
-                        <span class="badge bg-secondary">
+                        <span class="badge" :class="getStatusBadgeClass(application.status)">
                             {{ application.status }}
                         </span>
                     </p>
+
+                    <div v-if="application.matchedSkills?.length" class="mb-2">
+                        <strong>Passende Skills:</strong>
+
+                        <div class="mt-2">
+                            <span v-for="skill in application.matchedSkills" :key="skill"
+                                class="badge bg-success me-2 mb-2">
+                                {{ skill }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div v-if="application.missingSkills?.length" class="mb-2">
+                        <strong>Fehlende Skills:</strong>
+                        <div class="mt-2">
+                            <span v-for="skill in application.missingSkills" :key="skill"
+                                class="badge bg-danger me-2 mb-2">
+                                ✗ {{ skill }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div v-if="application.recommendedCourses?.length" class="mb-3">
+                        <strong>Empfohlene Kurse:</strong>
+
+                        <div class="mt-2">
+                            <router-link v-for="course in application.recommendedCourses"
+                                :key="course.id + '-' + course.skill" :to="`/courses/${course.id}`"
+                                class="badge bg-primary me-2 mb-2 text-decoration-none">
+                                {{ course.title }} für {{ course.skill }}
+                            </router-link>
+                        </div>
+                    </div>
+
+                    <div v-if="
+                        (!application.matchedSkills || application.matchedSkills.length === 0) &&
+                        (!application.missingSkills || application.missingSkills.length === 0)
+                    " class="alert alert-warning">
+                        Für diesen Job wurden noch keine Skills hinterlegt.
+                    </div>
 
                     <p v-if="application.coverLetter">
                         <strong>Anschreiben:</strong><br />

@@ -62,8 +62,10 @@ const register = async () => {
       <div class="mb-3">
         <label class="form-label">Account-Typ</label>
         <select v-model="role" class="form-select">
-          <option value="Student">Student / Candidate</option>
-          <option value="Recruiter">Recruiter / Employer</option>
+          <option value="Student">Student </option>
+          <option value="Candidate">Candidate</option>
+          <option value="Recruiter">Recruiter </option>
+          <option value=" Employer"> Employer</option>
         </select>
       </div>
 

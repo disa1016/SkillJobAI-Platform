@@ -186,6 +186,12 @@ const routes = [
     name: "NotFound",
     component: () => import("../views/NotFoundView.vue"),
   },
+  {
+    path: "/recruiter/candidates",
+    name: "RecruiterCandidates",
+    component: () => import("../views/RecruiterCandidatesView.vue"),
+    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
+  },
 ];
 
 const router = createRouter({
