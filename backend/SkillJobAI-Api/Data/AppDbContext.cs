@@ -36,6 +36,11 @@ public class AppDbContext : DbContext
     public DbSet<CourseSkill> CourseSkills => Set<CourseSkill>();
 
     public DbSet<UserSkill> UserSkills => Set<UserSkill>();
+    public DbSet<CareerGoal> CareerGoals => Set<CareerGoal>();
+    public DbSet<CareerGoalSkill> CareerGoalSkills => Set<CareerGoalSkill>();
+    public DbSet<UserCareerGoal> UserCareerGoals => Set<UserCareerGoal>();
+
+
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

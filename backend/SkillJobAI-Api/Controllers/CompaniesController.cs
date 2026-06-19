@@ -126,6 +126,58 @@ public class CompaniesController : ControllerBase
         });
     }
 
+    [Authorize(Roles = "Recruiter,Admin")]
+    [HttpPost("{id}/logo")]
+    public async Task<IActionResult> UploadCompanyLogo(int id, IFormFile file)
+    {
+        var company = await _context.Companies.FindAsync(id);
+
+        if (company == null)
+            return NotFound(new { message = "Company not found." });
+
+        if (file == null || file.Length == 0)
+            return BadRequest(new { message = "No file uploaded." });
+
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+        var extension = Path.GetExtension(file.FileName).ToLower();
+
+        if (!allowedExtensions.Contains(extension))
+        {
+            return BadRequest(new
+            {
+                message = "Only JPG, PNG and WEBP files are allowed."
+            });
+        }
+
+        var uploadsFolder = Path.Combine(
+            Directory.GetCurrentDirectory(),
+            "wwwroot",
+            "uploads",
+            "companies"
+        );
+
+        if (!Directory.Exists(uploadsFolder))
+            Directory.CreateDirectory(uploadsFolder);
+
+        var fileName = $"company-{id}-{Guid.NewGuid()}{extension}";
+        var filePath = Path.Combine(uploadsFolder, fileName);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        company.LogoUrl = $"/uploads/companies/{fileName}";
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            message = "Logo uploaded successfully.",
+            logoUrl = company.LogoUrl
+        });
+    }
+
     [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCompany(int id)
