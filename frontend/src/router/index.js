@@ -192,6 +192,11 @@ const routes = [
     component: () => import("../views/RecruiterCandidatesView.vue"),
     meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
   },
+  {
+    path: "/career-roadmap",
+    component: () => import("../views/CareerRoadmapView.vue"),
+    meta: { requiresAuth: true },
+  },
 ];
 
 const router = createRouter({
