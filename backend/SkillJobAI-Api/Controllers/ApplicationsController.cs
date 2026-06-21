@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using SkillJobAI.Api.Data;
 using SkillJobAI.Api.Entities;
 using SkillJobAI.Api.Models;
+using SkillJobAI.Api.Services;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -13,13 +14,14 @@ namespace SkillJobAI.Api.Controllers;
 public class ApplicationsController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly IEmailService _emailService;
 
-    public ApplicationsController(AppDbContext context)
+    public ApplicationsController(AppDbContext context, IEmailService emailService)
     {
         _context = context;
+        _emailService = emailService;
     }
 
-    // Bewerbung erstellen
     [Authorize]
     [HttpPost]
     public async Task<IActionResult> CreateApplication(Application application)
@@ -66,7 +68,6 @@ public class ApplicationsController : ControllerBase
         return Ok(application);
     }
 
-    // Meine Bewerbungen
     [Authorize]
     [HttpGet("my")]
     public async Task<IActionResult> MyApplications()
@@ -102,7 +103,6 @@ public class ApplicationsController : ControllerBase
         return Ok(applications);
     }
 
-    // Bewerbungen für einen bestimmten Job abrufen
     [Authorize]
     [HttpGet("job/{jobId}")]
     public async Task<IActionResult> GetApplicationsForJob(int jobId)
@@ -200,8 +200,8 @@ public class ApplicationsController : ControllerBase
     [Authorize]
     [HttpPut("{id}/status")]
     public async Task<IActionResult> UpdateApplicationStatus(
-        int id,
-        [FromBody] UpdateApplicationStatusRequest request)
+    int id,
+    [FromBody] UpdateApplicationStatusRequest request)
     {
         var application = await _context.Applications
             .FirstOrDefaultAsync(a => a.Id == id);
@@ -217,6 +217,39 @@ public class ApplicationsController : ControllerBase
         application.Status = request.Status;
 
         await _context.SaveChangesAsync();
+
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == application.UserId);
+
+        var job = await _context.Jobs
+            .Include(j => j.Company)
+            .FirstOrDefaultAsync(j => j.Id == application.JobId);
+
+        try
+        {
+            if (user != null && job != null)
+            {
+                await _emailService.SendEmailAsync(
+                    user.Email,
+                    "Dein Bewerbungsstatus wurde aktualisiert - SkillJob AI",
+                    $@"
+                <h2>Bewerbungsstatus aktualisiert</h2>
+                <p>Hallo {user.FullName},</p>
+                <p>dein Bewerbungsstatus für die Stelle <strong>{job.Title}</strong> wurde aktualisiert.</p>
+                <p><strong>Firma:</strong> {job.Company?.Name ?? "Keine Firma angegeben"}</p>
+                <p><strong>Neuer Status:</strong> {application.Status}</p>
+                <br/>
+                <p>Viele Grüße</p>
+                <p>Dein SkillJob AI Team</p>"
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("EMAIL ERROR:");
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.InnerException?.Message);
+        }
 
         return Ok(application);
     }

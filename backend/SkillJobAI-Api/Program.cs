@@ -5,12 +5,18 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SkillJobAI.Api.Data;
+using SkillJobAI.Api.Models;
 using SkillJobAI.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Controller aktivieren
 builder.Services.AddControllers();
+
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
+
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // PostgreSQL Datenbank verbinden
 builder.Services.AddDbContext<AppDbContext>(options =>
