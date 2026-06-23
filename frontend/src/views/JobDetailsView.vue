@@ -1,4 +1,3 @@
-hier ist der Code :
 <script setup>
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
@@ -10,12 +9,15 @@ const job = ref(null);
 const coverLetter = ref("");
 const cvSummary = ref("");
 
+const cvFile = ref(null);
+const certificateFile = ref(null);
+const portfolioFile = ref(null);
+
 const loading = ref(true);
 const generating = ref(false);
+const submitting = ref(false);
 const error = ref("");
 const success = ref("");
-
-const skillGap = ref(null);
 
 const user = JSON.parse(localStorage.getItem("user"));
 
@@ -30,6 +32,61 @@ onMounted(async () => {
   }
 });
 
+const validatePdf = (file) => {
+  if (!file) return true;
+
+  if (file.type !== "application/pdf") {
+    error.value = "Bitte nur PDF-Dateien hochladen.";
+    return false;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    error.value = "PDF-Dateien dürfen maximal 5MB groß sein.";
+    return false;
+  }
+
+  return true;
+};
+
+const handleCvFile = (event) => {
+  error.value = "";
+  const file = event.target.files[0];
+
+  if (!validatePdf(file)) {
+    event.target.value = "";
+    cvFile.value = null;
+    return;
+  }
+
+  cvFile.value = file || null;
+};
+
+const handleCertificateFile = (event) => {
+  error.value = "";
+  const file = event.target.files[0];
+
+  if (!validatePdf(file)) {
+    event.target.value = "";
+    certificateFile.value = null;
+    return;
+  }
+
+  certificateFile.value = file || null;
+};
+
+const handlePortfolioFile = (event) => {
+  error.value = "";
+  const file = event.target.files[0];
+
+  if (!validatePdf(file)) {
+    event.target.value = "";
+    portfolioFile.value = null;
+    return;
+  }
+
+  portfolioFile.value = file || null;
+};
+
 const generateCoverLetter = async () => {
   error.value = "";
   success.value = "";
@@ -38,7 +95,7 @@ const generateCoverLetter = async () => {
   try {
     const response = await api.post("/ai/generate-cover-letter", {
       fullName: user?.fullName || "",
-      company: job.value.company,
+     company: job.value.company?.name || "das Unternehmen",
       jobTitle: job.value.title,
       cvSummary: cvSummary.value,
     });
@@ -55,22 +112,52 @@ const generateCoverLetter = async () => {
 const applyToJob = async () => {
   error.value = "";
   success.value = "";
+  submitting.value = true;
 
   try {
-    await api.post("/applications", {
-      jobId: job.value.id,
-      coverLetter: coverLetter.value,
+    const formData = new FormData();
+
+    formData.append("jobId", job.value.id);
+    formData.append("coverLetter", coverLetter.value);
+
+    if (cvFile.value) {
+      formData.append("cvFile", cvFile.value);
+    }
+
+    if (certificateFile.value) {
+      formData.append("certificateFile", certificateFile.value);
+    }
+
+    if (portfolioFile.value) {
+      formData.append("portfolioFile", portfolioFile.value);
+    }
+
+    await api.post("/applications", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     });
 
     success.value = "Bewerbung wurde erfolgreich gesendet.";
+
     coverLetter.value = "";
     cvSummary.value = "";
+    cvFile.value = null;
+    certificateFile.value = null;
+    portfolioFile.value = null;
+
+    const fileInputs = document.querySelectorAll("input[type='file']");
+    fileInputs.forEach((input) => {
+      input.value = "";
+    });
   } catch (err) {
     if (err.response?.data?.message) {
       error.value = err.response.data.message;
     } else {
       error.value = "Bewerbung konnte nicht gesendet werden.";
     }
+  } finally {
+    submitting.value = false;
   }
 };
 </script>
@@ -108,6 +195,7 @@ const applyToJob = async () => {
         </span>
 
         <p>{{ job.description }}</p>
+
         <router-link :to="`/jobs/${job.id}/skill-gap`" class="btn btn-warning mb-3">
           Skill Gap Analyse
         </router-link>
@@ -129,11 +217,49 @@ const applyToJob = async () => {
           {{ generating ? "Generiere..." : "AI Anschreiben generieren" }}
         </button>
 
-        <textarea v-model="coverLetter" class="form-control mb-3" rows="8"
-          placeholder="Schreibe dein Anschreiben oder generiere es mit AI..."></textarea>
+        <div class="mb-3">
+          <label class="form-label">Anschreiben</label>
 
-        <button class="btn btn-primary" @click="applyToJob" :disabled="!coverLetter">
-          Bewerbung senden
+          <textarea v-model="coverLetter" class="form-control" rows="8"
+            placeholder="Schreibe dein Anschreiben oder generiere es mit AI..."></textarea>
+        </div>
+
+        <div class="card bg-light border-0 mb-3">
+          <div class="card-body">
+            <h5 class="mb-3">Bewerbungsunterlagen</h5>
+
+            <div class="mb-3">
+              <label class="form-label">
+                Lebenslauf / CV als PDF
+              </label>
+
+              <input type="file" accept="application/pdf" class="form-control" @change="handleCvFile" />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">
+                Zeugnis / Zertifikat als PDF
+              </label>
+
+              <input type="file" accept="application/pdf" class="form-control" @change="handleCertificateFile" />
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label">
+                Portfolio als PDF
+              </label>
+
+              <input type="file" accept="application/pdf" class="form-control" @change="handlePortfolioFile" />
+            </div>
+
+            <small class="text-muted">
+              Erlaubt sind nur PDF-Dateien bis maximal 5MB.
+            </small>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" @click="applyToJob" :disabled="!coverLetter || submitting">
+          {{ submitting ? "Bewerbung wird gesendet..." : "Bewerbung senden" }}
         </button>
       </div>
     </div>

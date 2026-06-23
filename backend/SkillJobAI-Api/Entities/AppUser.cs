@@ -12,5 +12,7 @@ public class AppUser
 
     public string Role { get; set; } = "Student";
 
+    public string? CvUrl { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

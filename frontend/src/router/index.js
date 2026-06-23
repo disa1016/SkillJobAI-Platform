@@ -93,6 +93,12 @@ const routes = [
     meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
   },
   {
+    path: "/recruiter/applications/:id",
+    name: "RecruiterApplicationDetails",
+    component: () => import("../views/RecruiterApplicationDetailsView.vue"),
+    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
+  },
+  {
     path: "/recruiter/jobs",
     name: "RecruiterJobs",
     component: () => import("../views/RecruiterJobsView.vue"),
@@ -197,6 +203,18 @@ const routes = [
     component: () => import("../views/CareerRoadmapView.vue"),
     meta: { requiresAuth: true },
   },
+  {
+    path: "/recruiter/candidates/:id",
+    name: "RecruiterCandidateDetails",
+    component: () => import("../views/RecruiterCandidateDetailsView.vue"),
+    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
+  },
+  {
+  path: "/admin/company-members",
+  name: "AdminCompanyMembers",
+  component: () => import("../views/AdminCompanyMembersView.vue"),
+  meta: { requiresAuth: true, roles: ["Admin"] },
+},
 ];
 
 const router = createRouter({

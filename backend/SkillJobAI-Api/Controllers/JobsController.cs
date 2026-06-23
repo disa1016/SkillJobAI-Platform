@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,37 @@ public class JobsController : ControllerBase
         _context = context;
     }
 
-    // Alle Jobs abrufen
+    private int? GetCurrentUserId()
+    {
+        var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userIdValue))
+            return null;
+
+        return int.TryParse(userIdValue, out var userId) ? userId : null;
+    }
+
+    private bool IsAdmin()
+    {
+        return User.IsInRole("Admin");
+    }
+
+    private async Task<bool> UserCanManageCompany(int companyId)
+    {
+        if (IsAdmin())
+            return true;
+
+        var userId = GetCurrentUserId();
+
+        if (userId == null)
+            return false;
+
+        return await _context.CompanyMembers
+            .AnyAsync(cm =>
+                cm.CompanyId == companyId &&
+                cm.UserId == userId.Value);
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetJobs()
     {
@@ -45,7 +76,6 @@ public class JobsController : ControllerBase
         return Ok(jobs);
     }
 
-    // Einzelnen Job abrufen
     [HttpGet("{id}")]
     public async Task<IActionResult> GetJob(int id)
     {
@@ -75,18 +105,25 @@ public class JobsController : ControllerBase
             .FirstOrDefaultAsync();
 
         if (job == null)
-            return NotFound();
+            return NotFound(new { message = "Job not found." });
 
         return Ok(job);
     }
 
-    // Job erstellen
-    [Authorize]
+    [Authorize(Roles = "Recruiter,Admin")]
     [HttpPost]
     public async Task<IActionResult> CreateJob(Job job)
     {
+        if (job.CompanyId == null)
+        {
+            return BadRequest(new
+            {
+                message = "CompanyId is required."
+            });
+        }
+
         var companyExists = await _context.Companies
-            .AnyAsync(c => c.Id == job.CompanyId);
+            .AnyAsync(c => c.Id == job.CompanyId.Value);
 
         if (!companyExists)
         {
@@ -94,6 +131,13 @@ public class JobsController : ControllerBase
             {
                 message = "Company not found."
             });
+        }
+
+        var canManageCompany = await UserCanManageCompany(job.CompanyId.Value);
+
+        if (!canManageCompany)
+        {
+            return Forbid();
         }
 
         job.CreatedAt = DateTime.UtcNow;
@@ -113,7 +157,7 @@ public class JobsController : ControllerBase
         });
     }
 
-    [Authorize]
+    [Authorize(Roles = "Recruiter,Admin")]
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateJob(int id, Job request)
     {
@@ -122,11 +166,27 @@ public class JobsController : ControllerBase
         if (job == null)
             return NotFound(new { message = "Job not found." });
 
-        var companyExists = await _context.Companies
-            .AnyAsync(c => c.Id == request.CompanyId);
+        if (job.CompanyId == null)
+            return BadRequest(new { message = "Job has no company." });
 
-        if (!companyExists)
+        var canManageCurrentCompany = await UserCanManageCompany(job.CompanyId.Value);
+
+        if (!canManageCurrentCompany)
+            return Forbid();
+
+        if (request.CompanyId == null)
+            return BadRequest(new { message = "CompanyId is required." });
+
+        var newCompanyExists = await _context.Companies
+            .AnyAsync(c => c.Id == request.CompanyId.Value);
+
+        if (!newCompanyExists)
             return BadRequest(new { message = "Company not found." });
+
+        var canManageNewCompany = await UserCanManageCompany(request.CompanyId.Value);
+
+        if (!canManageNewCompany)
+            return Forbid();
 
         job.Title = request.Title;
         job.Description = request.Description;
@@ -136,10 +196,19 @@ public class JobsController : ControllerBase
 
         await _context.SaveChangesAsync();
 
-        return Ok(job);
+        return Ok(new
+        {
+            id = job.Id,
+            title = job.Title,
+            description = job.Description,
+            location = job.Location,
+            salary = job.Salary,
+            createdAt = job.CreatedAt,
+            companyId = job.CompanyId
+        });
     }
 
-    [Authorize]
+    [Authorize(Roles = "Recruiter,Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteJob(int id)
     {
@@ -148,10 +217,17 @@ public class JobsController : ControllerBase
         if (job == null)
             return NotFound(new { message = "Job not found." });
 
+        if (job.CompanyId == null)
+            return BadRequest(new { message = "Job has no company." });
+
+        var canManageCompany = await UserCanManageCompany(job.CompanyId.Value);
+
+        if (!canManageCompany)
+            return Forbid();
+
         _context.Jobs.Remove(job);
         await _context.SaveChangesAsync();
 
         return NoContent();
-
     }
 }

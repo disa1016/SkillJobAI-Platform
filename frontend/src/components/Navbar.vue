@@ -23,19 +23,12 @@ const logout = () => {
 <template>
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid px-4">
-      <router-link
-        class="navbar-brand fw-bold"
-        :to="user ? (isAdmin ? '/admin/dashboard' : isRecruiter ? '/recruiter/dashboard' : '/dashboard') : '/home'"
-      >
+      <router-link class="navbar-brand fw-bold"
+        :to="user ? (isAdmin ? '/admin/dashboard' : isRecruiter ? '/recruiter/dashboard' : '/dashboard') : '/home'">
         SkillJob AI
       </router-link>
 
-      <button
-        class="navbar-toggler"
-        type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#mainNavbar"
-      >
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
         <span class="navbar-toggler-icon"></span>
       </button>
 
@@ -58,12 +51,7 @@ const logout = () => {
               <router-link class="nav-link" to="/my-applications">Bewerbungen</router-link>
 
               <div class="nav-item dropdown">
-                <a
-                  class="nav-link dropdown-toggle"
-                  href="#"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                >
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                   AI Tools
                 </a>
 
@@ -103,20 +91,13 @@ const logout = () => {
               <router-link class="nav-link" to="/admin/dashboard">Admin</router-link>
               <router-link class="nav-link" to="/admin/companies">Companies</router-link>
               <router-link class="nav-link" to="/admin/users">Users</router-link>
+              <router-link class="nav-link" to="/admin/company-members">Recruiter Assignments</router-link>
               <router-link class="nav-link" to="/recruiter/dashboard">Recruiter</router-link>
-              <router-link class="nav-link" to="/recruiter/jobs">Jobs</router-link>
-              <router-link class="nav-link" to="/recruiter/applications">Bewerbungen</router-link>
-              <router-link class="nav-link" to="/jobs">Alle Jobs</router-link>
-              <router-link class="nav-link" to="/courses">Courses</router-link>
             </template>
 
             <div class="nav-item dropdown ms-lg-3">
-              <a
-                class="nav-link dropdown-toggle fw-semibold text-white"
-                href="#"
-                role="button"
-                data-bs-toggle="dropdown"
-              >
+              <a class="nav-link dropdown-toggle fw-semibold text-white" href="#" role="button"
+                data-bs-toggle="dropdown">
                 {{ user.fullName }} · {{ user.role }}
               </a>
 
@@ -131,7 +112,9 @@ const logout = () => {
                     Startseite
                   </router-link>
                 </li>
-                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <hr class="dropdown-divider" />
+                </li>
                 <li>
                   <button class="dropdown-item text-danger" @click="logout">
                     Logout

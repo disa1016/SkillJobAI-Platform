@@ -12,5 +12,11 @@ public class Application
 
     public string Status { get; set; } = "Pending";
 
+    public string? CvFileUrl { get; set; }
+
+    public string? CertificateFileUrl { get; set; }
+
+    public string? PortfolioFileUrl { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

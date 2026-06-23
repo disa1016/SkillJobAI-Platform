@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import api from "../services/api";
 
 const candidates = ref([]);
@@ -7,6 +7,20 @@ const searchSkill = ref("");
 
 const loading = ref(false);
 const error = ref("");
+
+const totalCandidates = computed(() => candidates.value.length);
+
+const totalApplications = computed(() =>
+    candidates.value.reduce((sum, candidate) => sum + candidate.applicationsCount, 0)
+);
+
+const totalAccepted = computed(() =>
+    candidates.value.reduce((sum, candidate) => sum + candidate.acceptedApplications, 0)
+);
+
+const totalRejected = computed(() =>
+    candidates.value.reduce((sum, candidate) => sum + candidate.rejectedApplications, 0)
+);
 
 const loadCandidates = async () => {
     loading.value = true;
@@ -36,10 +50,54 @@ onMounted(loadCandidates);
 
 <template>
     <div class="container py-4">
-        <h2 class="mb-4">Kandidaten-Suche</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Kandidaten-Suche</h2>
+
+            <router-link to="/recruiter/dashboard" class="btn btn-outline-secondary">
+                Zurück zum Dashboard
+            </router-link>
+        </div>
 
         <div v-if="error" class="alert alert-danger">
             {{ error }}
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <h6 class="text-muted">Kandidaten</h6>
+                        <h3>{{ totalCandidates }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <h6 class="text-muted">Bewerbungen</h6>
+                        <h3>{{ totalApplications }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <h6 class="text-muted">Accepted</h6>
+                        <h3 class="text-success">{{ totalAccepted }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <h6 class="text-muted">Rejected</h6>
+                        <h3 class="text-danger">{{ totalRejected }}</h3>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="card shadow-sm mb-4">
@@ -58,6 +116,10 @@ onMounted(loadCandidates);
                         Zurücksetzen
                     </button>
                 </div>
+
+                <p v-if="searchSkill" class="text-muted small mt-2 mb-0">
+                    Suche nach Skill: <strong>{{ searchSkill }}</strong>
+                </p>
             </div>
         </div>
 
@@ -134,6 +196,11 @@ onMounted(loadCandidates);
                             Registriert am:
                             {{ new Date(candidate.createdAt).toLocaleDateString("de-DE") }}
                         </p>
+
+                        <router-link :to="`/recruiter/candidates/${candidate.id}`"
+                            class="btn btn-outline-primary btn-sm mt-3">
+                            Profil ansehen
+                        </router-link>
                     </div>
                 </div>
             </div>

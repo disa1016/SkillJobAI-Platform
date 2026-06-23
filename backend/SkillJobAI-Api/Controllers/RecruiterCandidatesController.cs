@@ -79,4 +79,74 @@ public class RecruiterCandidatesController : ControllerBase
 
         return Ok(orderedResult);
     }
+
+    [Authorize(Roles = "Recruiter,Admin")]
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetCandidate(int id)
+    {
+        var candidate = await _context.Users
+            .Where(u =>
+                u.Id == id &&
+                (u.Role == "Candidate" || u.Role == "Student"))
+            .Select(u => new
+            {
+                id = u.Id,
+                fullName = u.FullName,
+                email = u.Email,
+                cvUrl = u.CvUrl,
+                createdAt = u.CreatedAt
+            })
+            .FirstOrDefaultAsync();
+
+        if (candidate == null)
+            return NotFound(new { message = "Candidate not found." });
+
+        var skills = await _context.UserSkills
+            .Where(us => us.UserId == id)
+            .Include(us => us.Skill)
+            .Select(us => us.Skill.Name)
+            .ToListAsync();
+
+        var applications = await _context.Applications
+            .Where(a => a.UserId == id)
+            .OrderByDescending(a => a.CreatedAt)
+            .Select(a => new
+            {
+                id = a.Id,
+                jobId = a.JobId,
+                coverLetter = a.CoverLetter,
+                status = a.Status,
+                cvFileUrl = a.CvFileUrl,
+                certificateFileUrl = a.CertificateFileUrl,
+                portfolioFileUrl = a.PortfolioFileUrl,
+                createdAt = a.CreatedAt,
+                job = _context.Jobs
+                    .Where(j => j.Id == a.JobId)
+                    .Select(j => new
+                    {
+                        id = j.Id,
+                        title = j.Title,
+                        company = j.Company != null ? j.Company.Name : null,
+                        location = j.Location,
+                        salary = j.Salary
+                    })
+                    .FirstOrDefault()
+            })
+            .ToListAsync();
+
+        return Ok(new
+        {
+            candidate.id,
+            candidate.fullName,
+            candidate.email,
+            candidate.cvUrl,
+            candidate.createdAt,
+            skills,
+            skillsCount = skills.Count,
+            applicationsCount = applications.Count,
+            acceptedApplications = applications.Count(a => a.status == "Accepted"),
+            rejectedApplications = applications.Count(a => a.status == "Rejected"),
+            applications
+        });
+    }
 }

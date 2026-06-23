@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import api from "../services/api";
 
 const jobs = ref([]);
@@ -9,6 +9,17 @@ const applications = ref([]);
 const loading = ref(false);
 const error = ref("");
 const success = ref("");
+
+const backendUrl = computed(() => {
+    const baseUrl = api.defaults.baseURL || "";
+    return baseUrl.replace("/api", "");
+});
+
+const getFileUrl = (fileUrl) => {
+    if (!fileUrl) return "";
+    if (fileUrl.startsWith("http")) return fileUrl;
+    return `${backendUrl.value}${fileUrl}`;
+};
 
 const loadJobs = async () => {
     try {
@@ -67,6 +78,7 @@ const getStatusBadgeClass = (status) => {
 
 onMounted(loadJobs);
 </script>
+
 <template>
     <div class="container py-4">
         <h2 class="mb-4">Recruiter Applications</h2>
@@ -138,6 +150,35 @@ onMounted(loadJobs);
                         </span>
                     </p>
 
+                    <div class="mb-3">
+                        <strong>Bewerbungsunterlagen:</strong>
+
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <a v-if="application.cvFileUrl" :href="getFileUrl(application.cvFileUrl)" target="_blank"
+                                rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
+                                CV öffnen
+                            </a>
+
+                            <a v-if="application.certificateFileUrl" :href="getFileUrl(application.certificateFileUrl)"
+                                target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary">
+                                Zeugnis öffnen
+                            </a>
+
+                            <a v-if="application.portfolioFileUrl" :href="getFileUrl(application.portfolioFileUrl)"
+                                target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-dark">
+                                Portfolio öffnen
+                            </a>
+
+                            <span v-if="
+                                !application.cvFileUrl &&
+                                !application.certificateFileUrl &&
+                                !application.portfolioFileUrl
+                            " class="text-muted">
+                                Keine Dateien hochgeladen.
+                            </span>
+                        </div>
+                    </div>
+
                     <div v-if="application.matchedSkills?.length" class="mb-2">
                         <strong>Passende Skills:</strong>
 
@@ -151,6 +192,7 @@ onMounted(loadJobs);
 
                     <div v-if="application.missingSkills?.length" class="mb-2">
                         <strong>Fehlende Skills:</strong>
+
                         <div class="mt-2">
                             <span v-for="skill in application.missingSkills" :key="skill"
                                 class="badge bg-danger me-2 mb-2">
@@ -183,20 +225,35 @@ onMounted(loadJobs);
                         {{ application.coverLetter }}
                     </p>
 
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-info" @click="updateStatus(application.id, 'Reviewed')">
-                            Reviewed
-                        </button>
+                   <div class="d-flex gap-2">
+    <router-link
+        :to="`/recruiter/applications/${application.id}`"
+        class="btn btn-sm btn-outline-primary"
+    >
+        Details ansehen
+    </router-link>
 
-                        <button class="btn btn-sm btn-outline-success"
-                            @click="updateStatus(application.id, 'Accepted')">
-                            Accept
-                        </button>
+    <button
+        class="btn btn-sm btn-outline-info"
+        @click="updateStatus(application.id, 'Reviewed')"
+    >
+        Reviewed
+    </button>
 
-                        <button class="btn btn-sm btn-outline-danger" @click="updateStatus(application.id, 'Rejected')">
-                            Reject
-                        </button>
-                    </div>
+    <button
+        class="btn btn-sm btn-outline-success"
+        @click="updateStatus(application.id, 'Accepted')"
+    >
+        Accept
+    </button>
+
+    <button
+        class="btn btn-sm btn-outline-danger"
+        @click="updateStatus(application.id, 'Rejected')"
+    >
+        Reject
+    </button>
+</div>
                 </div>
             </div>
         </div>

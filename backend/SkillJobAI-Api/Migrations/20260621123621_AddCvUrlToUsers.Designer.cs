@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SkillJobAI.Api.Data;
@@ -11,9 +12,11 @@ using SkillJobAI.Api.Data;
 namespace SkillJobAI_Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260621123621_AddCvUrlToUsers")]
+    partial class AddCvUrlToUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -65,9 +68,6 @@ namespace SkillJobAI_Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CertificateFileUrl")
-                        .HasColumnType("text");
-
                     b.Property<string>("CoverLetter")
                         .IsRequired()
                         .HasColumnType("text");
@@ -75,14 +75,8 @@ namespace SkillJobAI_Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("CvFileUrl")
-                        .HasColumnType("text");
-
                     b.Property<int>("JobId")
                         .HasColumnType("integer");
-
-                    b.Property<string>("PortfolioFileUrl")
-                        .HasColumnType("text");
 
                     b.Property<string>("Status")
                         .IsRequired()
