@@ -30,3 +30,10 @@ export const analyzeJobMatch = async (payload) => {
   const { data } = await api.post("/ai/job-match", payload);
   return data;
 };
+export const getJobRecommendations = async (cvText) => {
+  const { data } = await api.post("/ai/job-recommendations", {
+    cvText,
+  });
+
+  return data;
+};

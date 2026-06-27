@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from "vue";
-import api from "../../services/api";
+import { getJobRecommendations } from "@/services/aiService";
 
 const cvText = ref("");
 const recommendations = ref([]);
@@ -29,11 +29,7 @@ const getRecommendations = async () => {
   clearMessages();
 
   try {
-    const { data } = await api.post("/ai/job-recommendations", {
-      cvText: cvText.value,
-    });
-
-    recommendations.value = data;
+    recommendations.value = await getJobRecommendations(cvText.value);
   } catch {
     error.value = "Job Empfehlungen konnten nicht geladen werden.";
   } finally {
@@ -57,10 +53,19 @@ const getRecommendations = async () => {
             Lebenslauf-Text
           </label>
 
-          <textarea v-model="cvText" class="form-control mb-3" rows="8" placeholder="Füge hier deinen Lebenslauf ein..."
-            required />
+          <textarea
+            v-model="cvText"
+            class="form-control mb-3"
+            rows="8"
+            placeholder="Füge hier deinen Lebenslauf ein..."
+            required
+          />
 
-          <button type="submit" class="btn btn-primary" :disabled="!canAnalyze">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            :disabled="!canAnalyze"
+          >
             {{ loading ? "Analysiere..." : "Jobs finden" }}
           </button>
         </form>
@@ -68,7 +73,11 @@ const getRecommendations = async () => {
     </div>
 
     <div v-if="hasRecommendations" class="row">
-      <div v-for="job in recommendations" :key="job.jobId" class="col-md-6 mb-3">
+      <div
+        v-for="job in recommendations"
+        :key="job.jobId"
+        class="col-md-6 mb-3"
+      >
         <div class="card shadow-sm h-100">
           <div class="card-body">
             <h5>
@@ -90,7 +99,10 @@ const getRecommendations = async () => {
             <h6>Gefundene Skills</h6>
 
             <ul v-if="job.matchedSkills?.length">
-              <li v-for="skill in job.matchedSkills" :key="skill">
+              <li
+                v-for="skill in job.matchedSkills"
+                :key="skill"
+              >
                 {{ skill }}
               </li>
             </ul>
@@ -102,7 +114,10 @@ const getRecommendations = async () => {
             <h6>Fehlende Skills</h6>
 
             <ul v-if="job.missingSkills?.length">
-              <li v-for="skill in job.missingSkills" :key="skill">
+              <li
+                v-for="skill in job.missingSkills"
+                :key="skill"
+              >
                 {{ skill }}
               </li>
             </ul>
@@ -115,7 +130,11 @@ const getRecommendations = async () => {
               {{ job.recommendation }}
             </div>
 
-            <router-link v-if="job.jobId" :to="`/jobs/${job.jobId}`" class="btn btn-outline-primary btn-sm mt-2">
+            <router-link
+              v-if="job.jobId"
+              :to="`/jobs/${job.jobId}`"
+              class="btn btn-outline-primary btn-sm mt-2"
+            >
               Job ansehen
             </router-link>
           </div>
