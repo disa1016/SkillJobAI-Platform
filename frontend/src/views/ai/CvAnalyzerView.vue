@@ -1,6 +1,9 @@
 <script setup>
 import { computed, ref } from "vue";
-import api from "../../services/api";
+import {
+    analyzeCv as analyzeCvRequest,
+    analyzeCvPdf,
+} from "@/services/aiService";
 
 const cvText = ref("");
 const selectedFile = ref(null);
@@ -51,11 +54,7 @@ const analyzeCv = async () => {
     clearMessages();
 
     try {
-        const { data } = await api.post("/ai/analyze-cv", {
-            cvText: cvText.value,
-        });
-
-        result.value = data;
+        result.value = await analyzeCvRequest(cvText.value);
     } catch {
         error.value = "CV konnte nicht analysiert werden.";
     } finally {
@@ -90,14 +89,7 @@ const analyzePdf = async () => {
     clearMessages();
 
     try {
-        const formData = new FormData();
-        formData.append("file", selectedFile.value);
-
-        const { data } = await api.post("/ai/analyze-cv-pdf", formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        });
+        const data = await analyzeCvPdf(selectedFile.value);
 
         result.value = normalizePdfResult(data);
         extractedText.value = data.extractedText || "";
