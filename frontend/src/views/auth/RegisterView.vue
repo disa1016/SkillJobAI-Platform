@@ -1,7 +1,9 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import api from "../../services/api";
+import { register } from "@/services/authService";
+
+
 const router = useRouter();
 
 const fullName = ref("");
@@ -24,7 +26,7 @@ const handleRegister = async () => {
   loading.value = true;
 
   try {
-    await api.post("/auth/register", {
+    await register({
       fullName: fullName.value,
       email: email.value,
       password: password.value,

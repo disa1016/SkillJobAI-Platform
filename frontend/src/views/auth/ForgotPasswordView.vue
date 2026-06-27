@@ -18,11 +18,10 @@ const handleResetPassword = async () => {
   loading.value = true;
 
   try {
-    await api.post("/auth/forgot-password", {
+    await resetPassword({
       email: email.value,
       newPassword: newPassword.value,
     });
-
     success.value = "Passwort wurde erfolgreich geändert.";
 
     setTimeout(() => {

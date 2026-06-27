@@ -1,8 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import api from "../../services/api";
-
+import { login } from "@/services/authService";
 const router = useRouter();
 
 const email = ref("");
@@ -16,7 +15,7 @@ const handleLogin = async () => {
     loading.value = true;
 
     try {
-        const { data } = await api.post("/auth/login", {
+        const data = await login({
             email: email.value,
             password: password.value,
         });
