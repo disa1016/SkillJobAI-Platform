@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import api from "../../services/api";
+import { getCompanyById } from "@/services/companyService";
 
 const route = useRoute();
 
@@ -35,19 +35,19 @@ const formatDate = (date) => {
 };
 
 const loadCompany = async () => {
-    loading.value = true;
-    error.value = "";
+  loading.value = true;
+  error.value = "";
 
-    try {
-        const { data } = await api.get(`/companies/${route.params.id}`);
+  try {
+    const data = await getCompanyById(route.params.id);
 
-        company.value = data;
-        jobs.value = data.jobs || [];
-    } catch {
-        error.value = "Firmendetails konnten nicht geladen werden.";
-    } finally {
-        loading.value = false;
-    }
+    company.value = data;
+    jobs.value = data.jobs || [];
+  } catch {
+    error.value = "Firmendetails konnten nicht geladen werden.";
+  } finally {
+    loading.value = false;
+  }
 };
 
 onMounted(loadCompany);

@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
-import api from "../../services/api";;
+import { getCompanies } from "@/services/companyService";
 
 const companies = ref([]);
 const loading = ref(true);
@@ -9,17 +9,16 @@ const error = ref("");
 const hasCompanies = computed(() => companies.value.length > 0);
 
 const loadCompanies = async () => {
-    loading.value = true;
-    error.value = "";
+  loading.value = true;
+  error.value = "";
 
-    try {
-        const { data } = await api.get("/companies");
-        companies.value = data;
-    } catch {
-        error.value = "Firmen konnten nicht geladen werden.";
-    } finally {
-        loading.value = false;
-    }
+  try {
+    companies.value = await getCompanies();
+  } catch {
+    error.value = "Firmen konnten nicht geladen werden.";
+  } finally {
+    loading.value = false;
+  }
 };
 
 onMounted(loadCompanies);
