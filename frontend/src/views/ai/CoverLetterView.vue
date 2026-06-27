@@ -1,13 +1,13 @@
 <script setup>
 import { computed, ref } from "vue";
-import api from "../../services/api";
+import { generateCoverLetter as generateCoverLetterRequest } from "@/services/aiService";
+
 const fullName = ref("");
 const company = ref("");
 const jobTitle = ref("");
 const cvSummary = ref("");
 
 const coverLetter = ref("");
-
 const loading = ref(false);
 const error = ref("");
 
@@ -30,7 +30,7 @@ const generateCoverLetter = async () => {
   clearMessages();
 
   try {
-    const { data } = await api.post("/ai/generate-cover-letter", {
+    const data = await generateCoverLetterRequest({
       fullName: fullName.value,
       company: company.value,
       jobTitle: jobTitle.value,
@@ -57,34 +57,22 @@ const generateCoverLetter = async () => {
     <div class="card shadow-sm mb-4">
       <div class="card-body">
         <div class="mb-3">
-          <label class="form-label">
-            Vollständiger Name
-          </label>
-
+          <label class="form-label">Vollständiger Name</label>
           <input v-model="fullName" type="text" class="form-control" />
         </div>
 
         <div class="mb-3">
-          <label class="form-label">
-            Firma
-          </label>
-
+          <label class="form-label">Firma</label>
           <input v-model="company" type="text" class="form-control" />
         </div>
 
         <div class="mb-3">
-          <label class="form-label">
-            Jobtitel
-          </label>
-
+          <label class="form-label">Jobtitel</label>
           <input v-model="jobTitle" type="text" class="form-control" />
         </div>
 
         <div class="mb-3">
-          <label class="form-label">
-            CV Zusammenfassung
-          </label>
-
+          <label class="form-label">CV Zusammenfassung</label>
           <textarea v-model="cvSummary" rows="6" class="form-control"
             placeholder="z.B. Ich habe Erfahrung mit C#, ASP.NET Core, Vue.js, PostgreSQL und GitHub." />
         </div>
@@ -98,7 +86,6 @@ const generateCoverLetter = async () => {
     <div v-if="coverLetter" class="card shadow-sm">
       <div class="card-body">
         <h4>Generiertes Anschreiben</h4>
-
         <pre class="bg-light rounded p-3 mt-3 mb-0">{{ coverLetter }}</pre>
       </div>
     </div>
