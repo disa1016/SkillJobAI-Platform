@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import api from "../../services/api";
+import { getSkillGap } from "@/services/jobService";
 
 const route = useRoute();
 
@@ -22,17 +22,16 @@ const matchPercentage = computed(() => {
 });
 
 const loadSkillGap = async () => {
-    loading.value = true;
-    error.value = "";
+  loading.value = true;
+  error.value = "";
 
-    try {
-        const { data } = await api.get(`/jobs/${route.params.id}/skill-gap`);
-        skillGap.value = data;
-    } catch {
-        error.value = "Skill Gap Analyse konnte nicht geladen werden.";
-    } finally {
-        loading.value = false;
-    }
+  try {
+    skillGap.value = await getSkillGap(route.params.id);
+  } catch {
+    error.value = "Skill Gap Analyse konnte nicht geladen werden.";
+  } finally {
+    loading.value = false;
+  }
 };
 
 onMounted(loadSkillGap);

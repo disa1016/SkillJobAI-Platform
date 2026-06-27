@@ -1,7 +1,8 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import api from "../../services/api";;
+import api from "@/services/api";
+import { getJobById } from "@/services/jobService";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
@@ -52,8 +53,7 @@ const loadJob = async () => {
   error.value = "";
 
   try {
-    const { data } = await api.get(`/jobs/${route.params.id}`);
-    job.value = data;
+    job.value = await getJobById(route.params.id);
   } catch {
     error.value = "Job konnte nicht geladen werden.";
   } finally {
