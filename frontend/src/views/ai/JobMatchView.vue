@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from "vue";
-import api from "../../services/api";
+import { analyzeJobMatch } from "@/services/aiService";
 
 const cvText = ref("");
 const jobDescription = ref("");
@@ -35,12 +35,10 @@ const analyzeMatch = async () => {
     clearMessages();
 
     try {
-        const { data } = await api.post("/ai/job-match", {
+        result.value = await analyzeJobMatch({
             cvText: cvText.value,
             jobDescription: jobDescription.value,
         });
-
-        result.value = data;
     } catch {
         error.value = "Job Matching konnte nicht durchgeführt werden.";
     } finally {

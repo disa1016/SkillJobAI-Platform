@@ -25,3 +25,8 @@ export const analyzeCvPdf = async (file) => {
 
   return data;
 };
+
+export const analyzeJobMatch = async (payload) => {
+  const { data } = await api.post("/ai/job-match", payload);
+  return data;
+};
