@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { getSkillGap } from "@/services/jobService";
+import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
 
 const route = useRoute();
 
@@ -22,16 +23,16 @@ const matchPercentage = computed(() => {
 });
 
 const loadSkillGap = async () => {
-  loading.value = true;
-  error.value = "";
+    loading.value = true;
+    error.value = "";
 
-  try {
-    skillGap.value = await getSkillGap(route.params.id);
-  } catch {
-    error.value = "Skill Gap Analyse konnte nicht geladen werden.";
-  } finally {
-    loading.value = false;
-  }
+    try {
+        skillGap.value = await getSkillGap(route.params.id);
+    } catch {
+        error.value = "Skill Gap Analyse konnte nicht geladen werden.";
+    } finally {
+        loading.value = false;
+    }
 };
 
 onMounted(loadSkillGap);
@@ -147,9 +148,7 @@ onMounted(loadSkillGap);
                         </li>
                     </ul>
 
-                    <p v-else class="text-muted mt-3">
-                        Keine Kursempfehlungen gefunden.
-                    </p>
+                    <BaseEmptyState v-if="!hasRecommendedCourses" message="Keine Kursempfehlungen gefunden." />
                 </div>
             </div>
 

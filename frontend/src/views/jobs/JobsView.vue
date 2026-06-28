@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { getJobs } from "@/services/jobService";
+import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
 
 const jobs = ref([]);
 const loading = ref(true);
@@ -9,16 +10,16 @@ const error = ref("");
 const hasJobs = computed(() => jobs.value.length > 0);
 
 const loadJobs = async () => {
-  loading.value = true;
-  error.value = "";
+    loading.value = true;
+    error.value = "";
 
-  try {
-    jobs.value = await getJobs();
-  } catch {
-    error.value = "Jobs konnten nicht geladen werden.";
-  } finally {
-    loading.value = false;
-  }
+    try {
+        jobs.value = await getJobs();
+    } catch {
+        error.value = "Jobs konnten nicht geladen werden.";
+    } finally {
+        loading.value = false;
+    }
 };
 
 onMounted(loadJobs);
@@ -28,18 +29,17 @@ onMounted(loadJobs);
     <div class="container mt-4">
         <h1 class="mb-4">Jobs</h1>
 
-        <div v-if="loading" class="alert alert-info">
-            Jobs werden geladen...
-        </div>
+        <BaseSpinner
+    v-if="loading"
+    message="Jobs werden geladen..."
+/>
 
         <div v-else-if="error" class="alert alert-danger">
             {{ error }}
         </div>
 
         <template v-else>
-            <div v-if="!hasJobs" class="alert alert-light border">
-                Aktuell sind keine Jobs verfügbar.
-            </div>
+            <BaseEmptyState v-if="!hasJobs" message="Aktuell sind keine Jobs verfügbar." />
 
             <div v-else class="row">
                 <div v-for="job in jobs" :key="job.id" class="col-md-4 mb-3">

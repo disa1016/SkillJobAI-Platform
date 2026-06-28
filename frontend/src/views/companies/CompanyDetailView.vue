@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { getCompanyById } from "@/services/companyService";
+import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
 
 const route = useRoute();
 
@@ -35,19 +36,19 @@ const formatDate = (date) => {
 };
 
 const loadCompany = async () => {
-  loading.value = true;
-  error.value = "";
+    loading.value = true;
+    error.value = "";
 
-  try {
-    const data = await getCompanyById(route.params.id);
+    try {
+        const data = await getCompanyById(route.params.id);
 
-    company.value = data;
-    jobs.value = data.jobs || [];
-  } catch {
-    error.value = "Firmendetails konnten nicht geladen werden.";
-  } finally {
-    loading.value = false;
-  }
+        company.value = data;
+        jobs.value = data.jobs || [];
+    } catch {
+        error.value = "Firmendetails konnten nicht geladen werden.";
+    } finally {
+        loading.value = false;
+    }
 };
 
 onMounted(loadCompany);
@@ -122,9 +123,7 @@ onMounted(loadCompany);
                 </span>
             </div>
 
-            <div v-if="!hasJobs" class="alert alert-info">
-                Diese Firma hat aktuell keine offenen Jobs.
-            </div>
+            <BaseEmptyState v-if="!hasJobs" message="Diese Firma hat aktuell keine offenen Jobs." />
 
             <div v-else class="row g-3">
                 <div v-for="job in jobs" :key="job.id" class="col-md-6">

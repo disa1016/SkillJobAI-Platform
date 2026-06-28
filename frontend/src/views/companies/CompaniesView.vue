@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { getCompanies } from "@/services/companyService";
+import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
 
 const companies = ref([]);
 const loading = ref(true);
@@ -9,16 +10,16 @@ const error = ref("");
 const hasCompanies = computed(() => companies.value.length > 0);
 
 const loadCompanies = async () => {
-  loading.value = true;
-  error.value = "";
+    loading.value = true;
+    error.value = "";
 
-  try {
-    companies.value = await getCompanies();
-  } catch {
-    error.value = "Firmen konnten nicht geladen werden.";
-  } finally {
-    loading.value = false;
-  }
+    try {
+        companies.value = await getCompanies();
+    } catch {
+        error.value = "Firmen konnten nicht geladen werden.";
+    } finally {
+        loading.value = false;
+    }
 };
 
 onMounted(loadCompanies);
@@ -37,9 +38,7 @@ onMounted(loadCompanies);
         </div>
 
         <template v-else>
-            <div v-if="!hasCompanies" class="alert alert-light border">
-                Aktuell sind keine Firmen verfügbar.
-            </div>
+            <BaseEmptyState v-if="!hasCompanies" message="Aktuell sind keine Firmen verfügbar." />
 
             <div v-else class="row">
                 <div v-for="company in companies" :key="company.id" class="col-md-4 mb-3">

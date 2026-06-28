@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import api from "../../services/api";
+import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
 
 const allSkills = ref([]);
 const mySkills = ref([]);
@@ -137,9 +138,7 @@ onMounted(loadData);
                         </li>
                     </ul>
 
-                    <p v-else class="text-muted mb-0">
-                        Du hast noch keine Skills hinzugefügt.
-                    </p>
+                    <BaseEmptyState message="Du hast noch keine Skills hinzugefügt." />
                 </div>
             </div>
         </template>
