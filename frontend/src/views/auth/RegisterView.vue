@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { register } from "@/services/authService";
+import BaseAlert from "@/components/shared/BaseAlert.vue";
 
 
 const router = useRouter();
@@ -13,6 +14,7 @@ const role = ref("Student");
 
 const loading = ref(false);
 const error = ref("");
+const success = ref("");
 
 const roles = [
   { value: "Student", label: "Student" },
@@ -23,6 +25,7 @@ const roles = [
 
 const handleRegister = async () => {
   error.value = "";
+  success.value = "";
   loading.value = true;
 
   try {
@@ -33,7 +36,11 @@ const handleRegister = async () => {
       role: role.value,
     });
 
-    router.push("/login");
+    success.value = "Registrierung erfolgreich.";
+
+    setTimeout(() => {
+      router.push("/login");
+    }, 1200);
   } catch (err) {
     error.value =
       err.response?.data?.message || "Registrierung fehlgeschlagen.";
@@ -54,9 +61,17 @@ const handleRegister = async () => {
         Create your account
       </p>
 
-      <div v-if="error" class="alert alert-danger">
-        {{ error }}
-      </div>
+      <BaseAlert
+  v-if="error"
+  type="danger"
+  :message="error"
+/>
+
+<BaseAlert
+  v-if="success"
+  type="success"
+  :message="success"
+/>
 
       <form @submit.prevent="handleRegister">
         <div class="mb-3">

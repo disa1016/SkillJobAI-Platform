@@ -1,7 +1,8 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import api from "../../services/api";
+import { resetPassword } from "@/services/authService";
+import BaseAlert from "@/components/shared/BaseAlert.vue";
 
 const router = useRouter();
 
@@ -22,6 +23,7 @@ const handleResetPassword = async () => {
       email: email.value,
       newPassword: newPassword.value,
     });
+
     success.value = "Passwort wurde erfolgreich geändert.";
 
     setTimeout(() => {
@@ -43,28 +45,46 @@ const handleResetPassword = async () => {
         Passwort vergessen
       </h2>
 
-      <div v-if="error" class="alert alert-danger">
-        {{ error }}
-      </div>
+      <BaseAlert
+        type="danger"
+        :message="error"
+      />
 
-      <div v-if="success" class="alert alert-success">
-        {{ success }}
-      </div>
+      <BaseAlert
+        type="success"
+        :message="success"
+      />
 
       <form @submit.prevent="handleResetPassword">
         <div class="mb-3">
           <label class="form-label">E-Mail</label>
 
-          <input v-model="email" type="email" class="form-control" autocomplete="email" required />
+          <input
+            v-model="email"
+            type="email"
+            class="form-control"
+            autocomplete="email"
+            required
+          />
         </div>
 
         <div class="mb-3">
           <label class="form-label">Neues Passwort</label>
 
-          <input v-model="newPassword" type="password" class="form-control" autocomplete="new-password" required />
+          <input
+            v-model="newPassword"
+            type="password"
+            class="form-control"
+            autocomplete="new-password"
+            required
+          />
         </div>
 
-        <button type="submit" class="btn btn-primary w-100" :disabled="loading">
+        <button
+          type="submit"
+          class="btn btn-primary w-100"
+          :disabled="loading"
+        >
           {{ loading ? "Bitte warten..." : "Passwort zurücksetzen" }}
         </button>
       </form>

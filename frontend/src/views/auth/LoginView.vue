@@ -2,6 +2,8 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { login } from "@/services/authService";
+import BaseAlert from "@/components/shared/BaseAlert.vue";
+
 const router = useRouter();
 
 const email = ref("");
@@ -43,9 +45,7 @@ const handleLogin = async () => {
                 Login to your account
             </p>
 
-            <div v-if="error" class="alert alert-danger">
-                {{ error }}
-            </div>
+            <BaseAlert type="danger" :message="error" />
 
             <form @submit.prevent="handleLogin">
                 <div class="mb-3">
