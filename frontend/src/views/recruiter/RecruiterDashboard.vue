@@ -1,6 +1,11 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
-import api from "../../services/api";
+import { getRecruiterDashboard } from "@/services/recruiterService";
+
+import BaseAlert from "@/components/shared/BaseAlert.vue";
+import BaseCard from "@/components/shared/BaseCard.vue";
+import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
+import BaseSpinner from "@/components/shared/BaseSpinner.vue";
 
 const dashboard = ref(null);
 const loading = ref(true);
@@ -38,7 +43,10 @@ const statCards = computed(() => [
 ]);
 
 const recentApplications = computed(() => dashboard.value?.recentApplications ?? []);
-const topJobsByApplications = computed(() => dashboard.value?.topJobsByApplications ?? []);
+
+const topJobsByApplications = computed(() => {
+  return dashboard.value?.topJobsByApplications ?? [];
+});
 
 const getStatusBadgeClass = (status) => {
   const statusClasses = {
@@ -66,8 +74,7 @@ const loadDashboard = async () => {
   error.value = "";
 
   try {
-    const response = await api.get("/recruiter/dashboard");
-    dashboard.value = response.data;
+    dashboard.value = await getRecruiterDashboard();
   } catch {
     error.value = "Dashboard konnte nicht geladen werden.";
   } finally {
@@ -94,98 +101,85 @@ onMounted(loadDashboard);
       </div>
     </div>
 
-    <div v-if="loading" class="alert alert-info">
-      Dashboard wird geladen...
-    </div>
+    <BaseSpinner v-if="loading" message="Dashboard wird geladen..." />
 
-    <div v-else-if="error" class="alert alert-danger">
-      {{ error }}
-    </div>
+    <BaseAlert v-else-if="error" type="danger" :message="error" />
 
     <template v-else-if="dashboard">
       <div class="row g-3 mb-4">
         <div v-for="stat in statCards" :key="stat.label" class="col-md-3">
-          <div class="card shadow-sm border-0 h-100">
-            <div class="card-body">
-              <h6 class="text-muted">{{ stat.label }}</h6>
-              <h3 class="mb-0">{{ stat.value }}</h3>
-            </div>
-          </div>
+          <BaseCard>
+            <h6 class="text-muted">
+              {{ stat.label }}
+            </h6>
+
+            <h3 class="mb-0">
+              {{ stat.value }}
+            </h3>
+          </BaseCard>
         </div>
       </div>
 
       <div class="row g-3">
         <div class="col-lg-7">
-          <div class="card shadow-sm h-100">
-            <div class="card-body">
-              <h5 class="mb-3">Neueste Bewerbungen</h5>
+          <BaseCard title="Neueste Bewerbungen">
+            <BaseEmptyState v-if="recentApplications.length === 0" message="Noch keine Bewerbungen vorhanden." />
 
-              <div v-if="recentApplications.length === 0" class="text-muted">
-                Noch keine Bewerbungen vorhanden.
-              </div>
-
-              <div v-for="application in recentApplications" :key="application.id" class="border rounded p-3 mb-3">
-                <div class="d-flex justify-content-between align-items-start gap-3">
-                  <div>
-                    <h6 class="mb-1">
-                      {{ application.candidate?.fullName || "Unbekannter Kandidat" }}
-                    </h6>
-
-                    <p class="text-muted mb-1">
-                      {{ application.candidate?.email || "Keine E-Mail" }}
-                    </p>
-
-                    <p class="mb-1">
-                      <strong>Job:</strong>
-                      {{ application.job?.title || "Job gelöscht" }}
-                    </p>
-
-                    <p class="text-muted mb-0">
-                      {{ application.job?.company || "Keine Firma" }}
-                      · {{ formatDate(application.createdAt) }}
-                    </p>
-                  </div>
-
-                  <span class="badge" :class="getStatusBadgeClass(application.status)">
-                    {{ application.status || "Unknown" }}
-                  </span>
-                </div>
-              </div>
-
-              <router-link to="/recruiter/applications" class="btn btn-outline-primary btn-sm">
-                Alle Bewerbungen ansehen
-              </router-link>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-5">
-          <div class="card shadow-sm h-100">
-            <div class="card-body">
-              <h5 class="mb-3">Top Jobs nach Bewerbungen</h5>
-
-              <div v-if="topJobsByApplications.length === 0" class="text-muted">
-                Noch keine Bewerbungen vorhanden.
-              </div>
-
-              <div v-for="item in topJobsByApplications" :key="item.jobId"
-                class="d-flex justify-content-between align-items-center gap-3 border-bottom py-2">
+            <div v-for="application in recentApplications" v-else :key="application.id" class="border rounded p-3 mb-3">
+              <div class="d-flex justify-content-between align-items-start gap-3">
                 <div>
-                  <strong>
-                    {{ item.job?.title || "Job gelöscht" }}
-                  </strong>
+                  <h6 class="mb-1">
+                    {{ application.candidate?.fullName || "Unbekannter Kandidat" }}
+                  </h6>
 
-                  <div class="text-muted small">
-                    {{ item.job?.company || "Keine Firma" }}
-                  </div>
+                  <p class="text-muted mb-1">
+                    {{ application.candidate?.email || "Keine E-Mail" }}
+                  </p>
+
+                  <p class="mb-1">
+                    <strong>Job:</strong>
+                    {{ application.job?.title || "Job gelöscht" }}
+                  </p>
+
+                  <p class="text-muted mb-0">
+                    {{ application.job?.company || "Keine Firma" }}
+                    · {{ formatDate(application.createdAt) }}
+                  </p>
                 </div>
 
-                <span class="badge bg-primary">
-                  {{ item.applicationsCount }} Bewerbungen
+                <span class="badge" :class="getStatusBadgeClass(application.status)">
+                  {{ application.status || "Unknown" }}
                 </span>
               </div>
             </div>
-          </div>
+
+            <router-link to="/recruiter/applications" class="btn btn-outline-primary btn-sm">
+              Alle Bewerbungen ansehen
+            </router-link>
+          </BaseCard>
+        </div>
+
+        <div class="col-lg-5">
+          <BaseCard title="Top Jobs nach Bewerbungen">
+            <BaseEmptyState v-if="topJobsByApplications.length === 0" message="Noch keine Bewerbungen vorhanden." />
+
+            <div v-for="item in topJobsByApplications" v-else :key="item.jobId"
+              class="d-flex justify-content-between align-items-center gap-3 border-bottom py-2">
+              <div>
+                <strong>
+                  {{ item.job?.title || "Job gelöscht" }}
+                </strong>
+
+                <div class="text-muted small">
+                  {{ item.job?.company || "Keine Firma" }}
+                </div>
+              </div>
+
+              <span class="badge bg-primary">
+                {{ item.applicationsCount }} Bewerbungen
+              </span>
+            </div>
+          </BaseCard>
         </div>
       </div>
     </template>

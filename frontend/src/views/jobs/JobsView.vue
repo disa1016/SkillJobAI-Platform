@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { getJobs } from "@/services/jobService";
 import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
+import BaseCard from "@/components/shared/BaseCard.vue";
 
 const jobs = ref([]);
 const loading = ref(true);
@@ -29,10 +30,7 @@ onMounted(loadJobs);
     <div class="container mt-4">
         <h1 class="mb-4">Jobs</h1>
 
-        <BaseSpinner
-    v-if="loading"
-    message="Jobs werden geladen..."
-/>
+        <BaseSpinner v-if="loading" message="Jobs werden geladen..." />
 
         <div v-else-if="error" class="alert alert-danger">
             {{ error }}
@@ -43,39 +41,32 @@ onMounted(loadJobs);
 
             <div v-else class="row">
                 <div v-for="job in jobs" :key="job.id" class="col-md-4 mb-3">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                {{ job.title || "Ohne Titel" }}
-                            </h5>
+                    <BaseCard :title="job.title || 'Ohne Titel'">
+                        <p v-if="job.company" class="mb-2 text-muted">
+                            Firma:
+                            <router-link :to="`/companies/${job.company.id}`" class="text-decoration-none fw-semibold">
+                                {{ job.company.name }}
+                            </router-link>
+                        </p>
 
-                            <p v-if="job.company" class="mb-2 text-muted">
-                                Firma:
-                                <router-link :to="`/companies/${job.company.id}`"
-                                    class="text-decoration-none fw-semibold">
-                                    {{ job.company.name }}
-                                </router-link>
-                            </p>
+                        <p class="card-text">
+                            {{ job.description || "Keine Beschreibung vorhanden." }}
+                        </p>
 
-                            <p class="card-text">
-                                {{ job.description || "Keine Beschreibung vorhanden." }}
-                            </p>
+                        <span class="badge bg-primary me-2">
+                            {{ job.location || "Kein Standort" }}
+                        </span>
 
-                            <span class="badge bg-primary me-2">
-                                {{ job.location || "Kein Standort" }}
-                            </span>
+                        <span class="badge bg-success">
+                            {{ job.salary || "Kein Gehalt angegeben" }}
+                        </span>
 
-                            <span class="badge bg-success">
-                                {{ job.salary || "Kein Gehalt angegeben" }}
-                            </span>
-                        </div>
-
-                        <div class="card-footer bg-white border-0">
+                        <template #footer>
                             <router-link :to="`/jobs/${job.id}`" class="btn btn-primary w-100">
                                 Details
                             </router-link>
-                        </div>
-                    </div>
+                        </template>
+                    </BaseCard>>
                 </div>
             </div>
         </template>

@@ -4,6 +4,7 @@ import { getCourses } from "@/services/courseService";
 import BaseAlert from "@/components/shared/BaseAlert.vue";
 import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
 import BaseSpinner from "@/components/shared/BaseSpinner.vue";
+import BaseCard from "@/components/shared/BaseCard.vue";
 
 const courses = ref([]);
 const loading = ref(true);
@@ -40,31 +41,25 @@ onMounted(loadCourses);
 
             <div v-else class="row">
                 <div v-for="course in courses" :key="course.id" class="col-md-4 mb-3">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                {{ course.title || "Unbekannter Kurs" }}
-                            </h5>
+                    <BaseCard :title="course.title || 'Unbekannter Kurs'">
+                        <p class="card-text">
+                            {{ course.description || "Keine Beschreibung vorhanden." }}
+                        </p>
 
-                            <p class="card-text">
-                                {{ course.description || "Keine Beschreibung vorhanden." }}
-                            </p>
+                        <span class="badge bg-primary me-2">
+                            {{ course.level || "Kein Level" }}
+                        </span>
 
-                            <span class="badge bg-primary me-2">
-                                {{ course.level || "Kein Level" }}
-                            </span>
+                        <span class="badge bg-secondary">
+                            {{ course.category || "Keine Kategorie" }}
+                        </span>
 
-                            <span class="badge bg-secondary">
-                                {{ course.category || "Keine Kategorie" }}
-                            </span>
-                        </div>
-
-                        <div class="card-footer bg-white border-0">
+                        <template #footer>
                             <router-link :to="`/courses/${course.id}`" class="btn btn-primary w-100">
                                 Öffnen
                             </router-link>
-                        </div>
-                    </div>
+                        </template>
+                    </BaseCard>
                 </div>
             </div>
         </template>

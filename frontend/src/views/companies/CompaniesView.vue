@@ -2,6 +2,8 @@
 import { computed, onMounted, ref } from "vue";
 import { getCompanies } from "@/services/companyService";
 import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
+import BaseCard from "@/components/shared/BaseCard.vue";
+
 
 const companies = ref([]);
 const loading = ref(true);
@@ -42,27 +44,21 @@ onMounted(loadCompanies);
 
             <div v-else class="row">
                 <div v-for="company in companies" :key="company.id" class="col-md-4 mb-3">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                {{ company.name || "Ohne Namen" }}
-                            </h5>
+                    <BaseCard :title="company.name || 'Ohne Namen'">
+                        <p class="text-muted mb-2">
+                            {{ company.location || "Kein Standort angegeben" }}
+                        </p>
 
-                            <p class="text-muted mb-2">
-                                {{ company.location || "Kein Standort angegeben" }}
-                            </p>
+                        <p class="card-text">
+                            {{ company.description || "Keine Beschreibung vorhanden." }}
+                        </p>
 
-                            <p class="card-text">
-                                {{ company.description || "Keine Beschreibung vorhanden." }}
-                            </p>
-                        </div>
-
-                        <div class="card-footer bg-white border-0">
+                        <template #footer>
                             <router-link :to="`/companies/${company.id}`" class="btn btn-primary w-100">
                                 Details ansehen
                             </router-link>
-                        </div>
-                    </div>
+                        </template>
+                    </BaseCard>
                 </div>
             </div>
         </template>
