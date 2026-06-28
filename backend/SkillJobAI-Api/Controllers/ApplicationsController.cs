@@ -15,11 +15,19 @@ public class ApplicationsController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly IEmailService _emailService;
+    private readonly IFileStorageService _fileStorageService;
+    private readonly IApplicationMatchingService _applicationMatchingService;
 
-    public ApplicationsController(AppDbContext context, IEmailService emailService)
+    public ApplicationsController(
+        AppDbContext context,
+        IEmailService emailService,
+        IFileStorageService fileStorageService,
+        IApplicationMatchingService applicationMatchingService)
     {
         _context = context;
         _emailService = emailService;
+        _fileStorageService = fileStorageService;
+        _applicationMatchingService = applicationMatchingService;
     }
 
     private int? GetCurrentUserId()
@@ -45,39 +53,6 @@ public class ApplicationsController : ControllerBase
 
         return await _context.CompanyMembers
             .AnyAsync(cm => cm.CompanyId == companyId && cm.UserId == userId.Value);
-    }
-
-    private async Task<string?> SavePdfFile(IFormFile? file, string folderName, int userId)
-    {
-        if (file == null || file.Length == 0)
-            return null;
-
-        var extension = Path.GetExtension(file.FileName).ToLower();
-
-        if (extension != ".pdf")
-            throw new Exception("Only PDF files are allowed.");
-
-        if (file.Length > 5 * 1024 * 1024)
-            throw new Exception("PDF file must be smaller than 5MB.");
-
-        var uploadsFolder = Path.Combine(
-            Directory.GetCurrentDirectory(),
-            "wwwroot",
-            "uploads",
-            "applications",
-            folderName
-        );
-
-        if (!Directory.Exists(uploadsFolder))
-            Directory.CreateDirectory(uploadsFolder);
-
-        var fileName = $"{folderName}-user-{userId}-{Guid.NewGuid()}.pdf";
-        var filePath = Path.Combine(uploadsFolder, fileName);
-
-        using var stream = new FileStream(filePath, FileMode.Create);
-        await file.CopyToAsync(stream);
-
-        return $"/uploads/applications/{folderName}/{fileName}";
     }
 
     [Authorize(Roles = "Candidate")]
@@ -118,9 +93,9 @@ public class ApplicationsController : ControllerBase
                 CoverLetter = request.CoverLetter,
                 Status = "Pending",
                 CreatedAt = DateTime.UtcNow,
-                CvFileUrl = await SavePdfFile(request.CvFile, "cv", userId.Value),
-                CertificateFileUrl = await SavePdfFile(request.CertificateFile, "certificates", userId.Value),
-                PortfolioFileUrl = await SavePdfFile(request.PortfolioFile, "portfolio", userId.Value)
+                CvFileUrl = await _fileStorageService.SavePdfFileAsync(request.CvFile, "cv", userId.Value),
+                CertificateFileUrl = await _fileStorageService.SavePdfFileAsync(request.CertificateFile, "certificates", userId.Value),
+                PortfolioFileUrl = await _fileStorageService.SavePdfFileAsync(request.PortfolioFile, "portfolio", userId.Value)
             };
 
             _context.Applications.Add(application);
@@ -161,7 +136,10 @@ public class ApplicationsController : ControllerBase
                     {
                         id = j.Id,
                         title = j.Title,
-                        company = j.Company != null ? j.Company.Name : null,
+                        company = _context.Companies
+                            .Where(c => c.Id == j.CompanyId)
+                            .Select(c => c.Name)
+                            .FirstOrDefault(),
                         location = j.Location,
                         salary = j.Salary
                     })
@@ -208,42 +186,10 @@ public class ApplicationsController : ControllerBase
             })
             .FirstOrDefaultAsync();
 
-        var jobSkills = await _context.JobSkills
-            .Where(js => js.JobId == job.Id)
-            .Include(js => js.Skill)
-            .Select(js => js.Skill.Name)
-            .ToListAsync();
-
-        var userSkills = await _context.UserSkills
-            .Where(us => us.UserId == application.UserId)
-            .Include(us => us.Skill)
-            .Select(us => us.Skill.Name)
-            .ToListAsync();
-
-        var matchedSkills = jobSkills
-            .Intersect(userSkills)
-            .ToList();
-
-        var missingSkills = jobSkills
-            .Except(userSkills)
-            .ToList();
-
-        var matchPercentage = jobSkills.Count == 0
-            ? 0
-            : (int)Math.Round(((double)matchedSkills.Count / jobSkills.Count) * 100);
-
-        var recommendedCourses = await _context.CourseSkills
-            .Where(cs => missingSkills.Contains(cs.Skill.Name))
-            .Include(cs => cs.Course)
-            .Include(cs => cs.Skill)
-            .Select(cs => new
-            {
-                id = cs.Course.Id,
-                title = cs.Course.Title,
-                skill = cs.Skill.Name
-            })
-            .Distinct()
-            .ToListAsync();
+        var match = await _applicationMatchingService.GetMatchResultAsync(
+            job.Id,
+            application.UserId
+        );
 
         return Ok(new
         {
@@ -266,12 +212,12 @@ public class ApplicationsController : ControllerBase
                 location = job.Location,
                 salary = job.Salary
             },
-            matchPercentage,
-            jobSkills,
-            userSkills,
-            matchedSkills,
-            missingSkills,
-            recommendedCourses
+            matchPercentage = match.MatchPercentage,
+            jobSkills = match.JobSkills,
+            userSkills = match.UserSkills,
+            matchedSkills = match.MatchedSkills,
+            missingSkills = match.MissingSkills,
+            recommendedCourses = match.RecommendedCourses
         });
     }
 
@@ -294,12 +240,6 @@ public class ApplicationsController : ControllerBase
         if (!canManageCompany)
             return Forbid();
 
-        var jobSkills = await _context.JobSkills
-            .Where(js => js.JobId == jobId)
-            .Include(js => js.Skill)
-            .Select(js => js.Skill.Name)
-            .ToListAsync();
-
         var applications = await _context.Applications
             .Where(a => a.JobId == jobId)
             .ToListAsync();
@@ -319,31 +259,10 @@ public class ApplicationsController : ControllerBase
                 })
                 .FirstOrDefaultAsync();
 
-            var userSkills = await _context.UserSkills
-                .Where(us => us.UserId == application.UserId)
-                .Include(us => us.Skill)
-                .Select(us => us.Skill.Name)
-                .ToListAsync();
-
-            var matchedSkills = jobSkills.Intersect(userSkills).ToList();
-            var missingSkills = jobSkills.Except(userSkills).ToList();
-
-            var matchPercentage = jobSkills.Count == 0
-                ? 0
-                : (int)Math.Round(((double)matchedSkills.Count / jobSkills.Count) * 100);
-
-            var recommendedCourses = await _context.CourseSkills
-                .Where(cs => missingSkills.Contains(cs.Skill.Name))
-                .Include(cs => cs.Course)
-                .Include(cs => cs.Skill)
-                .Select(cs => new
-                {
-                    id = cs.Course.Id,
-                    title = cs.Course.Title,
-                    skill = cs.Skill.Name
-                })
-                .Distinct()
-                .ToListAsync();
+            var match = await _applicationMatchingService.GetMatchResultAsync(
+                jobId,
+                application.UserId
+            );
 
             result.Add(new
             {
@@ -356,16 +275,16 @@ public class ApplicationsController : ControllerBase
                 portfolioFileUrl = application.PortfolioFileUrl,
                 createdAt = application.CreatedAt,
                 candidate,
-                matchPercentage,
-                jobSkills,
-                userSkills,
-                matchedSkills,
-                missingSkills,
-                recommendedCourses
+                matchPercentage = match.MatchPercentage,
+                jobSkills = match.JobSkills,
+                userSkills = match.UserSkills,
+                matchedSkills = match.MatchedSkills,
+                missingSkills = match.MissingSkills,
+                recommendedCourses = match.RecommendedCourses
             });
         }
 
-        return Ok(result.OrderByDescending(a => ((dynamic)a).matchPercentage).ToList());
+        return Ok(result);
     }
 
     [Authorize(Roles = "Recruiter,Admin")]

@@ -13,8 +13,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Controller aktivieren
 builder.Services.AddControllers();
 
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IFileStorageService, FileStorageService>();
+builder.Services.AddScoped<IApplicationMatchingService, ApplicationMatchingService>();
+
 builder.Services.Configure<EmailSettings>(
-    builder.Configuration.GetSection("EmailSettings"));
+builder.Configuration.GetSection("EmailSettings"));
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 
