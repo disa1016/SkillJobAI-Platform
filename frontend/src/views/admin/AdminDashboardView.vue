@@ -1,6 +1,10 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
-import api from "../../services/api";
+import { getAdminDashboard } from "@/services/adminService";
+
+import BaseAlert from "@/components/shared/BaseAlert.vue";
+import BaseCard from "@/components/shared/BaseCard.vue";
+import BaseSpinner from "@/components/shared/BaseSpinner.vue";
 
 const dashboard = ref(null);
 const loading = ref(true);
@@ -61,8 +65,7 @@ const loadDashboard = async () => {
     error.value = "";
 
     try {
-        const response = await api.get("/admin/dashboard");
-        dashboard.value = response.data;
+        dashboard.value = await getAdminDashboard();
     } catch {
         error.value = "Admin Dashboard konnte nicht geladen werden.";
     } finally {
@@ -83,13 +86,9 @@ onMounted(loadDashboard);
             </router-link>
         </div>
 
-        <div v-if="loading" class="alert alert-info">
-            Dashboard wird geladen...
-        </div>
+        <BaseSpinner v-if="loading" message="Dashboard wird geladen..." />
 
-        <div v-else-if="error" class="alert alert-danger">
-            {{ error }}
-        </div>
+        <BaseAlert v-else-if="error" type="danger" :message="error" />
 
         <template v-else-if="dashboard">
             <section class="mb-4">
@@ -97,12 +96,15 @@ onMounted(loadDashboard);
 
                 <div class="row g-3">
                     <div v-for="stat in overviewStats" :key="stat.label" class="col-md-4">
-                        <div class="card shadow-sm h-100">
-                            <div class="card-body">
-                                <h6 class="text-muted">{{ stat.label }}</h6>
-                                <h2 class="mb-0">{{ stat.value }}</h2>
-                            </div>
-                        </div>
+                        <BaseCard>
+                            <h6 class="text-muted">
+                                {{ stat.label }}
+                            </h6>
+
+                            <h2 class="mb-0">
+                                {{ stat.value }}
+                            </h2>
+                        </BaseCard>
                     </div>
                 </div>
             </section>
@@ -112,12 +114,17 @@ onMounted(loadDashboard);
 
                 <div class="row g-3">
                     <div v-for="stat in roleStats" :key="stat.label" class="col-md-3">
-                        <div class="card shadow-sm h-100" :class="stat.borderClass">
-                            <div class="card-body">
-                                <h6 class="text-muted">{{ stat.label }}</h6>
-                                <h2 class="mb-0">{{ stat.value }}</h2>
+                        <BaseCard>
+                            <div :class="stat.borderClass">
+                                <h6 class="text-muted">
+                                    {{ stat.label }}
+                                </h6>
+
+                                <h2 class="mb-0">
+                                    {{ stat.value }}
+                                </h2>
                             </div>
-                        </div>
+                        </BaseCard>
                     </div>
                 </div>
             </section>
