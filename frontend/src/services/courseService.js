@@ -1,7 +1,14 @@
 import api from "./api";
 
-export const getCourses = async () => {
-  const { data } = await api.get("/courses");
+export const getCourses = async ({ page = 1, pageSize = 10, search = "" } = {}) => {
+  const { data } = await api.get("/courses", {
+    params: {
+      page,
+      pageSize,
+      search,
+    },
+  });
+
   return data;
 };
 

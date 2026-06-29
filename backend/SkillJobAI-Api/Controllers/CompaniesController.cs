@@ -18,25 +18,64 @@ public class CompaniesController : ControllerBase
         _context = context;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetCompanies()
-    {
-        var companies = await _context.Companies
-            .Select(c => new
-            {
-                id = c.Id,
-                name = c.Name,
-                description = c.Description,
-                websiteUrl = c.WebsiteUrl,
-                logoUrl = c.LogoUrl,
-                location = c.Location,
-                createdAt = c.CreatedAt,
-                totalJobs = c.Jobs.Count
-            })
-            .ToListAsync();
+[HttpGet]
+public async Task<IActionResult> GetCompanies(
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 10,
+    [FromQuery] string? search = null)
+{
+    if (page < 1)
+        page = 1;
 
-        return Ok(companies);
+    if (pageSize < 1)
+        pageSize = 10;
+
+    if (pageSize > 50)
+        pageSize = 50;
+
+    var query = _context.Companies.AsQueryable();
+
+    if (!string.IsNullOrWhiteSpace(search))
+    {
+        var searchTerm = search.ToLower();
+
+        query = query.Where(c =>
+            c.Name.ToLower().Contains(searchTerm) ||
+            c.Description.ToLower().Contains(searchTerm) ||
+            c.Location.ToLower().Contains(searchTerm) ||
+            c.WebsiteUrl.ToLower().Contains(searchTerm));
     }
+
+    var totalItems = await query.CountAsync();
+
+    var companies = await query
+        .OrderBy(c => c.Name)
+        .Skip((page - 1) * pageSize)
+        .Take(pageSize)
+        .Select(c => new
+        {
+            id = c.Id,
+            name = c.Name,
+            description = c.Description,
+            websiteUrl = c.WebsiteUrl,
+            logoUrl = c.LogoUrl,
+            location = c.Location,
+            createdAt = c.CreatedAt,
+            totalJobs = c.Jobs.Count
+        })
+        .ToListAsync();
+
+    var response = new PagedResponse<object>
+    {
+        Items = companies.Cast<object>().ToList(),
+        Page = page,
+        PageSize = pageSize,
+        TotalItems = totalItems,
+        TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize)
+    };
+
+    return Ok(response);
+}
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCompany(int id)
@@ -68,7 +107,7 @@ public class CompaniesController : ControllerBase
         return Ok(company);
     }
 
-    [Authorize(Roles = "Recruiter,Admin")]
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> CreateCompany(CompanyRequest request)
     {
@@ -97,7 +136,7 @@ public class CompaniesController : ControllerBase
         });
     }
 
-    [Authorize(Roles = "Recruiter,Admin")]
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateCompany(int id, CompanyRequest request)
     {
@@ -126,7 +165,7 @@ public class CompaniesController : ControllerBase
         });
     }
 
-    [Authorize(Roles = "Recruiter,Admin")]
+    [Authorize(Roles = "Admin")]
     [HttpPost("{id}/logo")]
     public async Task<IActionResult> UploadCompanyLogo(int id, IFormFile file)
     {
@@ -162,10 +201,8 @@ public class CompaniesController : ControllerBase
         var fileName = $"company-{id}-{Guid.NewGuid()}{extension}";
         var filePath = Path.Combine(uploadsFolder, fileName);
 
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await file.CopyToAsync(stream);
 
         company.LogoUrl = $"/uploads/companies/{fileName}";
 

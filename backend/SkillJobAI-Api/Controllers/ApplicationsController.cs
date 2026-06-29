@@ -221,71 +221,120 @@ public class ApplicationsController : ControllerBase
         });
     }
 
-    [Authorize(Roles = "Recruiter,Admin")]
-    [HttpGet("job/{jobId}")]
-    public async Task<IActionResult> GetApplicationsForJob(int jobId)
-    {
-        var job = await _context.Jobs
-            .Include(j => j.Company)
-            .FirstOrDefaultAsync(j => j.Id == jobId);
+[Authorize(Roles = "Recruiter,Admin")]
+[HttpGet("job/{jobId}")]
+public async Task<IActionResult> GetApplicationsForJob(
+    int jobId,
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 10,
+    [FromQuery] string? search = null,
+    [FromQuery] string? status = null)
+{
+    if (page < 1)
+        page = 1;
 
-        if (job == null)
-            return NotFound(new { message = "Job not found." });
+    if (pageSize < 1)
+        pageSize = 10;
 
-        if (job.CompanyId == null)
-            return BadRequest(new { message = "Job has no company." });
+    if (pageSize > 50)
+        pageSize = 50;
 
-        var canManageCompany = await UserCanManageCompany(job.CompanyId.Value);
+    var job = await _context.Jobs
+        .Include(j => j.Company)
+        .FirstOrDefaultAsync(j => j.Id == jobId);
 
-        if (!canManageCompany)
-            return Forbid();
+    if (job == null)
+        return NotFound(new { message = "Job not found." });
 
-        var applications = await _context.Applications
-            .Where(a => a.JobId == jobId)
-            .ToListAsync();
+    if (job.CompanyId == null)
+        return BadRequest(new { message = "Job has no company." });
 
-        var result = new List<object>();
+    var canManageCompany = await UserCanManageCompany(job.CompanyId.Value);
 
-        foreach (var application in applications)
+    if (!canManageCompany)
+        return Forbid();
+
+    var query =
+        from application in _context.Applications
+        join user in _context.Users on application.UserId equals user.Id
+        where application.JobId == jobId
+        select new
         {
-            var candidate = await _context.Users
-                .Where(u => u.Id == application.UserId)
-                .Select(u => new
-                {
-                    id = u.Id,
-                    fullName = u.FullName,
-                    email = u.Email,
-                    cvUrl = u.CvUrl
-                })
-                .FirstOrDefaultAsync();
-
-            var match = await _applicationMatchingService.GetMatchResultAsync(
-                jobId,
-                application.UserId
-            );
-
-            result.Add(new
+            application,
+            candidate = new
             {
-                id = application.Id,
-                userId = application.UserId,
-                coverLetter = application.CoverLetter,
-                status = application.Status,
-                cvFileUrl = application.CvFileUrl,
-                certificateFileUrl = application.CertificateFileUrl,
-                portfolioFileUrl = application.PortfolioFileUrl,
-                createdAt = application.CreatedAt,
-                candidate,
-                matchPercentage = match.MatchPercentage,
-                jobSkills = match.JobSkills,
-                userSkills = match.UserSkills,
-                matchedSkills = match.MatchedSkills,
-                missingSkills = match.MissingSkills,
-                recommendedCourses = match.RecommendedCourses
-            });
-        }
+                id = user.Id,
+                fullName = user.FullName,
+                email = user.Email,
+                cvUrl = user.CvUrl
+            }
+        };
 
-        return Ok(result);
+    if (!string.IsNullOrWhiteSpace(status))
+    {
+        query = query.Where(x => x.application.Status == status);
     }
+
+    if (!string.IsNullOrWhiteSpace(search))
+    {
+        var searchTerm = search.ToLower();
+
+        query = query.Where(x =>
+            x.candidate.fullName.ToLower().Contains(searchTerm) ||
+            x.candidate.email.ToLower().Contains(searchTerm) ||
+            x.application.CoverLetter.ToLower().Contains(searchTerm));
+    }
+
+    var totalItems = await query.CountAsync();
+
+    var applications = await query
+        .OrderByDescending(x => x.application.CreatedAt)
+        .Skip((page - 1) * pageSize)
+        .Take(pageSize)
+        .ToListAsync();
+
+    var result = new List<object>();
+
+    foreach (var item in applications)
+    {
+        var application = item.application;
+
+        var match = await _applicationMatchingService.GetMatchResultAsync(
+            jobId,
+            application.UserId
+        );
+
+        result.Add(new
+        {
+            id = application.Id,
+            userId = application.UserId,
+            coverLetter = application.CoverLetter,
+            status = application.Status,
+            cvFileUrl = application.CvFileUrl,
+            certificateFileUrl = application.CertificateFileUrl,
+            portfolioFileUrl = application.PortfolioFileUrl,
+            createdAt = application.CreatedAt,
+            candidate = item.candidate,
+            matchPercentage = match.MatchPercentage,
+            jobSkills = match.JobSkills,
+            userSkills = match.UserSkills,
+            matchedSkills = match.MatchedSkills,
+            missingSkills = match.MissingSkills,
+            recommendedCourses = match.RecommendedCourses
+        });
+    }
+
+    var response = new PagedResponse<object>
+    {
+        Items = result,
+        Page = page,
+        PageSize = pageSize,
+        TotalItems = totalItems,
+        TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize)
+    };
+
+    return Ok(response);
+}
 
     [Authorize(Roles = "Recruiter,Admin")]
     [HttpPut("{id}/status")]

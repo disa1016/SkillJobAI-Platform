@@ -2,26 +2,31 @@
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 
+import { USER_ROLES } from "@/constants/roles";
+import { clearAuthStorage, getCurrentUser } from "@/utils/storage";
+
 const router = useRouter();
 
-const user = ref(JSON.parse(localStorage.getItem("user") || "null"));
+const user = ref(getCurrentUser());
 
-const isAdmin = computed(() => user.value?.role === "Admin");
-const isRecruiter = computed(() => user.value?.role === "Recruiter");
+const isAdmin = computed(() => user.value?.role === USER_ROLES.ADMIN);
+const isRecruiter = computed(() => user.value?.role === USER_ROLES.RECRUITER);
 const isCandidate = computed(
-  () => user.value?.role === "Candidate" || user.value?.role === "Student"
+  () =>
+    user.value?.role === USER_ROLES.CANDIDATE ||
+    user.value?.role === USER_ROLES.STUDENT
 );
 
 const homePath = computed(() => {
   if (!user.value) return "/home";
   if (isAdmin.value) return "/admin/dashboard";
   if (isRecruiter.value) return "/recruiter/dashboard";
+
   return "/dashboard";
 });
 
 const logout = () => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
+  clearAuthStorage();
 
   user.value = null;
 
@@ -36,15 +41,8 @@ const logout = () => {
         SkillJob AI
       </router-link>
 
-      <button
-        class="navbar-toggler"
-        type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#mainNavbar"
-        aria-controls="mainNavbar"
-        aria-expanded="false"
-        aria-label="Navigation öffnen"
-      >
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+        aria-controls="mainNavbar" aria-expanded="false" aria-label="Navigation öffnen">
         <span class="navbar-toggler-icon"></span>
       </button>
 
@@ -57,7 +55,6 @@ const logout = () => {
           </template>
 
           <template v-else>
-            <!-- Candidate Navigation -->
             <template v-if="isCandidate">
               <router-link class="nav-link" to="/dashboard">
                 Dashboard
@@ -84,13 +81,8 @@ const logout = () => {
               </router-link>
 
               <div class="nav-item dropdown">
-                <a
-                  class="nav-link dropdown-toggle"
-                  href="#"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                  aria-expanded="false">
                   AI Tools
                 </a>
 
@@ -122,7 +114,6 @@ const logout = () => {
               </div>
             </template>
 
-            <!-- Recruiter Navigation -->
             <template v-if="isRecruiter">
               <router-link class="nav-link" to="/recruiter/dashboard">
                 Dashboard
@@ -141,7 +132,6 @@ const logout = () => {
               </router-link>
             </template>
 
-            <!-- Admin Navigation -->
             <template v-if="isAdmin">
               <router-link class="nav-link" to="/admin/dashboard">
                 Admin
@@ -164,15 +154,9 @@ const logout = () => {
               </router-link>
             </template>
 
-            <!-- User Menu -->
             <div class="nav-item dropdown ms-lg-3">
-              <a
-                class="nav-link dropdown-toggle fw-semibold text-white"
-                href="#"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
+              <a class="nav-link dropdown-toggle fw-semibold text-white" href="#" role="button"
+                data-bs-toggle="dropdown" aria-expanded="false">
                 {{ user.fullName }} · {{ user.role }}
               </a>
 

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SkillJobAI.Api.Data;
 using SkillJobAI.Api.Entities;
+using SkillJobAI.Api.Models;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -50,10 +51,41 @@ public class JobsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetJobs()
+    public async Task<IActionResult> GetJobs(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? search = null)
     {
-        var jobs = await _context.Jobs
+        if (page < 1)
+            page = 1;
+
+        if (pageSize < 1)
+            pageSize = 10;
+
+        if (pageSize > 50)
+            pageSize = 50;
+
+        var query = _context.Jobs
             .Include(j => j.Company)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchTerm = search.ToLower();
+
+            query = query.Where(j =>
+                j.Title.ToLower().Contains(searchTerm) ||
+                j.Description.ToLower().Contains(searchTerm) ||
+                j.Location.ToLower().Contains(searchTerm) ||
+                (j.Company != null && j.Company.Name.ToLower().Contains(searchTerm)));
+        }
+
+        var totalItems = await query.CountAsync();
+
+        var jobs = await query
+            .OrderByDescending(j => j.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(j => new
             {
                 id = j.Id,
@@ -73,7 +105,16 @@ public class JobsController : ControllerBase
             })
             .ToListAsync();
 
-        return Ok(jobs);
+        var response = new PagedResponse<object>
+        {
+            Items = jobs.Cast<object>().ToList(),
+            Page = page,
+            PageSize = pageSize,
+            TotalItems = totalItems,
+            TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize)
+        };
+
+        return Ok(response);
     }
 
     [HttpGet("{id}")]

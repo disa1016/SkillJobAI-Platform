@@ -1,7 +1,14 @@
 import api from "./api";
 
-export const getCompanies = async () => {
-  const { data } = await api.get("/companies");
+export const getCompanies = async ({ page = 1, pageSize = 10, search = "" } = {}) => {
+  const { data } = await api.get("/companies", {
+    params: {
+      page,
+      pageSize,
+      search,
+    },
+  });
+
   return data;
 };
 

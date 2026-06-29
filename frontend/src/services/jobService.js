@@ -1,7 +1,14 @@
 import api from "./api";
 
-export const getJobs = async () => {
-  const { data } = await api.get("/jobs");
+export const getJobs = async ({ page = 1, pageSize = 10, search = "" } = {}) => {
+  const { data } = await api.get("/jobs", {
+    params: {
+      page,
+      pageSize,
+      search,
+    },
+  });
+
   return data;
 };
 

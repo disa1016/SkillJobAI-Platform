@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SkillJobAI.Api.Data;
 using SkillJobAI.Api.Entities;
+using SkillJobAI.Api.Models;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -18,24 +19,64 @@ public class CoursesController : ControllerBase
     }
 
     // Alle Kurse abrufen
-    [HttpGet]
-    public async Task<IActionResult> GetCourses()
-    {
-        var courses = await _context.Courses
-            .Select(c => new
-            {
-                id = c.Id,
-                title = c.Title,
-                description = c.Description,
-                category = c.Category,
-                level = c.Level,
-                instructor = c.Instructor,
-                createdAt = c.CreatedAt
-            })
-            .ToListAsync();
+[HttpGet]
+public async Task<IActionResult> GetCourses(
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 10,
+    [FromQuery] string? search = null)
+{
+    if (page < 1)
+        page = 1;
 
-        return Ok(courses);
+    if (pageSize < 1)
+        pageSize = 10;
+
+    if (pageSize > 50)
+        pageSize = 50;
+
+    var query = _context.Courses.AsQueryable();
+
+    if (!string.IsNullOrWhiteSpace(search))
+    {
+        var searchTerm = search.ToLower();
+
+        query = query.Where(c =>
+            c.Title.ToLower().Contains(searchTerm) ||
+            c.Description.ToLower().Contains(searchTerm) ||
+            c.Category.ToLower().Contains(searchTerm) ||
+            c.Level.ToLower().Contains(searchTerm) ||
+            c.Instructor.ToLower().Contains(searchTerm));
     }
+
+    var totalItems = await query.CountAsync();
+
+    var courses = await query
+        .OrderByDescending(c => c.CreatedAt)
+        .Skip((page - 1) * pageSize)
+        .Take(pageSize)
+        .Select(c => new
+        {
+            id = c.Id,
+            title = c.Title,
+            description = c.Description,
+            category = c.Category,
+            level = c.Level,
+            instructor = c.Instructor,
+            createdAt = c.CreatedAt
+        })
+        .ToListAsync();
+
+    var response = new PagedResponse<object>
+    {
+        Items = courses.Cast<object>().ToList(),
+        Page = page,
+        PageSize = pageSize,
+        TotalItems = totalItems,
+        TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize)
+    };
+
+    return Ok(response);
+}
 
     // Einzelnen Kurs mit Lessons abrufen
     [HttpGet("{id}")]
