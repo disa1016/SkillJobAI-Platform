@@ -6,9 +6,16 @@ import BaseAlert from "@/components/shared/BaseAlert.vue";
 import BaseCard from "@/components/shared/BaseCard.vue";
 import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
 import BaseSpinner from "@/components/shared/BaseSpinner.vue";
+import BasePagination from "@/components/shared/BasePagination.vue";
 
 import { APPLICATION_STATUS } from "@/constants/applicationStatus";
 import { getMatchBadgeClass, getStatusBadgeClass } from "@/utils/badge";
+
+import {
+  getApplicationsByJob,
+  getRecruiterJobs,
+  updateApplicationStatus,
+} from "@/services/recruiterService";
 
 const jobs = ref([]);
 const selectedJobId = ref("");
@@ -28,8 +35,8 @@ const search = ref("");
 const selectedStatus = ref("");
 
 const backendUrl = computed(() => {
-    const baseUrl = api.defaults.baseURL || "";
-    return baseUrl.replace("/api", "");
+  const baseUrl = api.defaults.baseURL || "";
+  return baseUrl.replace("/api", "");
 });
 
 const hasApplications = computed(() => applications.value.length > 0);
@@ -38,144 +45,134 @@ const canGoPrevious = computed(() => page.value > 1);
 const canGoNext = computed(() => page.value < totalPages.value);
 
 const selectedJob = computed(() =>
-    jobs.value.find((job) => job.id === Number(selectedJobId.value))
+  jobs.value.find((job) => job.id === Number(selectedJobId.value))
 );
 
 const getFileUrl = (fileUrl) => {
-    if (!fileUrl) return "";
-    if (fileUrl.startsWith("http")) return fileUrl;
+  if (!fileUrl) return "";
+  if (fileUrl.startsWith("http")) return fileUrl;
 
-    return `${backendUrl.value}${fileUrl}`;
+  return `${backendUrl.value}${fileUrl}`;
 };
 
 const clearMessages = () => {
-    error.value = "";
-    success.value = "";
+  error.value = "";
+  success.value = "";
 };
 
 const getMatchPercentage = (score) => {
-    const value = Number(score) || 0;
-    return Math.min(Math.max(value, 0), 100);
+  const value = Number(score) || 0;
+  return Math.min(Math.max(value, 0), 100);
 };
 
 const hasApplicationFiles = (application) => {
-    return Boolean(
-        application.cvFileUrl ||
-        application.certificateFileUrl ||
-        application.portfolioFileUrl
-    );
+  return Boolean(
+    application.cvFileUrl ||
+      application.certificateFileUrl ||
+      application.portfolioFileUrl
+  );
 };
 
 const hasSkills = (application) => {
-    return Boolean(
-        application.matchedSkills?.length ||
-        application.missingSkills?.length
-    );
+  return Boolean(
+    application.matchedSkills?.length ||
+      application.missingSkills?.length
+  );
 };
 
 const loadJobs = async () => {
-    jobsLoading.value = true;
-    clearMessages();
+  jobsLoading.value = true;
+  clearMessages();
 
-    try {
-       const { data } = await api.get("/jobs", {
-  params: {
-    page: 1,
-    pageSize: 50,
-  },
-});
+  try {
+    const data = await getRecruiterJobs({
+      page: 1,
+      pageSize: 50,
+    });
 
-console.log("Jobs response:", data);
-
-jobs.value = data.items || data;
-
-    } catch {
-        error.value = "Jobs konnten nicht geladen werden.";
-    } finally {
-        jobsLoading.value = false;
-    }
+    jobs.value = data.items;
+  } catch {
+    error.value = "Jobs konnten nicht geladen werden.";
+  } finally {
+    jobsLoading.value = false;
+  }
 };
 
 const loadApplications = async () => {
-    if (!selectedJobId.value) return;
+  if (!selectedJobId.value) return;
 
-    applicationsLoading.value = true;
-    applications.value = [];
-    clearMessages();
+  applicationsLoading.value = true;
+  applications.value = [];
+  clearMessages();
 
-    try {
-        const { data } = await api.get(`/applications/job/${selectedJobId.value}`, {
-            params: {
-                page: page.value,
-                pageSize: pageSize.value,
-                search: search.value,
-                status: selectedStatus.value,
-            },
-        });
+  try {
+    const data = await getApplicationsByJob(selectedJobId.value, {
+      page: page.value,
+      pageSize: pageSize.value,
+      search: search.value,
+      status: selectedStatus.value,
+    });
 
-        applications.value = data.items;
-        totalPages.value = data.totalPages;
-        totalItems.value = data.totalItems;
-    } catch {
-        error.value = "Bewerbungen konnten nicht geladen werden.";
-    } finally {
-        applicationsLoading.value = false;
-    }
+    applications.value = data.items;
+    totalPages.value = data.totalPages;
+    totalItems.value = data.totalItems;
+  } catch {
+    error.value = "Bewerbungen konnten nicht geladen werden.";
+  } finally {
+    applicationsLoading.value = false;
+  }
 };
 
 const searchApplications = async () => {
-    page.value = 1;
-    await loadApplications();
+  page.value = 1;
+  await loadApplications();
 };
 
 const clearFilters = async () => {
-    search.value = "";
-    selectedStatus.value = "";
-    page.value = 1;
-    await loadApplications();
+  search.value = "";
+  selectedStatus.value = "";
+  page.value = 1;
+  await loadApplications();
 };
 
 const goToPreviousPage = async () => {
-    if (!canGoPrevious.value) return;
+  if (!canGoPrevious.value) return;
 
-    page.value -= 1;
-    await loadApplications();
+  page.value -= 1;
+  await loadApplications();
 };
 
 const goToNextPage = async () => {
-    if (!canGoNext.value) return;
+  if (!canGoNext.value) return;
 
-    page.value += 1;
-    await loadApplications();
+  page.value += 1;
+  await loadApplications();
 };
 
 const updateStatus = async (applicationId, status) => {
-    clearMessages();
+  clearMessages();
 
-    try {
-        await api.put(`/applications/${applicationId}/status`, {
-            status,
-        });
+  try {
+    await updateApplicationStatus(applicationId, status);
 
-        success.value = `Status wurde auf ${status} gesetzt.`;
-        await loadApplications();
-    } catch {
-        error.value = "Status konnte nicht geändert werden.";
-    }
+    success.value = `Status wurde auf ${status} gesetzt.`;
+    await loadApplications();
+  } catch {
+    error.value = "Status konnte nicht geändert werden.";
+  }
 };
 
 watch(selectedJobId, () => {
-    applications.value = [];
-    success.value = "";
-    error.value = "";
-    page.value = 1;
-    totalPages.value = 1;
-    totalItems.value = 0;
+  applications.value = [];
+  success.value = "";
+  error.value = "";
+  page.value = 1;
+  totalPages.value = 1;
+  totalItems.value = 0;
 });
 
 onMounted(loadJobs);
 </script>
-
 
 <template>
     <div class="container py-4">
@@ -380,20 +377,8 @@ onMounted(loadJobs);
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-center align-items-center gap-2 mt-4">
-                    <button type="button" class="btn btn-outline-primary" :disabled="!canGoPrevious"
-                        @click="goToPreviousPage">
-                        Zurück
-                    </button>
-
-                    <span class="text-muted">
-                        Seite {{ page }} / {{ totalPages }}
-                    </span>
-
-                    <button type="button" class="btn btn-outline-primary" :disabled="!canGoNext" @click="goToNextPage">
-                        Weiter
-                    </button>
-                </div>
+                <BasePagination :page="page" :total-pages="totalPages" :can-go-previous="canGoPrevious"
+                    :can-go-next="canGoNext" @previous="goToPreviousPage" @next="goToNextPage" />
             </BaseCard>
 
             <BaseEmptyState v-if="hasSelectedJob && !hasApplications"

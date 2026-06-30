@@ -8,6 +8,8 @@ import BaseCard from "@/components/shared/BaseCard.vue";
 import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
 import BaseSpinner from "@/components/shared/BaseSpinner.vue";
 
+import BasePagination from "@/components/shared/BasePagination.vue";
+
 const jobs = ref([]);
 const loading = ref(true);
 const error = ref("");
@@ -134,20 +136,8 @@ onMounted(loadJobs);
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-center align-items-center gap-2 mt-4">
-                    <button type="button" class="btn btn-outline-primary" :disabled="!canGoPrevious"
-                        @click="goToPreviousPage">
-                        Zurück
-                    </button>
-
-                    <span class="text-muted">
-                        Seite {{ page }} / {{ totalPages }}
-                    </span>
-
-                    <button type="button" class="btn btn-outline-primary" :disabled="!canGoNext" @click="goToNextPage">
-                        Weiter
-                    </button>
-                </div>
+                <BasePagination :page="page" :total-pages="totalPages" :can-go-previous="canGoPrevious"
+                    :can-go-next="canGoNext" @previous="goToPreviousPage" @next="goToNextPage" />
             </template>
         </template>
     </div>

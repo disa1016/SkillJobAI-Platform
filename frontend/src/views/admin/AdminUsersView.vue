@@ -1,6 +1,13 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
-import api from "../../services/api";
+
+import {
+    deleteAdminUser,
+    getAdminUsers,
+    updateUserRole,
+} from "@/services/adminService";
+
+import { formatDate } from "@/utils/date";
 
 const users = ref([]);
 const loading = ref(false);
@@ -10,16 +17,6 @@ const success = ref("");
 const roles = ["Candidate", "Recruiter", "Admin"];
 
 const hasUsers = computed(() => users.value.length > 0);
-
-const formatDate = (date) => {
-    if (!date) return "-";
-
-    return new Date(date).toLocaleDateString("de-DE", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-    });
-};
 
 const clearMessages = () => {
     error.value = "";
@@ -31,8 +28,7 @@ const loadUsers = async () => {
     clearMessages();
 
     try {
-        const { data } = await api.get("/admin/users");
-        users.value = data;
+        users.value = await getAdminUsers();
     } catch {
         error.value = "Benutzer konnten nicht geladen werden.";
     } finally {
@@ -44,10 +40,7 @@ const updateRole = async (user) => {
     clearMessages();
 
     try {
-        await api.put(`/admin/users/${user.id}/role`, {
-            role: user.role,
-        });
-
+        await updateUserRole(user.id, user.role);
         success.value = "Rolle erfolgreich geändert.";
     } catch {
         error.value = "Fehler beim Aktualisieren der Rolle.";
@@ -62,7 +55,7 @@ const deleteUser = async (id) => {
     clearMessages();
 
     try {
-        await api.delete(`/admin/users/${id}`);
+        await deleteAdminUser(id);
         users.value = users.value.filter((user) => user.id !== id);
 
         success.value = "Benutzer wurde gelöscht.";
@@ -73,6 +66,7 @@ const deleteUser = async (id) => {
 
 onMounted(loadUsers);
 </script>
+
 
 <template>
     <div class="container py-4">

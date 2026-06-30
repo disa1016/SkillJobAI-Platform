@@ -5,6 +5,22 @@ export const getRecruiterDashboard = async () => {
   return data;
 };
 
+export const getRecruiterJobs = async ({
+  page = 1,
+  pageSize = 50,
+  search = "",
+} = {}) => {
+  const { data } = await api.get("/jobs", {
+    params: {
+      page,
+      pageSize,
+      search,
+    },
+  });
+
+  return data;
+};
+
 export const getRecruiterCandidates = async (skill = "") => {
   const url = skill
     ? `/recruiter/candidates?skill=${encodeURIComponent(skill)}`
@@ -19,8 +35,19 @@ export const getRecruiterCandidateById = async (id) => {
   return data;
 };
 
-export const getApplicationsByJob = async (jobId) => {
-  const { data } = await api.get(`/applications/job/${jobId}`);
+export const getApplicationsByJob = async (
+  jobId,
+  { page = 1, pageSize = 10, search = "", status = "" } = {},
+) => {
+  const { data } = await api.get(`/applications/job/${jobId}`, {
+    params: {
+      page,
+      pageSize,
+      search,
+      status,
+    },
+  });
+
   return data;
 };
 

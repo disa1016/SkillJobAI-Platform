@@ -1,6 +1,13 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
-import api from "../../services/api";
+
+import { getCompanies } from "@/services/companyService";
+import {
+  assignCompanyMember,
+  getAdminUsers,
+  getCompanyMembers,
+  removeCompanyMember,
+} from "@/services/adminService";
 
 const members = ref([]);
 const companies = ref([]);
@@ -15,92 +22,94 @@ const error = ref("");
 const success = ref("");
 
 const recruiters = computed(() => {
-    return users.value.filter((user) =>
-        ["Recruiter", "Admin", "Candidate"].includes(user.role)
-    );
+  return users.value.filter((user) =>
+    ["Recruiter", "Admin", "Candidate"].includes(user.role)
+  );
 });
 
 const hasMembers = computed(() => members.value.length > 0);
 
 const formatDate = (date) => {
-    if (!date) return "-";
+  if (!date) return "-";
 
-    return new Date(date).toLocaleDateString("de-DE");
+  return new Date(date).toLocaleDateString("de-DE");
 };
 
 const clearMessages = () => {
-    error.value = "";
-    success.value = "";
+  error.value = "";
+  success.value = "";
 };
 
 const resetForm = () => {
-    selectedCompanyId.value = "";
-    selectedUserId.value = "";
+  selectedCompanyId.value = "";
+  selectedUserId.value = "";
 };
 
 const loadData = async () => {
-    loading.value = true;
-    clearMessages();
+  loading.value = true;
+  clearMessages();
 
-    try {
-        const [membersResponse, companiesResponse, usersResponse] = await Promise.all([
-            api.get("/company-members"),
-            api.get("/companies"),
-            api.get("/admin/users"),
-        ]);
+  try {
+    const [membersData, companiesData, usersData] = await Promise.all([
+      getCompanyMembers(),
+      getCompanies({
+        page: 1,
+        pageSize: 50,
+      }),
+      getAdminUsers(),
+    ]);
 
-        members.value = membersResponse.data;
-        companies.value = companiesResponse.data;
-        users.value = usersResponse.data;
-    } catch {
-        error.value = "Daten konnten nicht geladen werden.";
-    } finally {
-        loading.value = false;
-    }
+    members.value = membersData;
+    companies.value = companiesData.items;
+    users.value = usersData;
+  } catch {
+    error.value = "Daten konnten nicht geladen werden.";
+  } finally {
+    loading.value = false;
+  }
 };
 
 const assignRecruiter = async () => {
-    clearMessages();
+  clearMessages();
 
-    if (!selectedCompanyId.value || !selectedUserId.value) {
-        error.value = "Bitte Firma und Recruiter auswählen.";
-        return;
-    }
+  if (!selectedCompanyId.value || !selectedUserId.value) {
+    error.value = "Bitte Firma und Recruiter auswählen.";
+    return;
+  }
 
-    assigning.value = true;
+  assigning.value = true;
 
-    try {
-        await api.post("/company-members", {
-            companyId: Number(selectedCompanyId.value),
-            userId: Number(selectedUserId.value),
-            role: "Recruiter",
-        });
+  try {
+    await assignCompanyMember(
+      Number(selectedCompanyId.value),
+      Number(selectedUserId.value)
+    );
 
-        resetForm();
-        success.value = "Recruiter wurde erfolgreich zugewiesen.";
+    resetForm();
+    success.value = "Recruiter wurde erfolgreich zugewiesen.";
 
-        await loadData();
-    } catch (err) {
-        error.value =
-            err.response?.data?.message || "Recruiter konnte nicht zugewiesen werden.";
-    } finally {
-        assigning.value = false;
-    }
+    await loadData();
+  } catch (err) {
+    error.value =
+      err.response?.data?.message || "Recruiter konnte nicht zugewiesen werden.";
+  } finally {
+    assigning.value = false;
+  }
 };
 
 const removeMember = async (memberId) => {
-    if (!confirm("Möchtest du diese Zuweisung wirklich entfernen?")) return;
+  if (!confirm("Möchtest du diese Zuweisung wirklich entfernen?")) return;
 
-    clearMessages();
+  clearMessages();
 
-    try {
-        await api.delete(`/company-members/${memberId}`);
-        success.value = "Zuweisung wurde entfernt.";
+  try {
+    await removeCompanyMember(memberId);
+    success.value = "Zuweisung wurde entfernt.";
 
-        await loadData();
-    } catch {
-        error.value = "Zuweisung konnte nicht entfernt werden.";
-    }
+    await loadData();
+  } catch {
+    error.value = "Zuweisung konnte nicht entfernt werden.";
+  }
 };
 
 onMounted(loadData);

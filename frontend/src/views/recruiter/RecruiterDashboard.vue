@@ -7,6 +7,10 @@ import BaseCard from "@/components/shared/BaseCard.vue";
 import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
 import BaseSpinner from "@/components/shared/BaseSpinner.vue";
 
+
+import { getStatusBadgeClass } from "@/utils/badge";
+import { formatDate } from "@/utils/date";
+
 const dashboard = ref(null);
 const loading = ref(true);
 const error = ref("");
@@ -47,27 +51,6 @@ const recentApplications = computed(() => dashboard.value?.recentApplications ??
 const topJobsByApplications = computed(() => {
   return dashboard.value?.topJobsByApplications ?? [];
 });
-
-const getStatusBadgeClass = (status) => {
-  const statusClasses = {
-    Accepted: "bg-success",
-    Rejected: "bg-danger",
-    Reviewed: "bg-info text-dark",
-    Pending: "bg-warning text-dark",
-  };
-
-  return statusClasses[status] || "bg-secondary";
-};
-
-const formatDate = (date) => {
-  if (!date) return "Kein Datum";
-
-  return new Date(date).toLocaleDateString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
 
 const loadDashboard = async () => {
   loading.value = true;
