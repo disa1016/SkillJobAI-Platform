@@ -7,8 +7,10 @@ import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
 import BaseSpinner from "@/components/shared/BaseSpinner.vue";
 
 import { getCandidateDashboard } from "@/services/candidateService";
+import { getMatchBadgeClass } from "@/utils/badge";
+import { getCurrentUser } from "@/utils/storage";
 
-const user = JSON.parse(localStorage.getItem("user") || "null");
+const user = getCurrentUser();
 
 const dashboard = ref(null);
 const loading = ref(false);
@@ -39,13 +41,6 @@ const hasUserSkills = computed(() => dashboard.value?.userSkills?.length > 0);
 const hasMissingSkills = computed(() => dashboard.value?.missingSkills?.length > 0);
 const hasRecommendedCourses = computed(() => dashboard.value?.recommendedCourses?.length > 0);
 const hasTopJobMatches = computed(() => dashboard.value?.topJobMatches?.length > 0);
-
-const getMatchClass = (score) => {
-  if (score >= 70) return "bg-success";
-  if (score >= 40) return "bg-warning text-dark";
-
-  return "bg-danger";
-};
 
 const loadDashboard = async () => {
   loading.value = true;
@@ -104,18 +99,30 @@ onMounted(loadDashboard);
         </div>
 
         <div v-if="hasUserSkills">
-          <span v-for="skill in dashboard.userSkills" :key="skill" class="badge bg-success me-2 mb-2">
+          <span
+            v-for="skill in dashboard.userSkills"
+            :key="skill"
+            class="badge bg-success me-2 mb-2"
+          >
             {{ skill }}
           </span>
         </div>
 
-        <BaseEmptyState v-else title="Keine Skills hinterlegt" text="Du hast noch keine Skills hinterlegt." />
+        <BaseEmptyState
+          v-else
+          title="Keine Skills hinterlegt"
+          text="Du hast noch keine Skills hinterlegt."
+        />
       </BaseCard>
 
       <BaseCard v-if="hasMissingSkills" class="mt-4">
         <h4 class="mb-3">Empfohlene Skills</h4>
 
-        <span v-for="skill in dashboard.missingSkills" :key="skill" class="badge bg-danger me-2 mb-2">
+        <span
+          v-for="skill in dashboard.missingSkills"
+          :key="skill"
+          class="badge bg-danger me-2 mb-2"
+        >
           ✗ {{ skill }}
         </span>
       </BaseCard>
@@ -123,8 +130,12 @@ onMounted(loadDashboard);
       <BaseCard v-if="hasRecommendedCourses" class="mt-4">
         <h4 class="mb-3">Empfohlene Kurse</h4>
 
-        <router-link v-for="course in dashboard.recommendedCourses" :key="course.id" :to="`/courses/${course.id}`"
-          class="badge bg-primary me-2 mb-2 text-decoration-none">
+        <router-link
+          v-for="course in dashboard.recommendedCourses"
+          :key="course.id"
+          :to="`/courses/${course.id}`"
+          class="badge bg-primary me-2 mb-2 text-decoration-none"
+        >
           {{ course.title }}
         </router-link>
       </BaseCard>
@@ -132,7 +143,11 @@ onMounted(loadDashboard);
       <BaseCard v-if="hasTopJobMatches" class="mt-4">
         <h4 class="mb-3">Top Job Matches</h4>
 
-        <div v-for="job in dashboard.topJobMatches" :key="job.id" class="border rounded p-3 mb-3">
+        <div
+          v-for="job in dashboard.topJobMatches"
+          :key="job.id"
+          class="border rounded p-3 mb-3"
+        >
           <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
             <div>
               <h5 class="mb-1">
@@ -144,18 +159,28 @@ onMounted(loadDashboard);
               </p>
             </div>
 
-            <span class="badge" :class="getMatchClass(job.matchPercentage)">
+            <span
+              class="badge"
+              :class="getMatchBadgeClass(job.matchPercentage)"
+            >
               {{ job.matchPercentage }}%
             </span>
           </div>
 
-          <router-link :to="`/jobs/${job.id}`" class="btn btn-outline-primary btn-sm">
+          <router-link
+            :to="`/jobs/${job.id}`"
+            class="btn btn-outline-primary btn-sm"
+          >
             Job ansehen
           </router-link>
         </div>
       </BaseCard>
     </template>
 
-    <BaseEmptyState v-else title="Keine Dashboard-Daten" text="Es konnten keine Dashboard-Daten gefunden werden." />
+    <BaseEmptyState
+      v-else
+      title="Keine Dashboard-Daten"
+      text="Es konnten keine Dashboard-Daten gefunden werden."
+    />
   </div>
 </template>

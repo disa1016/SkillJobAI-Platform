@@ -1,6 +1,18 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
-import api from "../../services/api";
+
+import {
+  deleteCv,
+  downloadCourseCertificate,
+  getMyApplications,
+  getMyEnrollments,
+  getMyProgress,
+  getProfile,
+  uploadCv,
+} from "@/services/candidateService";
+
+import api from "@/services/api";
+import { formatDate } from "@/utils/date";
 
 const MAX_CV_SIZE = 5 * 1024 * 1024;
 
@@ -36,12 +48,6 @@ const hasApplications = computed(() => applications.value.length > 0);
 const hasEnrollments = computed(() => enrollments.value.length > 0);
 const hasProgress = computed(() => progress.value.length > 0);
 
-const formatDate = (date) => {
-  if (!date) return "Kein Datum";
-
-  return new Date(date).toLocaleDateString("de-DE");
-};
-
 const formatDateTime = (date) => {
   if (!date) return "Kein Datum";
 
@@ -54,7 +60,7 @@ const clearCvMessages = () => {
 };
 
 const loadProfile = async () => {
-  const { data } = await api.get("/users/profile");
+  const data = await getProfile();
 
   user.value = data;
   localStorage.setItem("user", JSON.stringify(data));
@@ -65,20 +71,16 @@ const loadProfileData = async () => {
   error.value = "";
 
   try {
-    const [
-      applicationsResponse,
-      enrollmentsResponse,
-      progressResponse,
-    ] = await Promise.all([
-      api.get("/applications/my"),
-      api.get("/enrollments/my"),
-      api.get("/progress/my"),
+    const [applicationsData, enrollmentsData, progressData] = await Promise.all([
+      getMyApplications(),
+      getMyEnrollments(),
+      getMyProgress(),
       loadProfile(),
     ]);
 
-    applications.value = applicationsResponse.data;
-    enrollments.value = enrollmentsResponse.data;
-    progress.value = progressResponse.data;
+    applications.value = applicationsData;
+    enrollments.value = enrollmentsData;
+    progress.value = progressData;
   } catch {
     error.value = "Profil-Daten konnten nicht geladen werden.";
   } finally {
@@ -113,7 +115,7 @@ const handleCvChange = (event) => {
   selectedCv.value = file;
 };
 
-const uploadCv = async () => {
+const handleUploadCv = async () => {
   clearCvMessages();
 
   if (!selectedCv.value) {
@@ -122,15 +124,7 @@ const uploadCv = async () => {
   }
 
   try {
-    const formData = new FormData();
-    formData.append("file", selectedCv.value);
-
-    await api.post("/users/cv", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
+    await uploadCv(selectedCv.value);
     await loadProfile();
 
     selectedCv.value = null;
@@ -141,11 +135,11 @@ const uploadCv = async () => {
   }
 };
 
-const deleteCv = async () => {
+const handleDeleteCv = async () => {
   clearCvMessages();
 
   try {
-    await api.delete("/users/cv");
+    await deleteCv();
     await loadProfile();
 
     selectedCv.value = null;
@@ -160,11 +154,9 @@ const downloadCertificate = async (courseId, courseTitle) => {
   certificateError.value = "";
 
   try {
-    const response = await api.get(`/certificates/course/${courseId}`, {
-      responseType: "blob",
-    });
+    const blobData = await downloadCourseCertificate(courseId);
 
-    const blob = new Blob([response.data], {
+    const blob = new Blob([blobData], {
       type: "application/pdf",
     });
 
@@ -251,7 +243,7 @@ onMounted(loadProfileData);
               CV anzeigen
             </a>
 
-            <button type="button" class="btn btn-outline-danger btn-sm" @click="deleteCv">
+            <button type="button" class="btn btn-outline-danger btn-sm" @click="handleDeleteCv">
               CV löschen
             </button>
           </div>
@@ -272,7 +264,7 @@ onMounted(loadProfileData);
             </small>
 
             <div class="mt-3">
-              <button type="button" class="btn btn-primary" :disabled="!selectedCv" @click="uploadCv">
+              <button type="button" class="btn btn-primary" :disabled="!selectedCv" @click="handleUploadCv">
                 Lebenslauf hochladen
               </button>
             </div>

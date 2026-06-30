@@ -1,8 +1,10 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
+
 import { getCompanyById } from "@/services/companyService";
 import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
+import { formatDate } from "@/utils/date";
 
 const route = useRoute();
 
@@ -15,40 +17,34 @@ const totalJobs = computed(() => jobs.value.length);
 const hasJobs = computed(() => jobs.value.length > 0);
 
 const companyStats = computed(() => [
-    {
-        label: "Offene Jobs",
-        value: totalJobs.value,
-    },
-    {
-        label: "Standort",
-        value: company.value?.location || "Keine Angabe",
-    },
-    {
-        label: "Seit",
-        value: formatDate(company.value?.createdAt),
-    },
+  {
+    label: "Offene Jobs",
+    value: totalJobs.value,
+  },
+  {
+    label: "Standort",
+    value: company.value?.location || "Keine Angabe",
+  },
+  {
+    label: "Seit",
+    value: formatDate(company.value?.createdAt),
+  },
 ]);
 
-const formatDate = (date) => {
-    if (!date) return "Keine Angabe";
-
-    return new Date(date).toLocaleDateString("de-DE");
-};
-
 const loadCompany = async () => {
-    loading.value = true;
-    error.value = "";
+  loading.value = true;
+  error.value = "";
 
-    try {
-        const data = await getCompanyById(route.params.id);
+  try {
+    const data = await getCompanyById(route.params.id);
 
-        company.value = data;
-        jobs.value = data.jobs || [];
-    } catch {
-        error.value = "Firmendetails konnten nicht geladen werden.";
-    } finally {
-        loading.value = false;
-    }
+    company.value = data;
+    jobs.value = data.jobs || [];
+  } catch {
+    error.value = "Firmendetails konnten nicht geladen werden.";
+  } finally {
+    loading.value = false;
+  }
 };
 
 onMounted(loadCompany);

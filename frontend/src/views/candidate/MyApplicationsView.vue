@@ -1,6 +1,5 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
-import api from "@/services/api";
 
 import BaseAlert from "@/components/shared/BaseAlert.vue";
 import BaseCard from "@/components/shared/BaseCard.vue";
@@ -10,6 +9,7 @@ import BaseSpinner from "@/components/shared/BaseSpinner.vue";
 import { APPLICATION_STATUS } from "@/constants/applicationStatus";
 import { getStatusBadgeClass } from "@/utils/badge";
 import { formatDate } from "@/utils/date";
+import { getMyApplications } from "@/services/candidateService";
 
 const applications = ref([]);
 const loading = ref(true);
@@ -18,17 +18,16 @@ const error = ref("");
 const hasApplications = computed(() => applications.value.length > 0);
 
 const loadApplications = async () => {
-    loading.value = true;
-    error.value = "";
+  loading.value = true;
+  error.value = "";
 
-    try {
-        const { data } = await api.get("/applications/my");
-        applications.value = data;
-    } catch {
-        error.value = "Bewerbungen konnten nicht geladen werden.";
-    } finally {
-        loading.value = false;
-    }
+  try {
+    applications.value = await getMyApplications();
+  } catch {
+    error.value = "Bewerbungen konnten nicht geladen werden.";
+  } finally {
+    loading.value = false;
+  }
 };
 
 onMounted(loadApplications);

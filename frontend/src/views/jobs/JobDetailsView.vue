@@ -1,8 +1,11 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import api from "@/services/api";
+
+import { generateCoverLetter as generateAiCoverLetter } from "@/services/aiService";
+import { applyToJob } from "@/services/candidateService";
 import { getJobById } from "@/services/jobService";
+import { getCurrentUser } from "@/utils/storage";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
@@ -23,7 +26,7 @@ const submitting = ref(false);
 const error = ref("");
 const success = ref("");
 
-const user = JSON.parse(localStorage.getItem("user")) || null;
+const user = getCurrentUser();
 
 const fileFields = computed(() => [
   {
@@ -125,7 +128,7 @@ const generateCoverLetter = async () => {
   generating.value = true;
 
   try {
-    const { data } = await api.post("/ai/generate-cover-letter", {
+    const data = await generateAiCoverLetter({
       fullName: user?.fullName || "",
       company: job.value?.company?.name || "das Unternehmen",
       jobTitle: job.value?.title || "",
@@ -141,32 +144,17 @@ const generateCoverLetter = async () => {
   }
 };
 
-const applyToJob = async () => {
+const submitApplication = async () => {
   clearMessages();
   submitting.value = true;
 
   try {
-    const formData = new FormData();
-
-    formData.append("jobId", job.value.id);
-    formData.append("coverLetter", coverLetter.value);
-
-    if (cvFile.value) {
-      formData.append("cvFile", cvFile.value);
-    }
-
-    if (certificateFile.value) {
-      formData.append("certificateFile", certificateFile.value);
-    }
-
-    if (portfolioFile.value) {
-      formData.append("portfolioFile", portfolioFile.value);
-    }
-
-    await api.post("/applications", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+    await applyToJob({
+      jobId: job.value.id,
+      coverLetter: coverLetter.value,
+      cvFile: cvFile.value,
+      certificateFile: certificateFile.value,
+      portfolioFile: portfolioFile.value,
     });
 
     success.value = "Bewerbung wurde erfolgreich gesendet.";
@@ -269,7 +257,7 @@ onMounted(loadJob);
             </div>
           </div>
 
-          <button type="button" class="btn btn-primary" :disabled="!canSubmitApplication" @click="applyToJob">
+          <button type="button" class="btn btn-primary" :disabled="!canSubmitApplication" @click="submitApplication">
             {{ submitting ? "Bewerbung wird gesendet..." : "Bewerbung senden" }}
           </button>
         </div>
