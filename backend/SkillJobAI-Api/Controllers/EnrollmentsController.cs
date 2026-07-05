@@ -1,9 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SkillJobAI.Api.Data;
-using SkillJobAI.Api.Entities;
+using SkillJobAI.Api.Models;
+using SkillJobAI.Api.Services;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -11,79 +10,50 @@ namespace SkillJobAI.Api.Controllers;
 [Route("api/enrollments")]
 public class EnrollmentsController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IEnrollmentService _enrollmentService;
 
-    public EnrollmentsController(AppDbContext context)
+    public EnrollmentsController(IEnrollmentService enrollmentService)
     {
-        _context = context;
+        _enrollmentService = enrollmentService;
+    }
+
+    private int? GetCurrentUserId()
+    {
+        var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return int.TryParse(userIdValue, out var userId) ? userId : null;
     }
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Enroll(Enrollment enrollment)
+    public async Task<IActionResult> Enroll([FromBody] EnrollmentRequest request)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var userId = GetCurrentUserId();
 
         if (userId == null)
             return Unauthorized();
 
-        var courseExists = await _context.Courses
-            .AnyAsync(c => c.Id == enrollment.CourseId);
+        var result = await _enrollmentService.EnrollAsync(userId.Value, request);
 
-        if (!courseExists)
-            return NotFound(new { message = "Course not found" });
+        if (!result.Success)
+            return BadRequest(new { message = result.ErrorMessage });
 
-        var alreadyEnrolled = await _context.Enrollments
-            .AnyAsync(e =>
-                e.UserId == int.Parse(userId) &&
-                e.CourseId == enrollment.CourseId);
-
-        if (alreadyEnrolled)
-            return BadRequest(new { message = "Du bist bereits in diesem Kurs eingeschrieben." });
-
-        enrollment.UserId = int.Parse(userId);
-        enrollment.EnrolledAt = DateTime.UtcNow;
-        enrollment.IsCompleted = false;
-
-        _context.Enrollments.Add(enrollment);
-        await _context.SaveChangesAsync();
-
-        return Ok(enrollment);
+        return Ok(result.Enrollment);
     }
+
     [Authorize]
     [HttpGet("my")]
     public async Task<IActionResult> MyEnrollments()
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = GetCurrentUserId();
 
         if (userId == null)
             return Unauthorized();
 
-        var enrollments = await _context.Enrollments
-            .Where(e => e.UserId == int.Parse(userId))
-            .Select(e => new
-            {
-                id = e.Id,
-                courseId = e.CourseId,
-                enrolledAt = e.EnrolledAt,
-                isCompleted = e.IsCompleted,
-                course = _context.Courses
-                    .Where(c => c.Id == e.CourseId)
-                    .Select(c => new
-                    {
-                        id = c.Id,
-                        title = c.Title,
-                        description = c.Description,
-                        category = c.Category,
-                        level = c.Level,
-                        instructor = c.Instructor
-                    })
-                    .FirstOrDefault()
-            })
-            .ToListAsync();
+        var enrollments = await _enrollmentService.GetMyEnrollmentsAsync(userId.Value);
 
         return Ok(enrollments);
     }
-
-
 }
