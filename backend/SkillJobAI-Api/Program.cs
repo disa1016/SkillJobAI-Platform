@@ -13,6 +13,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Controller aktivieren
 builder.Services.AddControllers();
 
+builder.Services.AddScoped<IJobService, JobService>();
+
+builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<ICourseService, CourseService>();
+
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IApplicationMatchingService, ApplicationMatchingService>();

@@ -1,29 +1,24 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SkillJobAI.Api.Data;
 using SkillJobAI.Api.Entities;
 using SkillJobAI.Api.Models;
 using SkillJobAI.Api.Models.Responses;
 
-namespace SkillJobAI.Api.Controllers;
+namespace SkillJobAI.Api.Services;
 
-[ApiController]
-[Route("api/courses")]
-public class CoursesController : ControllerBase
+public class CourseService : ICourseService
 {
     private readonly AppDbContext _context;
 
-    public CoursesController(AppDbContext context)
+    public CourseService(AppDbContext context)
     {
         _context = context;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetCourses(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10,
-        [FromQuery] string? search = null)
+    public async Task<PagedResponse<CourseResponse>> GetCoursesAsync(
+        int page,
+        int pageSize,
+        string? search)
     {
         if (page < 1) page = 1;
         if (pageSize < 1) pageSize = 10;
@@ -61,20 +56,19 @@ public class CoursesController : ControllerBase
             })
             .ToListAsync();
 
-        return Ok(new PagedResponse<CourseResponse>
+        return new PagedResponse<CourseResponse>
         {
             Items = courses,
             Page = page,
             PageSize = pageSize,
             TotalItems = totalItems,
             TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize)
-        });
+        };
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetCourse(int id)
+    public async Task<CourseResponse?> GetCourseByIdAsync(int id)
     {
-        var course = await _context.Courses
+        return await _context.Courses
             .Where(c => c.Id == id)
             .Select(c => new CourseResponse
             {
@@ -100,20 +94,10 @@ public class CoursesController : ControllerBase
                     .ToList()
             })
             .FirstOrDefaultAsync();
-
-        if (course == null)
-            return NotFound(new { message = "Course not found." });
-
-        return Ok(course);
     }
 
-    [Authorize(Roles = "Instructor")]
-    [HttpPost]
-    public async Task<IActionResult> CreateCourse([FromBody] CourseRequest request)
+    public async Task<CourseResponse> CreateCourseAsync(CourseRequest request)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
         var course = new Course
         {
             Title = request.Title,
@@ -127,7 +111,7 @@ public class CoursesController : ControllerBase
         _context.Courses.Add(course);
         await _context.SaveChangesAsync();
 
-        return Ok(new CourseResponse
+        return new CourseResponse
         {
             Id = course.Id,
             Title = course.Title,
@@ -136,21 +120,19 @@ public class CoursesController : ControllerBase
             Level = course.Level,
             Instructor = course.Instructor,
             CreatedAt = course.CreatedAt
-        });
+        };
     }
 
-    [Authorize(Roles = "Admin")]
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteCourse(int id)
+    public async Task<bool> DeleteCourseAsync(int id)
     {
         var course = await _context.Courses.FindAsync(id);
 
         if (course == null)
-            return NotFound(new { message = "Course not found." });
+            return false;
 
         _context.Courses.Remove(course);
         await _context.SaveChangesAsync();
 
-        return Ok(new { message = "Course deleted successfully" });
+        return true;
     }
 }

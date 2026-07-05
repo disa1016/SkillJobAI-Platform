@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SkillJobAI.Api.Data;
-using SkillJobAI.Api.Entities;
 using SkillJobAI.Api.Models;
+using SkillJobAI.Api.Services;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -11,95 +9,27 @@ namespace SkillJobAI.Api.Controllers;
 [Route("api/companies")]
 public class CompaniesController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly ICompanyService _companyService;
 
-    public CompaniesController(AppDbContext context)
+    public CompaniesController(ICompanyService companyService)
     {
-        _context = context;
+        _companyService = companyService;
     }
 
-[HttpGet]
-public async Task<IActionResult> GetCompanies(
-    [FromQuery] int page = 1,
-    [FromQuery] int pageSize = 10,
-    [FromQuery] string? search = null)
-{
-    if (page < 1)
-        page = 1;
-
-    if (pageSize < 1)
-        pageSize = 10;
-
-    if (pageSize > 50)
-        pageSize = 50;
-
-    var query = _context.Companies.AsQueryable();
-
-    if (!string.IsNullOrWhiteSpace(search))
+    [HttpGet]
+    public async Task<IActionResult> GetCompanies(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? search = null)
     {
-        var searchTerm = search.ToLower();
-
-        query = query.Where(c =>
-            c.Name.ToLower().Contains(searchTerm) ||
-            c.Description.ToLower().Contains(searchTerm) ||
-            c.Location.ToLower().Contains(searchTerm) ||
-            c.WebsiteUrl.ToLower().Contains(searchTerm));
+        var response = await _companyService.GetCompaniesAsync(page, pageSize, search);
+        return Ok(response);
     }
-
-    var totalItems = await query.CountAsync();
-
-    var companies = await query
-        .OrderBy(c => c.Name)
-        .Skip((page - 1) * pageSize)
-        .Take(pageSize)
-        .Select(c => new
-        {
-            id = c.Id,
-            name = c.Name,
-            description = c.Description,
-            websiteUrl = c.WebsiteUrl,
-            logoUrl = c.LogoUrl,
-            location = c.Location,
-            createdAt = c.CreatedAt,
-            totalJobs = c.Jobs.Count
-        })
-        .ToListAsync();
-
-    var response = new PagedResponse<object>
-    {
-        Items = companies.Cast<object>().ToList(),
-        Page = page,
-        PageSize = pageSize,
-        TotalItems = totalItems,
-        TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize)
-    };
-
-    return Ok(response);
-}
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCompany(int id)
     {
-        var company = await _context.Companies
-            .Where(c => c.Id == id)
-            .Select(c => new
-            {
-                id = c.Id,
-                name = c.Name,
-                description = c.Description,
-                websiteUrl = c.WebsiteUrl,
-                logoUrl = c.LogoUrl,
-                location = c.Location,
-                createdAt = c.CreatedAt,
-                jobs = c.Jobs.Select(j => new
-                {
-                    id = j.Id,
-                    title = j.Title,
-                    location = j.Location,
-                    salary = j.Salary
-                })
-            })
-            .FirstOrDefaultAsync();
+        var company = await _companyService.GetCompanyByIdAsync(id);
 
         if (company == null)
             return NotFound(new { message = "Company not found." });
@@ -109,109 +39,46 @@ public async Task<IActionResult> GetCompanies(
 
     [Authorize(Roles = "Admin")]
     [HttpPost]
-    public async Task<IActionResult> CreateCompany(CompanyRequest request)
+    public async Task<IActionResult> CreateCompany([FromBody] CompanyRequest request)
     {
-        var company = new Company
-        {
-            Name = request.Name,
-            Description = request.Description,
-            WebsiteUrl = request.WebsiteUrl,
-            LogoUrl = request.LogoUrl,
-            Location = request.Location,
-            CreatedAt = DateTime.UtcNow
-        };
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-        _context.Companies.Add(company);
-        await _context.SaveChangesAsync();
+        var company = await _companyService.CreateCompanyAsync(request);
 
-        return Ok(new
-        {
-            id = company.Id,
-            name = company.Name,
-            description = company.Description,
-            websiteUrl = company.WebsiteUrl,
-            logoUrl = company.LogoUrl,
-            location = company.Location,
-            createdAt = company.CreatedAt
-        });
+        return Ok(company);
     }
 
     [Authorize(Roles = "Admin")]
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateCompany(int id, CompanyRequest request)
+    public async Task<IActionResult> UpdateCompany(
+        int id,
+        [FromBody] CompanyRequest request)
     {
-        var company = await _context.Companies.FindAsync(id);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var company = await _companyService.UpdateCompanyAsync(id, request);
 
         if (company == null)
             return NotFound(new { message = "Company not found." });
 
-        company.Name = request.Name;
-        company.Description = request.Description;
-        company.WebsiteUrl = request.WebsiteUrl;
-        company.LogoUrl = request.LogoUrl;
-        company.Location = request.Location;
-
-        await _context.SaveChangesAsync();
-
-        return Ok(new
-        {
-            id = company.Id,
-            name = company.Name,
-            description = company.Description,
-            websiteUrl = company.WebsiteUrl,
-            logoUrl = company.LogoUrl,
-            location = company.Location,
-            createdAt = company.CreatedAt
-        });
+        return Ok(company);
     }
 
     [Authorize(Roles = "Admin")]
     [HttpPost("{id}/logo")]
     public async Task<IActionResult> UploadCompanyLogo(int id, IFormFile file)
     {
-        var company = await _context.Companies.FindAsync(id);
+        var result = await _companyService.UploadCompanyLogoAsync(id, file);
 
-        if (company == null)
-            return NotFound(new { message = "Company not found." });
-
-        if (file == null || file.Length == 0)
-            return BadRequest(new { message = "No file uploaded." });
-
-        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
-        var extension = Path.GetExtension(file.FileName).ToLower();
-
-        if (!allowedExtensions.Contains(extension))
-        {
-            return BadRequest(new
-            {
-                message = "Only JPG, PNG and WEBP files are allowed."
-            });
-        }
-
-        var uploadsFolder = Path.Combine(
-            Directory.GetCurrentDirectory(),
-            "wwwroot",
-            "uploads",
-            "companies"
-        );
-
-        if (!Directory.Exists(uploadsFolder))
-            Directory.CreateDirectory(uploadsFolder);
-
-        var fileName = $"company-{id}-{Guid.NewGuid()}{extension}";
-        var filePath = Path.Combine(uploadsFolder, fileName);
-
-        await using var stream = new FileStream(filePath, FileMode.Create);
-        await file.CopyToAsync(stream);
-
-        company.LogoUrl = $"/uploads/companies/{fileName}";
-
-        await _context.SaveChangesAsync();
+        if (!result.Success)
+            return BadRequest(new { message = result.ErrorMessage });
 
         return Ok(new
         {
             message = "Logo uploaded successfully.",
-            logoUrl = company.LogoUrl
+            logoUrl = result.LogoUrl
         });
     }
 
@@ -219,13 +86,10 @@ public async Task<IActionResult> GetCompanies(
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCompany(int id)
     {
-        var company = await _context.Companies.FindAsync(id);
+        var deleted = await _companyService.DeleteCompanyAsync(id);
 
-        if (company == null)
+        if (!deleted)
             return NotFound(new { message = "Company not found." });
-
-        _context.Companies.Remove(company);
-        await _context.SaveChangesAsync();
 
         return NoContent();
     }

@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SkillJobAI.Api.Data;
-using SkillJobAI.Api.Entities;
 using SkillJobAI.Api.Models;
+using SkillJobAI.Api.Services;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -13,10 +13,12 @@ namespace SkillJobAI.Api.Controllers;
 public class JobsController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly IJobService _jobService;
 
-    public JobsController(AppDbContext context)
+    public JobsController(AppDbContext context, IJobService jobService)
     {
         _context = context;
+        _jobService = jobService;
     }
 
     private int? GetCurrentUserId()
@@ -56,94 +58,14 @@ public class JobsController : ControllerBase
         [FromQuery] int pageSize = 10,
         [FromQuery] string? search = null)
     {
-        if (page < 1)
-            page = 1;
-
-        if (pageSize < 1)
-            pageSize = 10;
-
-        if (pageSize > 50)
-            pageSize = 50;
-
-        var query = _context.Jobs
-            .Include(j => j.Company)
-            .AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            var searchTerm = search.ToLower();
-
-            query = query.Where(j =>
-                j.Title.ToLower().Contains(searchTerm) ||
-                j.Description.ToLower().Contains(searchTerm) ||
-                j.Location.ToLower().Contains(searchTerm) ||
-                (j.Company != null && j.Company.Name.ToLower().Contains(searchTerm)));
-        }
-
-        var totalItems = await query.CountAsync();
-
-        var jobs = await query
-            .OrderByDescending(j => j.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(j => new
-            {
-                id = j.Id,
-                title = j.Title,
-                description = j.Description,
-                location = j.Location,
-                salary = j.Salary,
-                createdAt = j.CreatedAt,
-                companyId = j.CompanyId,
-                companyName = j.Company != null ? j.Company.Name : null,
-                company = j.Company == null ? null : new
-                {
-                    id = j.Company.Id,
-                    name = j.Company.Name,
-                    location = j.Company.Location
-                }
-            })
-            .ToListAsync();
-
-        var response = new PagedResponse<object>
-        {
-            Items = jobs.Cast<object>().ToList(),
-            Page = page,
-            PageSize = pageSize,
-            TotalItems = totalItems,
-            TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize)
-        };
-
+        var response = await _jobService.GetJobsAsync(page, pageSize, search);
         return Ok(response);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetJob(int id)
     {
-        var job = await _context.Jobs
-            .Include(j => j.Company)
-            .Where(j => j.Id == id)
-            .Select(j => new
-            {
-                id = j.Id,
-                title = j.Title,
-                description = j.Description,
-                location = j.Location,
-                salary = j.Salary,
-                createdAt = j.CreatedAt,
-                companyId = j.CompanyId,
-                companyName = j.Company != null ? j.Company.Name : null,
-                company = j.Company == null ? null : new
-                {
-                    id = j.Company.Id,
-                    name = j.Company.Name,
-                    description = j.Company.Description,
-                    websiteUrl = j.Company.WebsiteUrl,
-                    logoUrl = j.Company.LogoUrl,
-                    location = j.Company.Location
-                }
-            })
-            .FirstOrDefaultAsync();
+        var job = await _jobService.GetJobByIdAsync(id);
 
         if (job == null)
             return NotFound(new { message = "Job not found." });
@@ -153,64 +75,47 @@ public class JobsController : ControllerBase
 
     [Authorize(Roles = "Recruiter,Admin")]
     [HttpPost]
-    public async Task<IActionResult> CreateJob(Job job)
+    public async Task<IActionResult> CreateJob([FromBody] JobRequest request)
     {
-        if (job.CompanyId == null)
-        {
-            return BadRequest(new
-            {
-                message = "CompanyId is required."
-            });
-        }
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-        var companyExists = await _context.Companies
-            .AnyAsync(c => c.Id == job.CompanyId.Value);
+        if (request.CompanyId == null)
+            return BadRequest(new { message = "CompanyId is required." });
+
+        var companyExists = await _jobService.CompanyExistsAsync(request.CompanyId.Value);
 
         if (!companyExists)
-        {
-            return BadRequest(new
-            {
-                message = "Company not found."
-            });
-        }
+            return BadRequest(new { message = "Company not found." });
 
-        var canManageCompany = await UserCanManageCompany(job.CompanyId.Value);
+        var canManageCompany = await UserCanManageCompany(request.CompanyId.Value);
 
         if (!canManageCompany)
-        {
             return Forbid();
-        }
 
-        job.CreatedAt = DateTime.UtcNow;
+        var job = await _jobService.CreateJobAsync(request);
 
-        _context.Jobs.Add(job);
-        await _context.SaveChangesAsync();
+        if (job == null)
+            return BadRequest(new { message = "Job could not be created." });
 
-        return Ok(new
-        {
-            id = job.Id,
-            title = job.Title,
-            description = job.Description,
-            location = job.Location,
-            salary = job.Salary,
-            createdAt = job.CreatedAt,
-            companyId = job.CompanyId
-        });
+        return Ok(job);
     }
 
     [Authorize(Roles = "Recruiter,Admin")]
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateJob(int id, Job request)
+    public async Task<IActionResult> UpdateJob(
+        int id,
+        [FromBody] JobRequest request)
     {
-        var job = await _context.Jobs.FindAsync(id);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-        if (job == null)
+        var currentCompanyId = await _jobService.GetJobCompanyIdAsync(id);
+
+        if (currentCompanyId == null)
             return NotFound(new { message = "Job not found." });
 
-        if (job.CompanyId == null)
-            return BadRequest(new { message = "Job has no company." });
-
-        var canManageCurrentCompany = await UserCanManageCompany(job.CompanyId.Value);
+        var canManageCurrentCompany = await UserCanManageCompany(currentCompanyId.Value);
 
         if (!canManageCurrentCompany)
             return Forbid();
@@ -218,10 +123,9 @@ public class JobsController : ControllerBase
         if (request.CompanyId == null)
             return BadRequest(new { message = "CompanyId is required." });
 
-        var newCompanyExists = await _context.Companies
-            .AnyAsync(c => c.Id == request.CompanyId.Value);
+        var companyExists = await _jobService.CompanyExistsAsync(request.CompanyId.Value);
 
-        if (!newCompanyExists)
+        if (!companyExists)
             return BadRequest(new { message = "Company not found." });
 
         var canManageNewCompany = await UserCanManageCompany(request.CompanyId.Value);
@@ -229,45 +133,32 @@ public class JobsController : ControllerBase
         if (!canManageNewCompany)
             return Forbid();
 
-        job.Title = request.Title;
-        job.Description = request.Description;
-        job.Location = request.Location;
-        job.Salary = request.Salary;
-        job.CompanyId = request.CompanyId;
+        var job = await _jobService.UpdateJobAsync(id, request);
 
-        await _context.SaveChangesAsync();
+        if (job == null)
+            return BadRequest(new { message = "Job could not be updated." });
 
-        return Ok(new
-        {
-            id = job.Id,
-            title = job.Title,
-            description = job.Description,
-            location = job.Location,
-            salary = job.Salary,
-            createdAt = job.CreatedAt,
-            companyId = job.CompanyId
-        });
+        return Ok(job);
     }
 
     [Authorize(Roles = "Recruiter,Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteJob(int id)
     {
-        var job = await _context.Jobs.FindAsync(id);
+        var companyId = await _jobService.GetJobCompanyIdAsync(id);
 
-        if (job == null)
+        if (companyId == null)
             return NotFound(new { message = "Job not found." });
 
-        if (job.CompanyId == null)
-            return BadRequest(new { message = "Job has no company." });
-
-        var canManageCompany = await UserCanManageCompany(job.CompanyId.Value);
+        var canManageCompany = await UserCanManageCompany(companyId.Value);
 
         if (!canManageCompany)
             return Forbid();
 
-        _context.Jobs.Remove(job);
-        await _context.SaveChangesAsync();
+        var deleted = await _jobService.DeleteJobAsync(id);
+
+        if (!deleted)
+            return NotFound(new { message = "Job not found." });
 
         return NoContent();
     }
