@@ -1,9 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SkillJobAI.Api.Constants;
-using SkillJobAI.Api.Data;
-using SkillJobAI.Api.Entities;
 using SkillJobAI.Api.Models;
+using SkillJobAI.Api.Models.Responses;
 using SkillJobAI.Api.Services;
 
 namespace SkillJobAI.Api.Controllers;
@@ -12,126 +9,58 @@ namespace SkillJobAI.Api.Controllers;
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
-    private readonly AppDbContext _context;
-    private readonly JwtService _jwtService;
-    private readonly PasswordService _passwordService;
+    private readonly IAuthService _authService;
 
-    public AuthController(
-        AppDbContext context,
-        JwtService jwtService,
-        PasswordService passwordService)
+    public AuthController(IAuthService authService)
     {
-        _context = context;
-        _jwtService = jwtService;
-        _passwordService = passwordService;
+        _authService = authService;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        var emailExists = await _context.Users
-            .AnyAsync(u => u.Email == request.Email);
+        var result = await _authService.RegisterAsync(request);
 
-        if (emailExists)
+        if (result == null)
         {
-            return BadRequest(new
+            return BadRequest(new MessageResponse
             {
-                message = "Diese E-Mail ist bereits registriert."
+                Message = "Diese E-Mail ist bereits registriert."
             });
         }
 
-        var user = new AppUser
-        {
-            FullName = request.FullName,
-            Email = request.Email,
-            PasswordHash = _passwordService.HashPassword(request.Password),
-            Role = request.Role == AppRoles.Recruiter?
-            AppRoles.Recruiter : AppRoles.Candidate,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-
-        var token = _jwtService.GenerateToken(user);
-
-        return Ok(new
-        {
-            message = "User registered successfully",
-            token,
-            user = new
-            {
-                id = user.Id,
-                fullName = user.FullName,
-                email = user.Email,
-                role = user.Role
-            }
-        });
+        return Ok(result);
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Email == request.Email);
+        var result = await _authService.LoginAsync(request);
 
-        if (user == null)
+        if (result == null)
         {
-            return Unauthorized(new
+            return Unauthorized(new MessageResponse
             {
-                message = "E-Mail oder Passwort ist falsch."
+                Message = "E-Mail oder Passwort ist falsch."
             });
         }
 
-        var passwordIsValid = _passwordService.VerifyPassword(
-            request.Password,
-            user.PasswordHash);
-
-        if (!passwordIsValid)
-        {
-            return Unauthorized(new
-            {
-                message = "E-Mail oder Passwort ist falsch."
-            });
-        }
-
-        var token = _jwtService.GenerateToken(user);
-
-        return Ok(new
-        {
-            message = "Login successful",
-            token,
-            user = new
-            {
-                id = user.Id,
-                fullName = user.FullName,
-                email = user.Email,
-                role = user.Role
-            }
-        });
+        return Ok(result);
     }
 
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request)
     {
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Email == request.Email);
+        var result = await _authService.ForgotPasswordAsync(request);
 
-        if (user == null)
+        if (result == null)
         {
-            return NotFound(new
+            return NotFound(new MessageResponse
             {
-                message = "Benutzer mit dieser E-Mail wurde nicht gefunden."
+                Message = "Benutzer mit dieser E-Mail wurde nicht gefunden."
             });
         }
 
-        user.PasswordHash = _passwordService.HashPassword(request.NewPassword);
-
-        await _context.SaveChangesAsync();
-
-        return Ok(new
-        {
-            message = "Passwort wurde erfolgreich geändert."
-        });
+        return Ok(result);
     }
 }

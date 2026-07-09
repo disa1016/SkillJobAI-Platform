@@ -13,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Controller aktivieren
 builder.Services.AddControllers();
 
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJobService, JobService>();
 
 builder.Services.AddScoped<ICompanyService, CompanyService>();
@@ -22,6 +23,20 @@ builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 builder.Services.AddScoped<ICertificateService, CertificateService>();
+builder.Services.AddScoped<ISkillGapService, SkillGapService>();
+builder.Services.AddScoped<IProgressService, ProgressService>();
+builder.Services.AddScoped<IUserSkillService, UserSkillService>();
+builder.Services.AddScoped<IJobSkillService, JobSkillService>();
+builder.Services.AddScoped<ICompanyMemberService, CompanyMemberService>();
+builder.Services.AddScoped<ICandidateDashboardService, CandidateDashboardService>();
+builder.Services.AddScoped<ISkillService, SkillService>();
+builder.Services.AddScoped<ICourseSkillService, CourseSkillService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IRecruiterService, RecruiterService>();
+builder.Services.AddScoped<IRecruiterCandidateService, RecruiterCandidateService>();
+builder.Services.AddScoped<ICareerRoadmapService, CareerRoadmapService>();
+builder.Services.AddScoped<IAiService, AiService>();
+
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();

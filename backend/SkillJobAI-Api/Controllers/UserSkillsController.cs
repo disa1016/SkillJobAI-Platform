@@ -1,9 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SkillJobAI.Api.Data;
-using SkillJobAI.Api.Entities;
+using SkillJobAI.Api.Services;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -11,31 +9,32 @@ namespace SkillJobAI.Api.Controllers;
 [Route("api/users/skills")]
 public class UserSkillsController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IUserSkillService _userSkillService;
 
-    public UserSkillsController(AppDbContext context)
+    public UserSkillsController(IUserSkillService userSkillService)
     {
-        _context = context;
+        _userSkillService = userSkillService;
+    }
+
+    private int? GetCurrentUserId()
+    {
+        var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        return int.TryParse(userIdValue, out var userId)
+            ? userId
+            : null;
     }
 
     [Authorize]
     [HttpGet("my")]
     public async Task<IActionResult> GetMySkills()
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = GetCurrentUserId();
 
         if (userId == null)
             return Unauthorized();
 
-        var skills = await _context.UserSkills
-            .Where(us => us.UserId == int.Parse(userId))
-            .Include(us => us.Skill)
-            .Select(us => new
-            {
-                id = us.Skill.Id,
-                name = us.Skill.Name
-            })
-            .ToListAsync();
+        var skills = await _userSkillService.GetMySkillsAsync(userId.Value);
 
         return Ok(skills);
     }
@@ -44,39 +43,21 @@ public class UserSkillsController : ControllerBase
     [HttpPost("{skillId}")]
     public async Task<IActionResult> AddSkillToMe(int skillId)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = GetCurrentUserId();
 
         if (userId == null)
             return Unauthorized();
 
-        var userIdInt = int.Parse(userId);
+        var result = await _userSkillService.AddSkillToUserAsync(
+            userId.Value,
+            skillId);
 
-        var skillExists = await _context.Skills
-            .AnyAsync(s => s.Id == skillId);
-
-        if (!skillExists)
-            return NotFound(new { message = "Skill not found." });
-
-        var alreadyExists = await _context.UserSkills
-            .AnyAsync(us => us.UserId == userIdInt && us.SkillId == skillId);
-
-        if (alreadyExists)
-            return BadRequest(new { message = "Skill already added to your profile." });
-
-        var userSkill = new UserSkill
-        {
-            UserId = userIdInt,
-            SkillId = skillId
-        };
-
-        _context.UserSkills.Add(userSkill);
-        await _context.SaveChangesAsync();
+        if (!result.Success)
+            return BadRequest(new { message = result.ErrorMessage });
 
         return Ok(new
         {
-            message = "Skill added to profile successfully.",
-            userId = userIdInt,
-            skillId
+            message = "Skill added to profile successfully."
         });
     }
 
@@ -84,27 +65,21 @@ public class UserSkillsController : ControllerBase
     [HttpDelete("{skillId}")]
     public async Task<IActionResult> RemoveSkillFromMe(int skillId)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = GetCurrentUserId();
 
         if (userId == null)
             return Unauthorized();
 
-        var userIdInt = int.Parse(userId);
+        var result = await _userSkillService.RemoveSkillFromUserAsync(
+            userId.Value,
+            skillId);
 
-        var userSkill = await _context.UserSkills
-            .FirstOrDefaultAsync(us => us.UserId == userIdInt && us.SkillId == skillId);
-
-        if (userSkill == null)
-            return NotFound(new { message = "Skill is not assigned to your profile." });
-
-        _context.UserSkills.Remove(userSkill);
-        await _context.SaveChangesAsync();
+        if (!result.Success)
+            return NotFound(new { message = result.ErrorMessage });
 
         return Ok(new
         {
-            message = "Skill removed from profile successfully.",
-            userId = userIdInt,
-            skillId
+            message = "Skill removed from profile successfully."
         });
     }
 }

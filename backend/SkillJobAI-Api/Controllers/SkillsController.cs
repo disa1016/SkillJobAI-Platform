@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SkillJobAI.Api.Data;
-using SkillJobAI.Api.Entities;
+using SkillJobAI.Api.Models;
+using SkillJobAI.Api.Services;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -10,37 +9,28 @@ namespace SkillJobAI.Api.Controllers;
 [Route("api/skills")]
 public class SkillsController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly ISkillService _skillService;
 
-    public SkillsController(AppDbContext context)
+    public SkillsController(ISkillService skillService)
     {
-        _context = context;
+        _skillService = skillService;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetSkills()
     {
-        var skills = await _context.Skills.ToListAsync();
+        var skills = await _skillService.GetSkillsAsync();
         return Ok(skills);
     }
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> CreateSkill(Skill skill)
+    public async Task<IActionResult> CreateSkill(SkillRequest request)
     {
-        var exists = await _context.Skills
-            .AnyAsync(s => s.Name.ToLower() == skill.Name.ToLower());
+        var skill = await _skillService.CreateSkillAsync(request);
 
-        if (exists)
-        {
-            return BadRequest(new
-            {
-                message = "Skill already exists."
-            });
-        }
-
-        _context.Skills.Add(skill);
-        await _context.SaveChangesAsync();
+        if (skill == null)
+            return BadRequest(new { message = "Skill already exists." });
 
         return Ok(skill);
     }

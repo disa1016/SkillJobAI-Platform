@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SkillJobAI.Api.Data;
-using SkillJobAI.Api.Entities;
+using SkillJobAI.Api.Services;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -10,70 +8,32 @@ namespace SkillJobAI.Api.Controllers;
 [Route("api/jobs/{jobId}/skills")]
 public class JobSkillsController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IJobSkillService _jobSkillService;
 
-    public JobSkillsController(AppDbContext context)
+    public JobSkillsController(IJobSkillService jobSkillService)
     {
-        _context = context;
+        _jobSkillService = jobSkillService;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetJobSkills(int jobId)
     {
-        var jobExists = await _context.Jobs.AnyAsync(j => j.Id == jobId);
+        var skills = await _jobSkillService.GetJobSkillsAsync(jobId);
 
-        if (!jobExists)
-        {
+        if (skills == null)
             return NotFound(new { message = "Job not found." });
-        }
-
-        var skills = await _context.JobSkills
-            .Where(js => js.JobId == jobId)
-            .Include(js => js.Skill)
-            .Select(js => new
-            {
-                id = js.Skill.Id,
-                name = js.Skill.Name
-            })
-            .ToListAsync();
 
         return Ok(skills);
     }
 
-    [Authorize (Roles = "Recruiter,Admin")]
+    [Authorize(Roles = "Recruiter,Admin")]
     [HttpPost("{skillId}")]
     public async Task<IActionResult> AddSkillToJob(int jobId, int skillId)
     {
-        var jobExists = await _context.Jobs.AnyAsync(j => j.Id == jobId);
+        var result = await _jobSkillService.AddSkillToJobAsync(jobId, skillId);
 
-        if (!jobExists)
-        {
-            return NotFound(new { message = "Job not found." });
-        }
-
-        var skillExists = await _context.Skills.AnyAsync(s => s.Id == skillId);
-
-        if (!skillExists)
-        {
-            return NotFound(new { message = "Skill not found." });
-        }
-
-        var alreadyExists = await _context.JobSkills
-            .AnyAsync(js => js.JobId == jobId && js.SkillId == skillId);
-
-        if (alreadyExists)
-        {
-            return BadRequest(new { message = "Skill already added to this job." });
-        }
-
-        var jobSkill = new JobSkill
-        {
-            JobId = jobId,
-            SkillId = skillId
-        };
-
-        _context.JobSkills.Add(jobSkill);
-        await _context.SaveChangesAsync();
+        if (!result.Success)
+            return BadRequest(new { message = result.ErrorMessage });
 
         return Ok(new
         {
@@ -83,20 +43,14 @@ public class JobSkillsController : ControllerBase
         });
     }
 
-    [Authorize (Roles = "Recruiter, Admin")]
+    [Authorize(Roles = "Recruiter,Admin")]
     [HttpDelete("{skillId}")]
     public async Task<IActionResult> RemoveSkillFromJob(int jobId, int skillId)
     {
-        var jobSkill = await _context.JobSkills
-            .FirstOrDefaultAsync(js => js.JobId == jobId && js.SkillId == skillId);
+        var result = await _jobSkillService.RemoveSkillFromJobAsync(jobId, skillId);
 
-        if (jobSkill == null)
-        {
-            return NotFound(new { message = "Skill is not assigned to this job." });
-        }
-
-        _context.JobSkills.Remove(jobSkill);
-        await _context.SaveChangesAsync();
+        if (!result.Success)
+            return NotFound(new { message = result.ErrorMessage });
 
         return Ok(new
         {

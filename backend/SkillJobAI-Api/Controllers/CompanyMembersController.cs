@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SkillJobAI.Api.Data;
-using SkillJobAI.Api.Entities;
 using SkillJobAI.Api.Models;
+using SkillJobAI.Api.Services;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -12,100 +10,46 @@ namespace SkillJobAI.Api.Controllers;
 [Authorize(Roles = "Admin")]
 public class CompanyMembersController : ControllerBase
 {
-    private readonly AppDbContext _context;
-
-    public CompanyMembersController(AppDbContext context)
+   private readonly ICompanyMemberService _companyMemberService;
+   public CompanyMembersController(ICompanyMemberService companyMemberService)
     {
-        _context = context;
+        _companyMemberService = companyMemberService;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetCompanyMembers()
     {
-        var members = await _context.CompanyMembers
-            .Include(cm => cm.User)
-            .Include(cm => cm.Company)
-            .OrderBy(cm => cm.Company.Name)
-            .Select(cm => new
-            {
-                id = cm.Id,
-                userId = cm.UserId,
-                companyId = cm.CompanyId,
-                role = cm.Role,
-                joinedAt = cm.JoinedAt,
-                recruiter = new
-                {
-                    id = cm.User.Id,
-                    fullName = cm.User.FullName,
-                    email = cm.User.Email
-                },
-                company = new
-                {
-                    id = cm.Company.Id,
-                    name = cm.Company.Name,
-                    location = cm.Company.Location
-                }
-            })
-            .ToListAsync();
-
+        var members = await _companyMemberService.GetCompanyMembersAsync();
         return Ok(members);
     }
 
     [HttpPost]
     public async Task<IActionResult> AssignRecruiter(CompanyMemberRequest request)
     {
-        var user = await _context.Users.FindAsync(request.UserId);
+        var result = await _companyMemberService.AssignRecruiterAsync(request);
 
-        if (user == null)
-            return NotFound(new { message = "User not found." });
+        if (result == null)
+            return BadRequest();
 
-        var company = await _context.Companies.FindAsync(request.CompanyId);
+        if (result.Message == "User not found.")
+            return NotFound(result);
 
-        if (company == null)
-            return NotFound(new { message = "Company not found." });
+        if (result.Message == "Company not found.")
+            return NotFound(result);
 
-        var exists = await _context.CompanyMembers
-            .AnyAsync(cm =>
-                cm.UserId == request.UserId &&
-                cm.CompanyId == request.CompanyId);
+        if (result.Message == "Dieser Recruiter ist dieser Firma bereits zugewiesen.")
+            return BadRequest(result);
 
-        if (exists)
-            return BadRequest(new { message = "Dieser Recruiter ist dieser Firma bereits zugewiesen." });
-
-        user.Role = "Recruiter";
-
-        var member = new CompanyMember
-        {
-            UserId = request.UserId,
-            CompanyId = request.CompanyId,
-            Role = request.Role,
-            JoinedAt = DateTime.UtcNow
-        };
-
-        _context.CompanyMembers.Add(member);
-        await _context.SaveChangesAsync();
-
-        return Ok(new
-        {
-            message = "Recruiter wurde Firma zugewiesen.",
-            member.Id,
-            member.UserId,
-            member.CompanyId,
-            member.Role,
-            member.JoinedAt
-        });
+        return Ok(result);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> RemoveRecruiter(int id)
     {
-        var member = await _context.CompanyMembers.FindAsync(id);
+        var deleted = await _companyMemberService.RemoveRecruiterAsync(id);
 
-        if (member == null)
+        if (!deleted)
             return NotFound(new { message = "Company member not found." });
-
-        _context.CompanyMembers.Remove(member);
-        await _context.SaveChangesAsync();
 
         return NoContent();
     }

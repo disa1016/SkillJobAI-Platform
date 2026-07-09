@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SkillJobAI.Api.Data;
 using SkillJobAI.Api.Models;
+using SkillJobAI.Api.Models.Responses;
+using SkillJobAI.Api.Services;
+using System.Security.Claims;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -11,106 +12,55 @@ namespace SkillJobAI.Api.Controllers;
 [Authorize(Roles = "Admin")]
 public class AdminController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IAdminService _adminService;
 
-    public AdminController(AppDbContext context)
+    public AdminController(IAdminService adminService)
     {
-        _context = context;
+        _adminService = adminService;
     }
 
     [HttpGet("dashboard")]
     public async Task<IActionResult> GetDashboard()
     {
-        var today = DateTime.UtcNow.Date;
-        var tomorrow = today.AddDays(1);
-
-        return Ok(new
-        {
-            totalUsers = await _context.Users.CountAsync(),
-            totalCompanies = await _context.Companies.CountAsync(),
-            totalJobs = await _context.Jobs.CountAsync(),
-            totalApplications = await _context.Applications.CountAsync(),
-            totalCourses = await _context.Courses.CountAsync(),
-            totalSkills = await _context.Skills.CountAsync(),
-
-            newUsersToday = await _context.Users
-                .CountAsync(u => u.CreatedAt >= today && u.CreatedAt < tomorrow),
-
-            newApplicationsToday = await _context.Applications
-                .CountAsync(a => a.CreatedAt >= today && a.CreatedAt < tomorrow),
-
-            totalRecruiters = await _context.Users
-                .CountAsync(u => u.Role == "Recruiter"),
-
-            totalAdmins = await _context.Users
-                .CountAsync(u => u.Role == "Admin")
-        });
+        var dashboard = await _adminService.GetDashboardAsync();
+        return Ok(dashboard);
     }
+
     [HttpGet("users")]
     public async Task<IActionResult> GetUsers()
     {
-        var users = await _context.Users
-            .Select(u => new
-            {
-                id = u.Id,
-                fullName = u.FullName,
-                email = u.Email,
-                role = u.Role,
-                createdAt = u.CreatedAt
-            })
-            .OrderBy(u => u.id)
-            .ToListAsync();
-
+        var users = await _adminService.GetUsersAsync();
         return Ok(users);
     }
-
-
 
     [HttpPut("users/{id}/role")]
     public async Task<IActionResult> UpdateUserRole(int id, [FromBody] UpdateUserRoleRequest request)
     {
-        var user = await _context.Users.FindAsync(id);
+        var result = await _adminService.UpdateUserRoleAsync(id, request);
 
-        if (user == null)
-            return NotFound(new { message = "User not found." });
+        if (result == null)
+            return BadRequest(new MessageResponse { Message = "User not found or invalid role." });
 
-        var allowedRoles = new[] { "Candidate", "Student", "Recruiter", "Admin" };
-
-        if (!allowedRoles.Contains(request.Role))
-            return BadRequest(new { message = "Invalid role." });
-
-        user.Role = request.Role;
-
-        await _context.SaveChangesAsync();
-
-        return Ok(new
-        {
-            message = "User role updated successfully.",
-            id = user.Id,
-            fullName = user.FullName,
-            email = user.Email,
-            role = user.Role
-        });
+        return Ok(result);
     }
+
     [HttpDelete("users/{id}")]
     public async Task<IActionResult> DeleteUser(int id)
     {
-        var user = await _context.Users.FindAsync(id);
-        var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         if (currentUserId == id.ToString())
         {
-            return BadRequest(new
+            return BadRequest(new MessageResponse
             {
-                message = "Du kannst deinen eigenen Account nicht löschen."
+                Message = "Du kannst deinen eigenen Account nicht löschen."
             });
         }
 
-        if (user == null)
-            return NotFound(new { message = "User not found." });
+        var deleted = await _adminService.DeleteUserAsync(id);
 
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
+        if (!deleted)
+            return NotFound(new MessageResponse { Message = "User not found." });
 
         return NoContent();
     }
