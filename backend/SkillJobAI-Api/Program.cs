@@ -21,7 +21,7 @@ builder.Services.AddScoped<ILessonService, LessonService>();
 builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
-
+builder.Services.AddScoped<ICertificateService, CertificateService>();
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();

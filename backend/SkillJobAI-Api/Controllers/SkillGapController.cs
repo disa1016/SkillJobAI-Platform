@@ -1,8 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SkillJobAI.Api.Data;
+using SkillJobAI.Api.Services;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -10,81 +9,33 @@ namespace SkillJobAI.Api.Controllers;
 [Route("api/jobs")]
 public class SkillGapController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly ISkillGapService _skillGapService;
 
-    public SkillGapController(AppDbContext context)
+    public SkillGapController(ISkillGapService skillGapService)
     {
-        _context = context;
+        _skillGapService = skillGapService;
+    }
+
+    private int? GetCurrentUserId()
+    {
+        var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return int.TryParse(userIdValue, out var userId) ? userId : null;
     }
 
     [Authorize]
     [HttpGet("{jobId}/skill-gap")]
     public async Task<IActionResult> GetSkillGap(int jobId)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = GetCurrentUserId();
 
         if (userId == null)
             return Unauthorized();
 
-        var job = await _context.Jobs
-            .FirstOrDefaultAsync(j => j.Id == jobId);
+        var result = await _skillGapService.GetSkillGapAsync(userId.Value, jobId);
 
-        if (job == null)
-        {
-            return NotFound(new
-            {
-                message = "Job not found."
-            });
-        }
+        if (result == null)
+            return NotFound(new { message = "Job not found." });
 
-        var jobSkills = await _context.JobSkills
-            .Where(js => js.JobId == jobId)
-            .Include(js => js.Skill)
-            .Select(js => js.Skill.Name)
-            .ToListAsync();
-
-        var userSkills = await _context.UserSkills
-            .Where(us => us.UserId == int.Parse(userId))
-            .Include(us => us.Skill)
-            .Select(us => us.Skill.Name)
-            .ToListAsync();
-
-        var matchedSkills = jobSkills
-            .Intersect(userSkills)
-            .ToList();
-
-        var missingSkills = jobSkills
-            .Except(userSkills)
-            .ToList();
-
-        var hasJobSkills = jobSkills.Any();
-
-        var matchPercentage = hasJobSkills
-            ? (int)Math.Round(((double)matchedSkills.Count / jobSkills.Count) * 100)
-            : 0;
-
-        var recommendedCourses = await _context.CourseSkills
-            .Where(cs => missingSkills.Contains(cs.Skill.Name))
-            .Include(cs => cs.Course)
-            .Select(cs => new
-            {
-                id = cs.Course.Id,
-                title = cs.Course.Title
-            })
-            .Distinct()
-            .ToListAsync();
-
-        return Ok(new
-        {
-            jobId = job.Id,
-            jobTitle = job.Title,
-            hasJobSkills,
-            matchPercentage,
-            jobSkills,
-            userSkills,
-            matchedSkills,
-            missingSkills,
-            recommendedCourses
-        });
+        return Ok(result);
     }
 }
