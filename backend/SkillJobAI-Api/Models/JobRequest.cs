@@ -5,19 +5,19 @@ namespace SkillJobAI.Api.Models;
 public class JobRequest
 {
     [Required]
-    [MaxLength(150)]
-    public string Title { get; set; } = "";
+    [StringLength(150)]
+    public string Title { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(5000)]
-    public string Description { get; set; } = "";
+    [StringLength(5000)]
+    public string Description { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(150)]
-    public string Location { get; set; } = "";
+    [StringLength(150)]
+    public string Location { get; set; } = string.Empty;
 
-    [MaxLength(100)]
-    public string Salary { get; set; } = "";
+    [StringLength(100)]
+    public string Salary { get; set; } = string.Empty;
 
     [Required]
     public int? CompanyId { get; set; }

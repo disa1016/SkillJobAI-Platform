@@ -6,11 +6,13 @@ public class LessonRequest
 {
     [Required]
     [StringLength(150)]
-    public string Title { get; set; } = "";
+    public string Title { get; set; } = string.Empty;
 
     [Required]
-    public string Content { get; set; } = "";
+    [StringLength(10000)]
+    public string Content { get; set; } = string.Empty;
 
+    [Url]
     public string? VideoUrl { get; set; }
 
     [Range(1, 1000)]
