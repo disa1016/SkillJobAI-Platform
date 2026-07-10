@@ -49,17 +49,22 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("forgot-password")]
-    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request)
+    public async Task<IActionResult> ForgotPassword(
+        ForgotPasswordRequest request)
     {
         var result = await _authService.ForgotPasswordAsync(request);
 
-        if (result == null)
-        {
-            return NotFound(new MessageResponse
-            {
-                Message = "Benutzer mit dieser E-Mail wurde nicht gefunden."
-            });
-        }
+        return Ok(result);
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword(
+        ResetPasswordRequest request)
+    {
+        var result = await _authService.ResetPasswordAsync(request);
+
+        if (!result.Success)
+            return BadRequest(result);
 
         return Ok(result);
     }

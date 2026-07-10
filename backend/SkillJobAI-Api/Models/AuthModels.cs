@@ -16,8 +16,7 @@ public class RegisterRequest
     [MinLength(6)]
     public string Password { get; set; } = string.Empty;
 
-    [Required]
-    public string Role { get; set; } = "Student";
+    public string Role { get; set; } = "Candidate";
 }
 
 public class LoginRequest
@@ -35,8 +34,20 @@ public class ForgotPasswordRequest
     [Required]
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
+}
+
+public class ResetPasswordRequest
+{
+    [Required]
+    public string Token { get; set; } = string.Empty;
 
     [Required]
     [MinLength(6)]
     public string NewPassword { get; set; } = string.Empty;
+
+    [Required]
+    [Compare(
+        nameof(NewPassword),
+        ErrorMessage = "Die Passwörter stimmen nicht überein.")]
+    public string ConfirmPassword { get; set; } = string.Empty;
 }
