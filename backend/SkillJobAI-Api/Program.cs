@@ -45,7 +45,7 @@ builder.Services.AddScoped<IApplicationMatchingService, ApplicationMatchingServi
 builder.Services.Configure<EmailSettings>(
 builder.Configuration.GetSection("EmailSettings"));
 
-builder.Services.AddScoped<IEmailService, EmailService>();
+
 
 // PostgreSQL Datenbank verbinden
 builder.Services.AddDbContext<AppDbContext>(options =>
