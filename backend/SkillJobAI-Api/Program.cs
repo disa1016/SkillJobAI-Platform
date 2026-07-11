@@ -34,6 +34,11 @@ builder.Host.UseSerilog();
 // ----------------------------
 builder.Services.AddControllers();
 
+builder.Services
+    .AddHealthChecks()
+    .AddNpgSql(
+        builder.Configuration.GetConnectionString("DefaultConnection")!,
+        name: "postgres");
 
 // ----------------------------
 // Services registrieren
@@ -197,6 +202,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 
 // ----------------------------
