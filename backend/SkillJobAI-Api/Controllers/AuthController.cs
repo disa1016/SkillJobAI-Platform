@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using SkillJobAI.Api.Models;
 using SkillJobAI.Api.Models.Responses;
 using SkillJobAI.Api.Services;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -17,6 +18,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> Register(
         RegisterRequest request)
     {
@@ -34,6 +36,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> Login(
         LoginRequest request)
     {
@@ -88,6 +91,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("forgot-password")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> ForgotPassword(
         ForgotPasswordRequest request)
     {
@@ -96,11 +100,11 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
     [HttpGet("test-error")]
-public IActionResult TestError()
-{
-    throw new InvalidOperationException(
-        "Absichtlicher Testfehler für die GlobalExceptionMiddleware.");
-}
+    public IActionResult TestError()
+    {
+        throw new InvalidOperationException(
+            "Absichtlicher Testfehler für die GlobalExceptionMiddleware.");
+    }
 
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword(

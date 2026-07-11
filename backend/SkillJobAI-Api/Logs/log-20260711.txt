@@ -1672,3 +1672,22 @@ System.InvalidOperationException: Absichtlicher Testfehler für die GlobalExcept
 2026-07-11 23:03:42.304 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/favicon.ico - 404 0 null 28.9914ms
 2026-07-11 23:03:42.314 +02:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET http://localhost:5226/favicon.ico, Response status code: 404
 2026-07-11 23:06:32.096 +02:00 [INF] Application is shutting down...
+2026-07-11 23:07:18.520 +02:00 [INF] SkillJobAI API wird gestartet...
+2026-07-11 23:07:18.594 +02:00 [INF] User profile is available. Using 'C:\Users\salah\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-07-11 23:07:18.769 +02:00 [INF] Now listening on: http://localhost:5226
+2026-07-11 23:07:18.778 +02:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-07-11 23:07:18.781 +02:00 [INF] Hosting environment: Development
+2026-07-11 23:07:18.783 +02:00 [INF] Content root path: D:\SkillJobAI-Platform\backend\skilljobai-api
+2026-07-11 23:07:31.435 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/health - null null
+2026-07-11 23:07:31.612 +02:00 [INF] Executing endpoint 'Health checks'
+2026-07-11 23:07:32.109 +02:00 [INF] Executed endpoint 'Health checks'
+2026-07-11 23:07:32.116 +02:00 [INF] HTTP GET /health responded 200 in 567.0452 ms
+2026-07-11 23:07:32.244 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/health - 200 null text/plain 812.4255ms
+2026-07-11 23:20:05.601 +02:00 [INF] Application is shutting down...
+2026-07-11 23:20:38.156 +02:00 [INF] SkillJobAI API wird gestartet...
+2026-07-11 23:20:38.241 +02:00 [INF] User profile is available. Using 'C:\Users\salah\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-07-11 23:20:38.367 +02:00 [INF] Now listening on: http://localhost:5226
+2026-07-11 23:20:38.371 +02:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-07-11 23:20:38.372 +02:00 [INF] Hosting environment: Development
+2026-07-11 23:20:38.374 +02:00 [INF] Content root path: D:\SkillJobAI-Platform\backend\skilljobai-api
+2026-07-11 23:26:27.962 +02:00 [INF] Application is shutting down...

@@ -8,6 +8,8 @@ using SkillJobAI.Api.Data;
 using SkillJobAI.Api.Middleware;
 using SkillJobAI.Api.Models;
 using SkillJobAI.Api.Services;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,7 +71,24 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IApplicationMatchingService, ApplicationMatchingService>();
 
+// ----------------------------
+// Rate Limiting
+// ----------------------------
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode =
+        StatusCodes.Status429TooManyRequests;
 
+    options.AddFixedWindowLimiter(
+        policyName: "auth",
+        configureOptions: limiterOptions =>
+        {
+            limiterOptions.PermitLimit = 5;
+            limiterOptions.Window = TimeSpan.FromMinutes(1);
+            limiterOptions.QueueLimit = 0;
+            limiterOptions.AutoReplenishment = true;
+        });
+});
 // ----------------------------
 // Email Settings
 // ----------------------------
@@ -194,6 +213,7 @@ app.UseStaticFiles();
 // app.UseHttpsRedirection();
 
 app.UseCors("AllowVueFrontend");
+app.UseRateLimiter();
 
 // Serilog Request Logging
 app.UseSerilogRequestLogging();
