@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using SkillJobAI.Api.Data;
+using SkillJobAI.Api.Middleware;
 using SkillJobAI.Api.Models;
 using SkillJobAI.Api.Services;
 
@@ -175,6 +176,11 @@ var app = builder.Build();
 // ----------------------------
 // Middleware
 // ----------------------------
+
+// Muss möglichst früh registriert werden,
+// damit Fehler aus der restlichen Pipeline abgefangen werden.
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
@@ -198,13 +204,15 @@ app.MapControllers();
 // ----------------------------
 try
 {
-    Log.Information(" SkillJobAI API wird gestartet...");
+    Log.Information("SkillJobAI API wird gestartet...");
 
     app.Run();
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, " Die Anwendung wurde unerwartet beendet.");
+    Log.Fatal(
+        ex,
+        "Die Anwendung wurde unerwartet beendet.");
 }
 finally
 {

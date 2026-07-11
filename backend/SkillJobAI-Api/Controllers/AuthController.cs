@@ -95,6 +95,12 @@ public class AuthController : ControllerBase
 
         return Ok(result);
     }
+    [HttpGet("test-error")]
+public IActionResult TestError()
+{
+    throw new InvalidOperationException(
+        "Absichtlicher Testfehler für die GlobalExceptionMiddleware.");
+}
 
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword(
