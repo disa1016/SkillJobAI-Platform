@@ -3,7 +3,14 @@ namespace SkillJobAI.Api.Models.Responses;
 public class AuthResponse
 {
     public string Message { get; set; } = string.Empty;
+
+    // Bestehender Name bleibt erhalten, damit das Frontend nicht kaputtgeht.
     public string Token { get; set; } = string.Empty;
+
+    public string RefreshToken { get; set; } = string.Empty;
+
+    public DateTime TokenExpiresAt { get; set; }
+
     public AuthUserResponse User { get; set; } = new();
 }
 

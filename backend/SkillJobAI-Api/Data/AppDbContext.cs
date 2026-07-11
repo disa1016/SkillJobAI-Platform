@@ -26,7 +26,8 @@ public class AppDbContext : DbContext
     public DbSet<CareerGoal> CareerGoals => Set<CareerGoal>();
     public DbSet<CareerGoalSkill> CareerGoalSkills => Set<CareerGoalSkill>();
     public DbSet<UserCareerGoal> UserCareerGoals => Set<UserCareerGoal>();
-
+public DbSet<RefreshToken> RefreshTokens =>
+    Set<RefreshToken>();
     public DbSet<PasswordResetToken> PasswordResetTokens =>
         Set<PasswordResetToken>();
 
@@ -104,5 +105,30 @@ public class AppDbContext : DbContext
                 .HasForeignKey(token => token.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
+        modelBuilder.Entity<RefreshToken>(entity =>
+{
+    entity.HasKey(token => token.Id);
+
+    entity.Property(token => token.TokenHash)
+        .IsRequired()
+        .HasMaxLength(64);
+
+    entity.Property(token => token.ReplacedByTokenHash)
+        .HasMaxLength(64);
+
+    entity.HasIndex(token => token.TokenHash)
+        .IsUnique();
+
+    entity.HasIndex(token => new
+    {
+        token.UserId,
+        token.ExpiresAt
+    });
+
+    entity.HasOne(token => token.User)
+        .WithMany(user => user.RefreshTokens)
+        .HasForeignKey(token => token.UserId)
+        .OnDelete(DeleteBehavior.Cascade);
+});
     }
 }
