@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SkillJobAI.Api.Models;
 using SkillJobAI.Api.Models.Responses;
 using SkillJobAI.Api.Services;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -19,6 +20,7 @@ public class AiController : ControllerBase
 
     [Authorize]
     [HttpPost("analyze-cv")]
+    [EnableRateLimiting("ai")]
     public IActionResult AnalyzeCv(AnalyzeCvRequest request)
     {
         var result = _aiService.AnalyzeCv(request);

@@ -88,6 +88,16 @@ builder.Services.AddRateLimiter(options =>
             limiterOptions.QueueLimit = 0;
             limiterOptions.AutoReplenishment = true;
         });
+
+    options.AddFixedWindowLimiter(
+        policyName: "ai",
+        configureOptions: limiterOptions =>
+        {
+            limiterOptions.PermitLimit = 3;
+            limiterOptions.Window = TimeSpan.FromMinutes(1);
+            limiterOptions.QueueLimit = 0;
+            limiterOptions.AutoReplenishment = true;
+        });
 });
 // ----------------------------
 // Email Settings
