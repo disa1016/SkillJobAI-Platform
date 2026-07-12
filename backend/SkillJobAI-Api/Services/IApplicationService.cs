@@ -5,11 +5,15 @@ namespace SkillJobAI.Api.Services;
 
 public interface IApplicationService
 {
-    Task<ApplicationResponse?> CreateApplicationAsync(int userId, CreateApplicationRequest request);
+    Task<ApplicationResponse?> CreateApplicationAsync(
+        int userId,
+        CreateApplicationRequest request);
 
-    Task<List<ApplicationResponse>> GetMyApplicationsAsync(int userId);
+    Task<List<ApplicationResponse>> GetMyApplicationsAsync(
+        int userId);
 
-    Task<ApplicationResponse?> GetApplicationByIdAsync(int id);
+    Task<ApplicationResponse?> GetApplicationByIdAsync(
+        int id);
 
     Task<PagedResponse<ApplicationResponse>> GetApplicationsForJobAsync(
         int jobId,
@@ -18,9 +22,17 @@ public interface IApplicationService
         string? search,
         string? status);
 
-    Task<ApplicationResponse?> UpdateApplicationStatusAsync(int id, string status);
+    Task<ApplicationResponse?> UpdateApplicationStatusAsync(
+        int id,
+        string status);
 
-    Task<int?> GetApplicationCompanyIdAsync(int applicationId);
+    Task<int?> GetApplicationCompanyIdAsync(
+        int applicationId);
 
-    Task<int?> GetJobCompanyIdAsync(int jobId);
+    Task<int?> GetJobCompanyIdAsync(
+        int jobId);
+
+    Task<ApplicationFileDownloadResponse?> GetApplicationFileAsync(
+        int applicationId,
+        string fileType);
 }

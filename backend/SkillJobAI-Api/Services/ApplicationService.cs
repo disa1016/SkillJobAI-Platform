@@ -310,4 +310,115 @@ public class ApplicationService : IApplicationService
             .Select(j => j.CompanyId)
             .FirstOrDefaultAsync();
     }
+    public async Task<ApplicationFileDownloadResponse?> GetApplicationFileAsync(
+    int applicationId,
+    string fileType)
+{
+    var application = await _context.Applications
+        .AsNoTracking()
+        .FirstOrDefaultAsync(a => a.Id == applicationId);
+
+    if (application == null)
+    {
+        return null;
+    }
+
+    var normalizedFileType = fileType
+        .Trim()
+        .ToLowerInvariant();
+
+    var storedFilePath = normalizedFileType switch
+    {
+        "cv" => application.CvFileUrl,
+        "certificate" => application.CertificateFileUrl,
+        "portfolio" => application.PortfolioFileUrl,
+        _ => null
+    };
+
+    if (string.IsNullOrWhiteSpace(storedFilePath))
+    {
+        return null;
+    }
+
+    var normalizedStoredPath = storedFilePath
+        .TrimStart('/')
+        .Replace('/', Path.DirectorySeparatorChar)
+        .Replace('\\', Path.DirectorySeparatorChar);
+
+    var projectRoot = Path.GetFullPath(
+        Directory.GetCurrentDirectory());
+
+    string allowedRoot;
+    string physicalFilePath;
+
+    if (normalizedStoredPath.StartsWith(
+            $"private_uploads{Path.DirectorySeparatorChar}",
+            StringComparison.OrdinalIgnoreCase))
+    {
+        allowedRoot = Path.GetFullPath(
+            Path.Combine(
+                projectRoot,
+                "private_uploads"));
+
+        physicalFilePath = Path.GetFullPath(
+            Path.Combine(
+                projectRoot,
+                normalizedStoredPath));
+    }
+    else if (normalizedStoredPath.StartsWith(
+                 $"uploads{Path.DirectorySeparatorChar}",
+                 StringComparison.OrdinalIgnoreCase))
+    {
+        // Unterstützung für bestehende Dateien,
+        // die früher unter wwwroot gespeichert wurden.
+        allowedRoot = Path.GetFullPath(
+            Path.Combine(
+                projectRoot,
+                "wwwroot",
+                "uploads"));
+
+        physicalFilePath = Path.GetFullPath(
+            Path.Combine(
+                projectRoot,
+                "wwwroot",
+                normalizedStoredPath));
+    }
+    else
+    {
+        return null;
+    }
+
+    var allowedRootWithSeparator =
+        allowedRoot.TrimEnd(Path.DirectorySeparatorChar)
+        + Path.DirectorySeparatorChar;
+
+    if (!physicalFilePath.StartsWith(
+            allowedRootWithSeparator,
+            StringComparison.OrdinalIgnoreCase))
+    {
+        return null;
+    }
+
+    if (!File.Exists(physicalFilePath))
+    {
+        return null;
+    }
+
+    var downloadFileName = normalizedFileType switch
+    {
+        "cv" => $"cv-application-{applicationId}.pdf",
+        "certificate" =>
+            $"certificate-application-{applicationId}.pdf",
+        "portfolio" =>
+            $"portfolio-application-{applicationId}.pdf",
+        _ => $"application-file-{applicationId}.pdf"
+    };
+
+    return new ApplicationFileDownloadResponse
+    {
+        FilePath = physicalFilePath,
+        DownloadFileName = downloadFileName,
+        ContentType = "application/pdf"
+    };
+}
 }
