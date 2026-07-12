@@ -292,3 +292,772 @@ WHERE s."Name" = ANY (@__missingSkills_0)
 2026-07-12 01:08:26.926 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.ApplicationsController.CreateApplication (SkillJobAI-Api)'
 2026-07-12 01:08:26.928 +02:00 [INF] HTTP POST /api/applications responded 200 in 634.8526 ms
 2026-07-12 01:08:26.931 +02:00 [INF] Request finished HTTP/1.1 POST http://localhost:5226/api/applications - 200 null application/json; charset=utf-8 644.1935ms
+2026-07-12 10:15:30.582 +02:00 [INF] SkillJobAI API wird gestartet...
+2026-07-12 10:15:30.844 +02:00 [INF] User profile is available. Using 'C:\Users\salah\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-07-12 10:15:31.058 +02:00 [INF] Now listening on: http://localhost:5226
+2026-07-12 10:15:31.069 +02:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-07-12 10:15:31.089 +02:00 [INF] Hosting environment: Development
+2026-07-12 10:15:31.114 +02:00 [INF] Content root path: D:\SkillJobAI-Platform\backend\skilljobai-api
+2026-07-12 10:20:08.841 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/candidate/dashboard - null null
+2026-07-12 10:20:09.012 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:20:09.038 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/candidate/dashboard - 204 null null 200.7757ms
+2026-07-12 10:20:09.128 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/api/candidate/dashboard - null null
+2026-07-12 10:20:09.185 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:20:09.555 +02:00 [INF] Failed to validate the token.
+Microsoft.IdentityModel.Tokens.SecurityTokenExpiredException: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '11.07.2026 21:16:41', Current time (UTC): '12.07.2026 08:20:09'.
+   at Microsoft.IdentityModel.Tokens.ValidatorUtilities.ValidateLifetime(Nullable`1 notBefore, Nullable`1 expires, SecurityToken securityToken, TokenValidationParameters validationParameters)
+   at Microsoft.IdentityModel.Tokens.Validators.ValidateLifetime(Nullable`1 notBefore, Nullable`1 expires, SecurityToken securityToken, TokenValidationParameters validationParameters)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateTokenPayloadAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateJWSAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+2026-07-12 10:20:09.586 +02:00 [INF] Bearer was not authenticated. Failure message: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '11.07.2026 21:16:41', Current time (UTC): '12.07.2026 08:20:09'.
+2026-07-12 10:20:09.609 +02:00 [INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2026-07-12 10:20:09.623 +02:00 [INF] AuthenticationScheme: Bearer was challenged.
+2026-07-12 10:20:09.632 +02:00 [INF] HTTP GET /api/candidate/dashboard responded 401 in 434.1125 ms
+2026-07-12 10:20:09.643 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/api/candidate/dashboard - 401 0 null 516.3344ms
+2026-07-12 10:20:23.488 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/swagger/ - null null
+2026-07-12 10:20:23.500 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/swagger/ - 301 0 null 12.4297ms
+2026-07-12 10:20:23.517 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/swagger/index.html - null null
+2026-07-12 10:20:23.858 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/swagger/index.html - 200 null text/html;charset=utf-8 341.2702ms
+2026-07-12 10:20:24.416 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/swagger/v1/swagger.json - null null
+2026-07-12 10:20:24.723 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 307.4384ms
+2026-07-12 10:21:28.006 +02:00 [INF] Request starting HTTP/1.1 POST http://localhost:5226/api/auth/login - application/json 60
+2026-07-12 10:21:28.010 +02:00 [INF] CORS policy execution failed.
+2026-07-12 10:21:28.012 +02:00 [INF] Request origin http://localhost:5226 does not have permission to access the resource.
+2026-07-12 10:21:28.028 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.AuthController.Login (SkillJobAI-Api)'
+2026-07-12 10:21:28.077 +02:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(SkillJobAI.Api.Models.LoginRequest) on controller SkillJobAI.Api.Controllers.AuthController (SkillJobAI-Api).
+2026-07-12 10:21:32.135 +02:00 [INF] Executed DbCommand (127ms) [Parameters=[@__normalizedEmail_0='?'], CommandType='"Text"', CommandTimeout='30']
+SELECT u."Id", u."CreatedAt", u."CvUrl", u."Email", u."FullName", u."PasswordHash", u."Role"
+FROM "Users" AS u
+WHERE lower(u."Email") = @__normalizedEmail_0
+LIMIT 1
+2026-07-12 10:21:32.676 +02:00 [INF] Executed DbCommand (35ms) [Parameters=[@p0='?' (DbType = DateTime), @p1='?' (DbType = DateTime), @p2='?', @p3='?' (DbType = DateTime), @p4='?', @p5='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "RefreshTokens" ("CreatedAt", "ExpiresAt", "ReplacedByTokenHash", "RevokedAt", "TokenHash", "UserId")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5)
+RETURNING "Id";
+2026-07-12 10:21:32.763 +02:00 [INF] Benutzer erfolgreich angemeldet. UserId: 12, Rolle: Candidate
+2026-07-12 10:21:32.778 +02:00 [INF] Executing OkObjectResult, writing value of type 'SkillJobAI.Api.Models.Responses.AuthResponse'.
+2026-07-12 10:21:32.827 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.AuthController.Login (SkillJobAI-Api) in 4738.6706ms
+2026-07-12 10:21:32.832 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.AuthController.Login (SkillJobAI-Api)'
+2026-07-12 10:21:32.839 +02:00 [INF] HTTP POST /api/auth/login responded 200 in 4816.5953 ms
+2026-07-12 10:21:32.874 +02:00 [INF] Request finished HTTP/1.1 POST http://localhost:5226/api/auth/login - 200 null application/json; charset=utf-8 4867.727ms
+2026-07-12 10:26:25.641 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/candidate/dashboard - null null
+2026-07-12 10:26:25.646 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:26:25.648 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/candidate/dashboard - 204 null null 7.4716ms
+2026-07-12 10:26:25.659 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/api/candidate/dashboard - null null
+2026-07-12 10:26:25.664 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:26:25.671 +02:00 [INF] Failed to validate the token.
+Microsoft.IdentityModel.Tokens.SecurityTokenExpiredException: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '11.07.2026 21:16:41', Current time (UTC): '12.07.2026 08:26:25'.
+   at Microsoft.IdentityModel.Tokens.ValidatorUtilities.ValidateLifetime(Nullable`1 notBefore, Nullable`1 expires, SecurityToken securityToken, TokenValidationParameters validationParameters)
+   at Microsoft.IdentityModel.Tokens.Validators.ValidateLifetime(Nullable`1 notBefore, Nullable`1 expires, SecurityToken securityToken, TokenValidationParameters validationParameters)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateTokenPayloadAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateJWSAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+2026-07-12 10:26:25.676 +02:00 [INF] Bearer was not authenticated. Failure message: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '11.07.2026 21:16:41', Current time (UTC): '12.07.2026 08:26:25'.
+2026-07-12 10:26:25.681 +02:00 [INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2026-07-12 10:26:25.686 +02:00 [INF] AuthenticationScheme: Bearer was challenged.
+2026-07-12 10:26:25.690 +02:00 [INF] HTTP GET /api/candidate/dashboard responded 401 in 23.9890 ms
+2026-07-12 10:26:25.695 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/api/candidate/dashboard - 401 0 null 35.7409ms
+2026-07-12 10:26:43.140 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/auth/login - null null
+2026-07-12 10:26:43.146 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:26:43.156 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/auth/login - 204 null null 15.6185ms
+2026-07-12 10:26:43.163 +02:00 [INF] Request starting HTTP/1.1 POST http://localhost:5226/api/auth/login - application/json 51
+2026-07-12 10:26:43.172 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:26:43.174 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.AuthController.Login (SkillJobAI-Api)'
+2026-07-12 10:26:43.177 +02:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(SkillJobAI.Api.Models.LoginRequest) on controller SkillJobAI.Api.Controllers.AuthController (SkillJobAI-Api).
+2026-07-12 10:26:43.359 +02:00 [INF] Executed DbCommand (4ms) [Parameters=[@__normalizedEmail_0='?'], CommandType='"Text"', CommandTimeout='30']
+SELECT u."Id", u."CreatedAt", u."CvUrl", u."Email", u."FullName", u."PasswordHash", u."Role"
+FROM "Users" AS u
+WHERE lower(u."Email") = @__normalizedEmail_0
+LIMIT 1
+2026-07-12 10:26:43.459 +02:00 [INF] Executed DbCommand (3ms) [Parameters=[@p0='?' (DbType = DateTime), @p1='?' (DbType = DateTime), @p2='?', @p3='?' (DbType = DateTime), @p4='?', @p5='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "RefreshTokens" ("CreatedAt", "ExpiresAt", "ReplacedByTokenHash", "RevokedAt", "TokenHash", "UserId")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5)
+RETURNING "Id";
+2026-07-12 10:26:43.463 +02:00 [INF] Benutzer erfolgreich angemeldet. UserId: 12, Rolle: Candidate
+2026-07-12 10:26:43.465 +02:00 [INF] Executing OkObjectResult, writing value of type 'SkillJobAI.Api.Models.Responses.AuthResponse'.
+2026-07-12 10:26:43.467 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.AuthController.Login (SkillJobAI-Api) in 286.191ms
+2026-07-12 10:26:43.470 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.AuthController.Login (SkillJobAI-Api)'
+2026-07-12 10:26:43.471 +02:00 [INF] HTTP POST /api/auth/login responded 200 in 297.5476 ms
+2026-07-12 10:26:43.474 +02:00 [INF] Request finished HTTP/1.1 POST http://localhost:5226/api/auth/login - 200 null application/json; charset=utf-8 311.4473ms
+2026-07-12 10:26:43.545 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/candidate/dashboard - null null
+2026-07-12 10:26:43.562 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:26:43.568 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/candidate/dashboard - 204 null null 22.7209ms
+2026-07-12 10:26:43.578 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/api/candidate/dashboard - null null
+2026-07-12 10:26:43.587 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:26:43.612 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.CandidateDashboardController.GetDashboard (SkillJobAI-Api)'
+2026-07-12 10:26:43.626 +02:00 [INF] Route matched with {action = "GetDashboard", controller = "CandidateDashboard"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetDashboard() on controller SkillJobAI.Api.Controllers.CandidateDashboardController (SkillJobAI-Api).
+2026-07-12 10:26:43.725 +02:00 [INF] Executed DbCommand (10ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT count(*)::int
+FROM "Applications" AS a
+WHERE a."UserId" = @__userId_0
+2026-07-12 10:26:43.746 +02:00 [INF] Executed DbCommand (7ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT count(*)::int
+FROM "Enrollments" AS e
+WHERE e."UserId" = @__userId_0
+2026-07-12 10:26:43.761 +02:00 [INF] Executed DbCommand (5ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT count(*)::int
+FROM "LessonProgresses" AS l
+WHERE l."UserId" = @__userId_0
+2026-07-12 10:26:43.821 +02:00 [INF] Executed DbCommand (10ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "UserSkills" AS u
+INNER JOIN "Skills" AS s ON u."SkillId" = s."Id"
+WHERE u."UserId" = @__userId_0
+2026-07-12 10:26:43.840 +02:00 [INF] Executed DbCommand (6ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+2026-07-12 10:26:43.913 +02:00 [WRN] The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+2026-07-12 10:26:44.062 +02:00 [INF] Executed DbCommand (134ms) [Parameters=[@__missingSkills_0='?' (DbType = Object), @__p_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT DISTINCT c0."Id", c0."Title", s."Name" AS "Skill"
+FROM "CourseSkills" AS c
+INNER JOIN "Skills" AS s ON c."SkillId" = s."Id"
+INNER JOIN "Courses" AS c0 ON c."CourseId" = c0."Id"
+WHERE s."Name" = ANY (@__missingSkills_0)
+LIMIT @__p_1
+2026-07-12 10:26:44.102 +02:00 [INF] Executed DbCommand (8ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT j."Id", j."CompanyId", j."CreatedAt", j."Description", j."Location", j."Salary", j."Title", c."Id", c."CreatedAt", c."Description", c."Location", c."LogoUrl", c."Name", c."WebsiteUrl"
+FROM "Jobs" AS j
+LEFT JOIN "Company" AS c ON j."CompanyId" = c."Id"
+2026-07-12 10:26:44.171 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:26:44.177 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:26:44.184 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:26:44.190 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:26:44.195 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:26:44.203 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:26:44.209 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:26:44.215 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:26:44.221 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:26:44.226 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:26:44.233 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:26:44.238 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:26:44.243 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:26:44.249 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:26:44.254 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:26:44.259 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:26:44.265 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:26:44.271 +02:00 [INF] Executing OkObjectResult, writing value of type 'SkillJobAI.Api.Models.Responses.CandidateDashboardResponse'.
+2026-07-12 10:26:44.289 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.CandidateDashboardController.GetDashboard (SkillJobAI-Api) in 659.8486ms
+2026-07-12 10:26:44.292 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.CandidateDashboardController.GetDashboard (SkillJobAI-Api)'
+2026-07-12 10:26:44.294 +02:00 [INF] HTTP GET /api/candidate/dashboard responded 200 in 705.7880 ms
+2026-07-12 10:26:44.298 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/api/candidate/dashboard - 200 null application/json; charset=utf-8 720.183ms
+2026-07-12 10:28:18.078 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/candidate/dashboard - null null
+2026-07-12 10:28:18.083 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:28:18.085 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/candidate/dashboard - 204 null null 7.1685ms
+2026-07-12 10:28:18.094 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/api/candidate/dashboard - null null
+2026-07-12 10:28:18.099 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:28:18.104 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.CandidateDashboardController.GetDashboard (SkillJobAI-Api)'
+2026-07-12 10:28:18.106 +02:00 [INF] Route matched with {action = "GetDashboard", controller = "CandidateDashboard"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetDashboard() on controller SkillJobAI.Api.Controllers.CandidateDashboardController (SkillJobAI-Api).
+2026-07-12 10:28:18.116 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT count(*)::int
+FROM "Applications" AS a
+WHERE a."UserId" = @__userId_0
+2026-07-12 10:28:18.124 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT count(*)::int
+FROM "Enrollments" AS e
+WHERE e."UserId" = @__userId_0
+2026-07-12 10:28:18.130 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT count(*)::int
+FROM "LessonProgresses" AS l
+WHERE l."UserId" = @__userId_0
+2026-07-12 10:28:18.140 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "UserSkills" AS u
+INNER JOIN "Skills" AS s ON u."SkillId" = s."Id"
+WHERE u."UserId" = @__userId_0
+2026-07-12 10:28:18.145 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+2026-07-12 10:28:18.155 +02:00 [INF] Executed DbCommand (3ms) [Parameters=[@__missingSkills_0='?' (DbType = Object), @__p_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT DISTINCT c0."Id", c0."Title", s."Name" AS "Skill"
+FROM "CourseSkills" AS c
+INNER JOIN "Skills" AS s ON c."SkillId" = s."Id"
+INNER JOIN "Courses" AS c0 ON c."CourseId" = c0."Id"
+WHERE s."Name" = ANY (@__missingSkills_0)
+LIMIT @__p_1
+2026-07-12 10:28:18.160 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT j."Id", j."CompanyId", j."CreatedAt", j."Description", j."Location", j."Salary", j."Title", c."Id", c."CreatedAt", c."Description", c."Location", c."LogoUrl", c."Name", c."WebsiteUrl"
+FROM "Jobs" AS j
+LEFT JOIN "Company" AS c ON j."CompanyId" = c."Id"
+2026-07-12 10:28:18.171 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:28:18.177 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:28:18.183 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:28:18.190 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:28:18.194 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:28:18.199 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:28:18.205 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:28:18.210 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:28:18.215 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:28:18.222 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:28:18.227 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:28:18.232 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:28:18.239 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:28:18.244 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:28:18.249 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:28:18.255 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:28:18.260 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__job_Id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__job_Id_0
+2026-07-12 10:28:18.264 +02:00 [INF] Executing OkObjectResult, writing value of type 'SkillJobAI.Api.Models.Responses.CandidateDashboardResponse'.
+2026-07-12 10:28:18.267 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.CandidateDashboardController.GetDashboard (SkillJobAI-Api) in 156.5275ms
+2026-07-12 10:28:18.272 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.CandidateDashboardController.GetDashboard (SkillJobAI-Api)'
+2026-07-12 10:28:18.274 +02:00 [INF] HTTP GET /api/candidate/dashboard responded 200 in 173.5097 ms
+2026-07-12 10:28:18.277 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/api/candidate/dashboard - 200 null application/json; charset=utf-8 183.8339ms
+2026-07-12 10:28:23.015 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/jobs?page=1&pageSize=9&search= - null null
+2026-07-12 10:28:23.027 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:28:23.029 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/jobs?page=1&pageSize=9&search= - 204 null null 14.5576ms
+2026-07-12 10:28:23.041 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/api/jobs?page=1&pageSize=9&search= - null null
+2026-07-12 10:28:23.048 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:28:23.052 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.JobsController.GetJobs (SkillJobAI-Api)'
+2026-07-12 10:28:23.065 +02:00 [INF] Route matched with {action = "GetJobs", controller = "Jobs"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobs(Int32, Int32, System.String) on controller SkillJobAI.Api.Controllers.JobsController (SkillJobAI-Api).
+2026-07-12 10:28:23.110 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT count(*)::int
+FROM "Jobs" AS j
+2026-07-12 10:28:23.243 +02:00 [INF] Executed DbCommand (5ms) [Parameters=[@__p_1='?' (DbType = Int32), @__p_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j0."Id", j0."Title", j0."Description", j0."Location", j0."Salary", j0."CreatedAt", j0."CompanyId", CASE
+    WHEN c."Id" IS NOT NULL THEN c."Name"
+    ELSE ''
+END, c."Id" IS NULL, c."Id", c."Name", COALESCE(c."Location", '')
+FROM (
+    SELECT j."Id", j."CompanyId", j."CreatedAt", j."Description", j."Location", j."Salary", j."Title"
+    FROM "Jobs" AS j
+    ORDER BY j."CreatedAt" DESC
+    LIMIT @__p_1 OFFSET @__p_0
+) AS j0
+LEFT JOIN "Company" AS c ON j0."CompanyId" = c."Id"
+ORDER BY j0."CreatedAt" DESC
+2026-07-12 10:28:23.256 +02:00 [INF] Executing OkObjectResult, writing value of type 'SkillJobAI.Api.Models.PagedResponse`1[[SkillJobAI.Api.Models.Responses.JobResponse, SkillJobAI-Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-07-12 10:28:23.275 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.JobsController.GetJobs (SkillJobAI-Api) in 204.2176ms
+2026-07-12 10:28:23.278 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.JobsController.GetJobs (SkillJobAI-Api)'
+2026-07-12 10:28:23.280 +02:00 [INF] HTTP GET /api/jobs responded 200 in 228.5325 ms
+2026-07-12 10:28:23.285 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/api/jobs?page=1&pageSize=9&search= - 200 null application/json; charset=utf-8 244.2621ms
+2026-07-12 10:28:26.230 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/jobs/27 - null null
+2026-07-12 10:28:26.246 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:28:26.249 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/jobs/27 - 204 null null 18.7501ms
+2026-07-12 10:28:26.277 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/api/jobs/27 - null null
+2026-07-12 10:28:26.283 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:28:26.289 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.JobsController.GetJob (SkillJobAI-Api)'
+2026-07-12 10:28:26.299 +02:00 [INF] Route matched with {action = "GetJob", controller = "Jobs"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJob(Int32) on controller SkillJobAI.Api.Controllers.JobsController (SkillJobAI-Api).
+2026-07-12 10:28:26.347 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j."Id", j."Title", j."Description", j."Location", j."Salary", j."CreatedAt", j."CompanyId", CASE
+    WHEN c."Id" IS NOT NULL THEN c."Name"
+    ELSE ''
+END, c."Id" IS NULL, c."Id", c."Name", COALESCE(c."Description", ''), COALESCE(c."WebsiteUrl", ''), COALESCE(c."LogoUrl", ''), COALESCE(c."Location", '')
+FROM "Jobs" AS j
+LEFT JOIN "Company" AS c ON j."CompanyId" = c."Id"
+WHERE j."Id" = @__id_0
+LIMIT 1
+2026-07-12 10:28:26.363 +02:00 [INF] Executing OkObjectResult, writing value of type 'SkillJobAI.Api.Models.Responses.JobResponse'.
+2026-07-12 10:28:26.373 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.JobsController.GetJob (SkillJobAI-Api) in 64.4425ms
+2026-07-12 10:28:26.378 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.JobsController.GetJob (SkillJobAI-Api)'
+2026-07-12 10:28:26.381 +02:00 [INF] HTTP GET /api/jobs/27 responded 200 in 94.0696 ms
+2026-07-12 10:28:26.394 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/api/jobs/27 - 200 null application/json; charset=utf-8 117.22ms
+2026-07-12 10:29:02.932 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/ai/generate-cover-letter - null null
+2026-07-12 10:29:02.940 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:29:02.945 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/ai/generate-cover-letter - 204 null null 13.0397ms
+2026-07-12 10:29:02.963 +02:00 [INF] Request starting HTTP/1.1 POST http://localhost:5226/api/ai/generate-cover-letter - application/json 131
+2026-07-12 10:29:02.974 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:29:02.979 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.AiController.GenerateCoverLetter (SkillJobAI-Api)'
+2026-07-12 10:29:02.986 +02:00 [INF] Route matched with {action = "GenerateCoverLetter", controller = "Ai"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult GenerateCoverLetter(SkillJobAI.Api.Models.CoverLetterRequest) on controller SkillJobAI.Api.Controllers.AiController (SkillJobAI-Api).
+2026-07-12 10:29:03.000 +02:00 [INF] Executing OkObjectResult, writing value of type 'SkillJobAI.Api.Models.Responses.CoverLetterResponse'.
+2026-07-12 10:29:03.009 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.AiController.GenerateCoverLetter (SkillJobAI-Api) in 17.6305ms
+2026-07-12 10:29:03.014 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.AiController.GenerateCoverLetter (SkillJobAI-Api)'
+2026-07-12 10:29:03.016 +02:00 [INF] HTTP POST /api/ai/generate-cover-letter responded 200 in 39.3945 ms
+2026-07-12 10:29:03.022 +02:00 [INF] Request finished HTTP/1.1 POST http://localhost:5226/api/ai/generate-cover-letter - 200 null application/json; charset=utf-8 58.9036ms
+2026-07-12 10:29:07.490 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/applications - null null
+2026-07-12 10:29:07.506 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:29:07.508 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/applications - 204 null null 18.1977ms
+2026-07-12 10:29:07.526 +02:00 [INF] Request starting HTTP/1.1 POST http://localhost:5226/api/applications - multipart/form-data; boundary=----geckoformboundary23178b969736748ee50fbe39f72a24ac 220875
+2026-07-12 10:29:07.536 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:29:07.540 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.ApplicationsController.CreateApplication (SkillJobAI-Api)'
+2026-07-12 10:29:07.558 +02:00 [INF] Route matched with {action = "CreateApplication", controller = "Applications"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] CreateApplication(SkillJobAI.Api.Models.CreateApplicationRequest) on controller SkillJobAI.Api.Controllers.ApplicationsController (SkillJobAI-Api).
+2026-07-12 10:29:07.677 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__request_JobId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Jobs" AS j
+    WHERE j."Id" = @__request_JobId_0)
+2026-07-12 10:29:07.701 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Int32), @__request_JobId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Applications" AS a
+    WHERE a."UserId" = @__userId_0 AND a."JobId" = @__request_JobId_1 AND a."Status" <> 'Rejected')
+2026-07-12 10:29:07.791 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[@p0='?', @p1='?', @p2='?' (DbType = DateTime), @p3='?', @p4='?' (DbType = Int32), @p5='?', @p6='?', @p7='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Applications" ("CertificateFileUrl", "CoverLetter", "CreatedAt", "CvFileUrl", "JobId", "PortfolioFileUrl", "Status", "UserId")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7)
+RETURNING "Id";
+2026-07-12 10:29:07.820 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."CertificateFileUrl", a."CoverLetter", a."CreatedAt", a."CvFileUrl", a."JobId", a."PortfolioFileUrl", a."Status", a."UserId"
+FROM "Applications" AS a
+WHERE a."Id" = @__id_0
+LIMIT 1
+2026-07-12 10:29:07.849 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__application_JobId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j."Id", j."CompanyId", j."CreatedAt", j."Description", j."Location", j."Salary", j."Title", c."Id", c."CreatedAt", c."Description", c."Location", c."LogoUrl", c."Name", c."WebsiteUrl"
+FROM "Jobs" AS j
+LEFT JOIN "Company" AS c ON j."CompanyId" = c."Id"
+WHERE j."Id" = @__application_JobId_0
+LIMIT 1
+2026-07-12 10:29:07.867 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__application_UserId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT u."Id", u."FullName", u."Email", COALESCE(u."CvUrl", '') AS "CvUrl"
+FROM "Users" AS u
+WHERE u."Id" = @__application_UserId_0
+LIMIT 1
+2026-07-12 10:29:07.884 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__jobId_0
+2026-07-12 10:29:07.892 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "UserSkills" AS u
+INNER JOIN "Skills" AS s ON u."SkillId" = s."Id"
+WHERE u."UserId" = @__userId_0
+2026-07-12 10:29:07.914 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[@__missingSkills_0='?' (DbType = Object)], CommandType='"Text"', CommandTimeout='30']
+SELECT DISTINCT c0."Id" AS id, c0."Title" AS title, s."Name" AS skill
+FROM "CourseSkills" AS c
+INNER JOIN "Skills" AS s ON c."SkillId" = s."Id"
+INNER JOIN "Courses" AS c0 ON c."CourseId" = c0."Id"
+WHERE s."Name" = ANY (@__missingSkills_0)
+2026-07-12 10:29:07.925 +02:00 [INF] Executing OkObjectResult, writing value of type 'SkillJobAI.Api.Models.Responses.ApplicationResponse'.
+2026-07-12 10:29:07.951 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.ApplicationsController.CreateApplication (SkillJobAI-Api) in 386.6649ms
+2026-07-12 10:29:07.956 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.ApplicationsController.CreateApplication (SkillJobAI-Api)'
+2026-07-12 10:29:07.959 +02:00 [INF] HTTP POST /api/applications responded 200 in 420.6590 ms
+2026-07-12 10:29:07.966 +02:00 [INF] Request finished HTTP/1.1 POST http://localhost:5226/api/applications - 200 null application/json; charset=utf-8 439.59ms
+2026-07-12 10:33:37.769 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/applications/my - null null
+2026-07-12 10:33:37.784 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:33:37.790 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/applications/my - 204 null null 20.6214ms
+2026-07-12 10:33:37.805 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/api/applications/my - null null
+2026-07-12 10:33:37.814 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:33:37.818 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.ApplicationsController.MyApplications (SkillJobAI-Api)'
+2026-07-12 10:33:37.824 +02:00 [INF] Route matched with {action = "MyApplications", controller = "Applications"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] MyApplications() on controller SkillJobAI.Api.Controllers.ApplicationsController (SkillJobAI-Api).
+2026-07-12 10:33:38.004 +02:00 [INF] Executed DbCommand (19ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."UserId", a."JobId", a."CoverLetter", a."Status", COALESCE(a."CvFileUrl", ''), COALESCE(a."CertificateFileUrl", ''), COALESCE(a."PortfolioFileUrl", ''), a."CreatedAt", j1."Id", j1."Title", j1."Company", j1."CompanyId", j1."Location", j1."Salary", j1.c
+FROM "Applications" AS a
+LEFT JOIN (
+    SELECT j0."Id", j0."Title", j0."Company", j0."CompanyId", j0."Location", j0."Salary", j0.c
+    FROM (
+        SELECT j."Id", j."Title", COALESCE((
+            SELECT c."Name"
+            FROM "Company" AS c
+            WHERE c."Id" = j."CompanyId"
+            LIMIT 1), '') AS "Company", j."CompanyId", j."Location", j."Salary", 1 AS c, ROW_NUMBER() OVER(PARTITION BY j."Id" ORDER BY j."Id") AS row
+        FROM "Jobs" AS j
+    ) AS j0
+    WHERE j0.row <= 1
+) AS j1 ON a."JobId" = j1."Id"
+WHERE a."UserId" = @__userId_0
+2026-07-12 10:33:38.012 +02:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[SkillJobAI.Api.Models.Responses.ApplicationResponse, SkillJobAI-Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-07-12 10:33:38.019 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.ApplicationsController.MyApplications (SkillJobAI-Api) in 189.9913ms
+2026-07-12 10:33:38.022 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.ApplicationsController.MyApplications (SkillJobAI-Api)'
+2026-07-12 10:33:38.024 +02:00 [INF] HTTP GET /api/applications/my responded 200 in 207.4849 ms
+2026-07-12 10:33:38.027 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/api/applications/my - 200 null application/json; charset=utf-8 222.8492ms
+2026-07-12 10:33:54.499 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/jobs/40/skill-gap - null null
+2026-07-12 10:33:54.504 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:33:54.507 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/jobs/40/skill-gap - 204 null null 8.3131ms
+2026-07-12 10:33:54.523 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/api/jobs/40/skill-gap - null null
+2026-07-12 10:33:54.533 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:33:54.536 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.SkillGapController.GetSkillGap (SkillJobAI-Api)'
+2026-07-12 10:33:54.548 +02:00 [INF] Route matched with {action = "GetSkillGap", controller = "SkillGap"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetSkillGap(Int32) on controller SkillJobAI.Api.Controllers.SkillGapController (SkillJobAI-Api).
+2026-07-12 10:33:54.582 +02:00 [INF] Executed DbCommand (3ms) [Parameters=[@__jobId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j."Id", j."CompanyId", j."CreatedAt", j."Description", j."Location", j."Salary", j."Title"
+FROM "Jobs" AS j
+WHERE j."Id" = @__jobId_0
+LIMIT 1
+2026-07-12 10:33:54.601 +02:00 [INF] Executed DbCommand (13ms) [Parameters=[@__jobId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "JobSkills" AS j
+INNER JOIN "Skills" AS s ON j."SkillId" = s."Id"
+WHERE j."JobId" = @__jobId_0
+2026-07-12 10:33:54.617 +02:00 [INF] Executed DbCommand (10ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "UserSkills" AS u
+INNER JOIN "Skills" AS s ON u."SkillId" = s."Id"
+WHERE u."UserId" = @__userId_0
+2026-07-12 10:33:54.647 +02:00 [INF] Executed DbCommand (11ms) [Parameters=[@__missingSkills_0='?' (DbType = Object)], CommandType='"Text"', CommandTimeout='30']
+SELECT DISTINCT c0."Id", c0."Title"
+FROM "CourseSkills" AS c
+INNER JOIN "Skills" AS s ON c."SkillId" = s."Id"
+INNER JOIN "Courses" AS c0 ON c."CourseId" = c0."Id"
+WHERE s."Name" = ANY (@__missingSkills_0)
+2026-07-12 10:33:54.654 +02:00 [INF] Executing OkObjectResult, writing value of type 'SkillJobAI.Api.Models.Responses.SkillGapResponse'.
+2026-07-12 10:33:54.666 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.SkillGapController.GetSkillGap (SkillJobAI-Api) in 114.0234ms
+2026-07-12 10:33:54.670 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.SkillGapController.GetSkillGap (SkillJobAI-Api)'
+2026-07-12 10:33:54.673 +02:00 [INF] HTTP GET /api/jobs/40/skill-gap responded 200 in 137.7169 ms
+2026-07-12 10:33:54.683 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/api/jobs/40/skill-gap - 200 null application/json; charset=utf-8 159.7815ms
+2026-07-12 10:34:02.154 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/jobs/40 - null null
+2026-07-12 10:34:02.169 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:34:02.173 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/jobs/40 - 204 null null 18.6738ms
+2026-07-12 10:34:02.197 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/api/jobs/40 - null null
+2026-07-12 10:34:02.224 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:34:02.235 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.JobsController.GetJob (SkillJobAI-Api)'
+2026-07-12 10:34:02.251 +02:00 [INF] Route matched with {action = "GetJob", controller = "Jobs"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJob(Int32) on controller SkillJobAI.Api.Controllers.JobsController (SkillJobAI-Api).
+2026-07-12 10:34:02.280 +02:00 [INF] Executed DbCommand (4ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j."Id", j."Title", j."Description", j."Location", j."Salary", j."CreatedAt", j."CompanyId", CASE
+    WHEN c."Id" IS NOT NULL THEN c."Name"
+    ELSE ''
+END, c."Id" IS NULL, c."Id", c."Name", COALESCE(c."Description", ''), COALESCE(c."WebsiteUrl", ''), COALESCE(c."LogoUrl", ''), COALESCE(c."Location", '')
+FROM "Jobs" AS j
+LEFT JOIN "Company" AS c ON j."CompanyId" = c."Id"
+WHERE j."Id" = @__id_0
+LIMIT 1
+2026-07-12 10:34:02.287 +02:00 [INF] Executing OkObjectResult, writing value of type 'SkillJobAI.Api.Models.Responses.JobResponse'.
+2026-07-12 10:34:02.294 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.JobsController.GetJob (SkillJobAI-Api) in 22.9554ms
+2026-07-12 10:34:02.305 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.JobsController.GetJob (SkillJobAI-Api)'
+2026-07-12 10:34:02.311 +02:00 [INF] HTTP GET /api/jobs/40 responded 200 in 77.5757 ms
+2026-07-12 10:34:02.317 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/api/jobs/40 - 200 null application/json; charset=utf-8 120.1724ms
+2026-07-12 10:34:05.650 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/applications/my - null null
+2026-07-12 10:34:05.659 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:34:05.663 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/applications/my - 204 null null 13.4292ms
+2026-07-12 10:34:05.672 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/api/applications/my - null null
+2026-07-12 10:34:05.680 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:34:05.683 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.ApplicationsController.MyApplications (SkillJobAI-Api)'
+2026-07-12 10:34:05.686 +02:00 [INF] Route matched with {action = "MyApplications", controller = "Applications"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] MyApplications() on controller SkillJobAI.Api.Controllers.ApplicationsController (SkillJobAI-Api).
+2026-07-12 10:34:05.704 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."UserId", a."JobId", a."CoverLetter", a."Status", COALESCE(a."CvFileUrl", ''), COALESCE(a."CertificateFileUrl", ''), COALESCE(a."PortfolioFileUrl", ''), a."CreatedAt", j1."Id", j1."Title", j1."Company", j1."CompanyId", j1."Location", j1."Salary", j1.c
+FROM "Applications" AS a
+LEFT JOIN (
+    SELECT j0."Id", j0."Title", j0."Company", j0."CompanyId", j0."Location", j0."Salary", j0.c
+    FROM (
+        SELECT j."Id", j."Title", COALESCE((
+            SELECT c."Name"
+            FROM "Company" AS c
+            WHERE c."Id" = j."CompanyId"
+            LIMIT 1), '') AS "Company", j."CompanyId", j."Location", j."Salary", 1 AS c, ROW_NUMBER() OVER(PARTITION BY j."Id" ORDER BY j."Id") AS row
+        FROM "Jobs" AS j
+    ) AS j0
+    WHERE j0.row <= 1
+) AS j1 ON a."JobId" = j1."Id"
+WHERE a."UserId" = @__userId_0
+2026-07-12 10:34:05.712 +02:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[SkillJobAI.Api.Models.Responses.ApplicationResponse, SkillJobAI-Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-07-12 10:34:05.716 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.ApplicationsController.MyApplications (SkillJobAI-Api) in 23.8839ms
+2026-07-12 10:34:05.721 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.ApplicationsController.MyApplications (SkillJobAI-Api)'
+2026-07-12 10:34:05.725 +02:00 [INF] HTTP GET /api/applications/my responded 200 in 43.0150 ms
+2026-07-12 10:34:05.732 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/api/applications/my - 200 null application/json; charset=utf-8 59.3536ms
+2026-07-12 10:34:07.040 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/api/jobs/40 - null null
+2026-07-12 10:34:07.052 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:34:07.056 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.JobsController.GetJob (SkillJobAI-Api)'
+2026-07-12 10:34:07.063 +02:00 [INF] Route matched with {action = "GetJob", controller = "Jobs"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJob(Int32) on controller SkillJobAI.Api.Controllers.JobsController (SkillJobAI-Api).
+2026-07-12 10:34:07.077 +02:00 [INF] Executed DbCommand (4ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j."Id", j."Title", j."Description", j."Location", j."Salary", j."CreatedAt", j."CompanyId", CASE
+    WHEN c."Id" IS NOT NULL THEN c."Name"
+    ELSE ''
+END, c."Id" IS NULL, c."Id", c."Name", COALESCE(c."Description", ''), COALESCE(c."WebsiteUrl", ''), COALESCE(c."LogoUrl", ''), COALESCE(c."Location", '')
+FROM "Jobs" AS j
+LEFT JOIN "Company" AS c ON j."CompanyId" = c."Id"
+WHERE j."Id" = @__id_0
+LIMIT 1
+2026-07-12 10:34:07.088 +02:00 [INF] Executing OkObjectResult, writing value of type 'SkillJobAI.Api.Models.Responses.JobResponse'.
+2026-07-12 10:34:07.096 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.JobsController.GetJob (SkillJobAI-Api) in 26.4388ms
+2026-07-12 10:34:07.100 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.JobsController.GetJob (SkillJobAI-Api)'
+2026-07-12 10:34:07.103 +02:00 [INF] HTTP GET /api/jobs/40 responded 200 in 47.5248 ms
+2026-07-12 10:34:07.107 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/api/jobs/40 - 200 null application/json; charset=utf-8 66.6056ms
+2026-07-12 10:34:15.402 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/career-goals - null null
+2026-07-12 10:34:15.404 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/career-roadmap/my - null null
+2026-07-12 10:34:15.415 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:34:15.421 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:34:15.427 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/career-goals - 204 null null 24.0772ms
+2026-07-12 10:34:15.429 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/career-roadmap/my - 204 null null 24.6862ms
+2026-07-12 10:34:15.445 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/api/career-goals - null null
+2026-07-12 10:34:15.453 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/api/career-roadmap/my - null null
+2026-07-12 10:34:15.460 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:34:15.467 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:34:15.470 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.CareerRoadmapController.GetCareerGoals (SkillJobAI-Api)'
+2026-07-12 10:34:15.471 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.CareerRoadmapController.GetMyCareerRoadmap (SkillJobAI-Api)'
+2026-07-12 10:34:15.485 +02:00 [INF] Route matched with {action = "GetMyCareerRoadmap", controller = "CareerRoadmap"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetMyCareerRoadmap() on controller SkillJobAI.Api.Controllers.CareerRoadmapController (SkillJobAI-Api).
+2026-07-12 10:34:15.485 +02:00 [INF] Route matched with {action = "GetCareerGoals", controller = "CareerRoadmap"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetCareerGoals() on controller SkillJobAI.Api.Controllers.CareerRoadmapController (SkillJobAI-Api).
+2026-07-12 10:34:15.523 +02:00 [INF] Executed DbCommand (6ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT c."Id", c."Name", c."Description", c."DurationMonths"
+FROM "CareerGoals" AS c
+2026-07-12 10:34:15.536 +02:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[SkillJobAI.Api.Models.Responses.CareerGoalResponse, SkillJobAI-Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-07-12 10:34:15.549 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.CareerRoadmapController.GetCareerGoals (SkillJobAI-Api) in 49.9821ms
+2026-07-12 10:34:15.563 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.CareerRoadmapController.GetCareerGoals (SkillJobAI-Api)'
+2026-07-12 10:34:15.565 +02:00 [INF] Executed DbCommand (15ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT u."Id", u."CareerGoalId", u."StartedAt", u."UserId", c."Id", c."Description", c."DurationMonths", c."Name"
+FROM "UserCareerGoals" AS u
+INNER JOIN "CareerGoals" AS c ON u."CareerGoalId" = c."Id"
+WHERE u."UserId" = @__userId_0
+LIMIT 1
+2026-07-12 10:34:15.566 +02:00 [INF] HTTP GET /api/career-goals responded 200 in 97.5621 ms
+2026-07-12 10:34:15.583 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/api/career-goals - 200 null application/json; charset=utf-8 137.8779ms
+2026-07-12 10:34:15.719 +02:00 [INF] Executed DbCommand (6ms) [Parameters=[@__userCareerGoal_CareerGoalId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Id", s."Name", c."MonthNumber"
+FROM "CareerGoalSkills" AS c
+INNER JOIN "Skills" AS s ON c."SkillId" = s."Id"
+WHERE c."CareerGoalId" = @__userCareerGoal_CareerGoalId_0
+2026-07-12 10:34:15.729 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "UserSkills" AS u
+INNER JOIN "Skills" AS s ON u."SkillId" = s."Id"
+WHERE u."UserId" = @__userId_0
+2026-07-12 10:34:15.749 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[@__missingSkillNames_0='?' (DbType = Object)], CommandType='"Text"', CommandTimeout='30']
+SELECT DISTINCT c0."Id", c0."Title", s."Name" AS "Skill"
+FROM "CourseSkills" AS c
+INNER JOIN "Skills" AS s ON c."SkillId" = s."Id"
+INNER JOIN "Courses" AS c0 ON c."CourseId" = c0."Id"
+WHERE s."Name" = ANY (@__missingSkillNames_0)
+2026-07-12 10:34:15.763 +02:00 [INF] Executing OkObjectResult, writing value of type 'SkillJobAI.Api.Models.Responses.CareerRoadmapResponse'.
+2026-07-12 10:34:15.781 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.CareerRoadmapController.GetMyCareerRoadmap (SkillJobAI-Api) in 288.5847ms
+2026-07-12 10:34:15.785 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.CareerRoadmapController.GetMyCareerRoadmap (SkillJobAI-Api)'
+2026-07-12 10:34:15.788 +02:00 [INF] HTTP GET /api/career-roadmap/my responded 200 in 317.3127 ms
+2026-07-12 10:34:15.794 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/api/career-roadmap/my - 200 null application/json; charset=utf-8 341.1441ms
+2026-07-12 10:34:18.770 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/career-goals/select/2 - null null
+2026-07-12 10:34:18.780 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:34:18.782 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/career-goals/select/2 - 204 null null 11.5838ms
+2026-07-12 10:34:18.793 +02:00 [INF] Request starting HTTP/1.1 POST http://localhost:5226/api/career-goals/select/2 - null 0
+2026-07-12 10:34:18.801 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:34:18.804 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.CareerRoadmapController.SelectCareerGoal (SkillJobAI-Api)'
+2026-07-12 10:34:18.816 +02:00 [INF] Route matched with {action = "SelectCareerGoal", controller = "CareerRoadmap"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] SelectCareerGoal(Int32) on controller SkillJobAI.Api.Controllers.CareerRoadmapController (SkillJobAI-Api).
+2026-07-12 10:34:18.841 +02:00 [INF] Executed DbCommand (3ms) [Parameters=[@__goalId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "CareerGoals" AS c
+    WHERE c."Id" = @__goalId_0)
+2026-07-12 10:34:18.859 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT u."Id", u."CareerGoalId", u."StartedAt", u."UserId"
+FROM "UserCareerGoals" AS u
+WHERE u."UserId" = @__userId_0
+LIMIT 1
+2026-07-12 10:34:18.898 +02:00 [INF] Executed DbCommand (17ms) [Parameters=[@p2='?' (DbType = Int32), @p0='?' (DbType = Int32), @p1='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+UPDATE "UserCareerGoals" SET "CareerGoalId" = @p0, "StartedAt" = @p1
+WHERE "Id" = @p2;
+2026-07-12 10:34:18.908 +02:00 [INF] Executing OkObjectResult, writing value of type 'SkillJobAI.Api.Models.Responses.SelectCareerGoalResponse'.
+2026-07-12 10:34:18.914 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.CareerRoadmapController.SelectCareerGoal (SkillJobAI-Api) in 92.7034ms
+2026-07-12 10:34:18.918 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.CareerRoadmapController.SelectCareerGoal (SkillJobAI-Api)'
+2026-07-12 10:34:18.921 +02:00 [INF] HTTP POST /api/career-goals/select/2 responded 200 in 118.0715 ms
+2026-07-12 10:34:18.928 +02:00 [INF] Request finished HTTP/1.1 POST http://localhost:5226/api/career-goals/select/2 - 200 null application/json; charset=utf-8 134.4016ms
+2026-07-12 10:34:18.938 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/api/career-roadmap/my - null null
+2026-07-12 10:34:18.946 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:34:18.949 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.CareerRoadmapController.GetMyCareerRoadmap (SkillJobAI-Api)'
+2026-07-12 10:34:18.952 +02:00 [INF] Route matched with {action = "GetMyCareerRoadmap", controller = "CareerRoadmap"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetMyCareerRoadmap() on controller SkillJobAI.Api.Controllers.CareerRoadmapController (SkillJobAI-Api).
+2026-07-12 10:34:18.961 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT u."Id", u."CareerGoalId", u."StartedAt", u."UserId", c."Id", c."Description", c."DurationMonths", c."Name"
+FROM "UserCareerGoals" AS u
+INNER JOIN "CareerGoals" AS c ON u."CareerGoalId" = c."Id"
+WHERE u."UserId" = @__userId_0
+LIMIT 1
+2026-07-12 10:34:18.970 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userCareerGoal_CareerGoalId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Id", s."Name", c."MonthNumber"
+FROM "CareerGoalSkills" AS c
+INNER JOIN "Skills" AS s ON c."SkillId" = s."Id"
+WHERE c."CareerGoalId" = @__userCareerGoal_CareerGoalId_0
+2026-07-12 10:34:18.979 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "UserSkills" AS u
+INNER JOIN "Skills" AS s ON u."SkillId" = s."Id"
+WHERE u."UserId" = @__userId_0
+2026-07-12 10:34:18.988 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[@__missingSkillNames_0='?' (DbType = Object)], CommandType='"Text"', CommandTimeout='30']
+SELECT DISTINCT c0."Id", c0."Title", s."Name" AS "Skill"
+FROM "CourseSkills" AS c
+INNER JOIN "Skills" AS s ON c."SkillId" = s."Id"
+INNER JOIN "Courses" AS c0 ON c."CourseId" = c0."Id"
+WHERE s."Name" = ANY (@__missingSkillNames_0)
+2026-07-12 10:34:18.995 +02:00 [INF] Executing OkObjectResult, writing value of type 'SkillJobAI.Api.Models.Responses.CareerRoadmapResponse'.
+2026-07-12 10:34:18.999 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.CareerRoadmapController.GetMyCareerRoadmap (SkillJobAI-Api) in 41.0046ms
+2026-07-12 10:34:19.003 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.CareerRoadmapController.GetMyCareerRoadmap (SkillJobAI-Api)'
+2026-07-12 10:34:19.007 +02:00 [INF] HTTP GET /api/career-roadmap/my responded 200 in 58.0900 ms
+2026-07-12 10:34:19.013 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/api/career-roadmap/my - 200 null application/json; charset=utf-8 75.2382ms
+2026-07-12 10:35:09.105 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/courses?page=1&pageSize=9&search= - null null
+2026-07-12 10:35:09.113 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:35:09.116 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/courses?page=1&pageSize=9&search= - 204 null null 11.551ms
+2026-07-12 10:35:09.130 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/api/courses?page=1&pageSize=9&search= - null null
+2026-07-12 10:35:09.139 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:35:09.142 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.CoursesController.GetCourses (SkillJobAI-Api)'
+2026-07-12 10:35:09.153 +02:00 [INF] Route matched with {action = "GetCourses", controller = "Courses"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetCourses(Int32, Int32, System.String) on controller SkillJobAI.Api.Controllers.CoursesController (SkillJobAI-Api).
+2026-07-12 10:35:09.180 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT count(*)::int
+FROM "Courses" AS c
+2026-07-12 10:35:09.201 +02:00 [INF] Executed DbCommand (3ms) [Parameters=[@__p_1='?' (DbType = Int32), @__p_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT c."Id", c."Title", c."Description", c."Category", c."Level", c."Instructor", c."CreatedAt"
+FROM "Courses" AS c
+ORDER BY c."CreatedAt" DESC
+LIMIT @__p_1 OFFSET @__p_0
+2026-07-12 10:35:09.208 +02:00 [INF] Executing OkObjectResult, writing value of type 'SkillJobAI.Api.Models.PagedResponse`1[[SkillJobAI.Api.Models.Responses.CourseResponse, SkillJobAI-Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-07-12 10:35:09.214 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.CoursesController.GetCourses (SkillJobAI-Api) in 55.1151ms
+2026-07-12 10:35:09.222 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.CoursesController.GetCourses (SkillJobAI-Api)'
+2026-07-12 10:35:09.225 +02:00 [INF] HTTP GET /api/courses responded 200 in 83.6516 ms
+2026-07-12 10:35:09.228 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/api/courses?page=1&pageSize=9&search= - 200 null application/json; charset=utf-8 98.7943ms
+2026-07-12 10:35:14.973 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/career-goals - null null
+2026-07-12 10:35:14.974 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5226/api/career-roadmap/my - null null
+2026-07-12 10:35:14.981 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:35:14.993 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:35:14.995 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/career-goals - 204 null null 21.9338ms
+2026-07-12 10:35:14.997 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5226/api/career-roadmap/my - 204 null null 23.4201ms
+2026-07-12 10:35:15.019 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/api/career-goals - null null
+2026-07-12 10:35:15.031 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5226/api/career-roadmap/my - null null
+2026-07-12 10:35:15.043 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:35:15.051 +02:00 [INF] CORS policy execution successful.
+2026-07-12 10:35:15.053 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.CareerRoadmapController.GetCareerGoals (SkillJobAI-Api)'
+2026-07-12 10:35:15.055 +02:00 [INF] Executing endpoint 'SkillJobAI.Api.Controllers.CareerRoadmapController.GetMyCareerRoadmap (SkillJobAI-Api)'
+2026-07-12 10:35:15.058 +02:00 [INF] Route matched with {action = "GetCareerGoals", controller = "CareerRoadmap"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetCareerGoals() on controller SkillJobAI.Api.Controllers.CareerRoadmapController (SkillJobAI-Api).
+2026-07-12 10:35:15.060 +02:00 [INF] Route matched with {action = "GetMyCareerRoadmap", controller = "CareerRoadmap"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetMyCareerRoadmap() on controller SkillJobAI.Api.Controllers.CareerRoadmapController (SkillJobAI-Api).
+2026-07-12 10:35:15.072 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT c."Id", c."Name", c."Description", c."DurationMonths"
+FROM "CareerGoals" AS c
+2026-07-12 10:35:15.079 +02:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[SkillJobAI.Api.Models.Responses.CareerGoalResponse, SkillJobAI-Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-07-12 10:35:15.086 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.CareerRoadmapController.GetCareerGoals (SkillJobAI-Api) in 20.7804ms
+2026-07-12 10:35:15.089 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.CareerRoadmapController.GetCareerGoals (SkillJobAI-Api)'
+2026-07-12 10:35:15.092 +02:00 [INF] HTTP GET /api/career-goals responded 200 in 39.6603 ms
+2026-07-12 10:35:15.095 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/api/career-goals - 200 null application/json; charset=utf-8 76.5488ms
+2026-07-12 10:35:15.195 +02:00 [INF] Executed DbCommand (6ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT u."Id", u."CareerGoalId", u."StartedAt", u."UserId", c."Id", c."Description", c."DurationMonths", c."Name"
+FROM "UserCareerGoals" AS u
+INNER JOIN "CareerGoals" AS c ON u."CareerGoalId" = c."Id"
+WHERE u."UserId" = @__userId_0
+LIMIT 1
+2026-07-12 10:35:15.207 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userCareerGoal_CareerGoalId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Id", s."Name", c."MonthNumber"
+FROM "CareerGoalSkills" AS c
+INNER JOIN "Skills" AS s ON c."SkillId" = s."Id"
+WHERE c."CareerGoalId" = @__userCareerGoal_CareerGoalId_0
+2026-07-12 10:35:15.225 +02:00 [INF] Executed DbCommand (12ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Name"
+FROM "UserSkills" AS u
+INNER JOIN "Skills" AS s ON u."SkillId" = s."Id"
+WHERE u."UserId" = @__userId_0
+2026-07-12 10:35:15.240 +02:00 [INF] Executed DbCommand (5ms) [Parameters=[@__missingSkillNames_0='?' (DbType = Object)], CommandType='"Text"', CommandTimeout='30']
+SELECT DISTINCT c0."Id", c0."Title", s."Name" AS "Skill"
+FROM "CourseSkills" AS c
+INNER JOIN "Skills" AS s ON c."SkillId" = s."Id"
+INNER JOIN "Courses" AS c0 ON c."CourseId" = c0."Id"
+WHERE s."Name" = ANY (@__missingSkillNames_0)
+2026-07-12 10:35:15.246 +02:00 [INF] Executing OkObjectResult, writing value of type 'SkillJobAI.Api.Models.Responses.CareerRoadmapResponse'.
+2026-07-12 10:35:15.257 +02:00 [INF] Executed action SkillJobAI.Api.Controllers.CareerRoadmapController.GetMyCareerRoadmap (SkillJobAI-Api) in 184.3404ms
+2026-07-12 10:35:15.261 +02:00 [INF] Executed endpoint 'SkillJobAI.Api.Controllers.CareerRoadmapController.GetMyCareerRoadmap (SkillJobAI-Api)'
+2026-07-12 10:35:15.270 +02:00 [INF] HTTP GET /api/career-roadmap/my responded 200 in 214.9631 ms
+2026-07-12 10:35:15.277 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5226/api/career-roadmap/my - 200 null application/json; charset=utf-8 246.7001ms
+2026-07-12 10:36:21.816 +02:00 [INF] Application is shutting down...
