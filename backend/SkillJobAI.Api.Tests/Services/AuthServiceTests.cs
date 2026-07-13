@@ -2,10 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
-using SkillJobAI.Api.Data;
+using SkillJobAI.Api.Entities;
 using SkillJobAI.Api.Models;
 using SkillJobAI.Api.Services;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+using SkillJobAI.Api.Tests.Helpers;
 
 namespace SkillJobAI.Api.Tests.Services;
 
@@ -15,339 +15,339 @@ public class AuthServiceTests
     public async Task LoginAsync_ShouldReturnNull_WhenUserDoesNotExist()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(
-                databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        await using var context = new AppDbContext(options);
-
-        var configurationValues =
-            new Dictionary<string, string?>
-            {
-                ["Jwt:Key"] =
-                    "ThisIsATestJwtKeyThatIsLongEnoughForHmacSha256",
-                ["Jwt:Issuer"] = "SkillJobAI.Tests",
-                ["Jwt:Audience"] = "SkillJobAI.Tests",
-                ["Jwt:ExpiresInMinutes"] = "15",
-                ["Jwt:RefreshTokenExpiresInDays"] = "30"
-            };
+        await using var context =
+            TestDbContextFactory.Create();
 
         var configuration =
-            new ConfigurationBuilder()
-                .AddInMemoryCollection(configurationValues)
-                .Build();
+            CreateTestConfiguration();
 
-        var jwtService = new JwtService(configuration);
-        var passwordService = new PasswordService();
+        var jwtService =
+            new JwtService(configuration);
+
+        var passwordService =
+            new PasswordService();
 
         var emailServiceMock =
-            new Mock<IEmailService>();
+            new Mock<IEmailService>(
+                MockBehavior.Strict);
 
         var loggerMock =
             new Mock<ILogger<AuthService>>();
 
-        var authService = new AuthService(
-            context,
-            jwtService,
-            passwordService,
-            emailServiceMock.Object,
-            configuration,
-            loggerMock.Object);
+        var authService =
+            new AuthService(
+                context,
+                jwtService,
+                passwordService,
+                emailServiceMock.Object,
+                configuration,
+                loggerMock.Object);
 
-        var request = new LoginRequest
-        {
-            Email = "unknown@test.com",
-            Password = "WrongPassword123!"
-        };
+        var request =
+            new LoginRequest
+            {
+                Email = "unknown@test.com",
+                Password = "WrongPassword123!"
+            };
 
         // Act
-        var result = await authService.LoginAsync(request);
+        var result =
+            await authService.LoginAsync(
+                request);
 
         // Assert
         Assert.Null(result);
-        Assert.Empty(context.RefreshTokens);
+
+        Assert.Empty(
+            await context.RefreshTokens
+                .ToListAsync());
+
+        emailServiceMock.VerifyNoOtherCalls();
     }
 
     [Fact]
     public async Task LoginAsync_ShouldReturnNull_WhenPasswordIsIncorrect()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(
-                databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        await using var context = new AppDbContext(options);
-
-        var configurationValues =
-            new Dictionary<string, string?>
-            {
-                ["Jwt:Key"] =
-                    "ThisIsATestJwtKeyThatIsLongEnoughForHmacSha256",
-                ["Jwt:Issuer"] = "SkillJobAI.Tests",
-                ["Jwt:Audience"] = "SkillJobAI.Tests",
-                ["Jwt:ExpiresInMinutes"] = "15",
-                ["Jwt:RefreshTokenExpiresInDays"] = "30"
-            };
+        await using var context =
+            TestDbContextFactory.Create();
 
         var configuration =
-            new ConfigurationBuilder()
-                .AddInMemoryCollection(configurationValues)
-                .Build();
+            CreateTestConfiguration();
 
-        var passwordService = new PasswordService();
+        var passwordService =
+            new PasswordService();
 
-        context.Users.Add(new SkillJobAI.Api.Entities.AppUser
-        {
-            FullName = "Test Candidate",
-            Email = "candidate@test.com",
-            PasswordHash =
-                passwordService.HashPassword("CorrectPassword123!"),
-            Role = "Candidate",
-            CreatedAt = DateTime.UtcNow
-        });
+        var user =
+            new AppUser
+            {
+                FullName = "Test Candidate",
+                Email = "candidate@test.com",
+                PasswordHash =
+                    passwordService.HashPassword(
+                        "CorrectPassword123!"),
+                Role = "Candidate",
+                CreatedAt = DateTime.UtcNow
+            };
+
+        context.Users.Add(user);
 
         await context.SaveChangesAsync();
 
-        var jwtService = new JwtService(configuration);
-
         var emailServiceMock =
-            new Mock<IEmailService>();
+            new Mock<IEmailService>(
+                MockBehavior.Strict);
 
-        var loggerMock =
-            new Mock<ILogger<AuthService>>();
+        var authService =
+            new AuthService(
+                context,
+                new JwtService(configuration),
+                passwordService,
+                emailServiceMock.Object,
+                configuration,
+                new Mock<ILogger<AuthService>>()
+                    .Object);
 
-        var authService = new AuthService(
-            context,
-            jwtService,
-            passwordService,
-            emailServiceMock.Object,
-            configuration,
-            loggerMock.Object);
-
-        var request = new LoginRequest
-        {
-            Email = "candidate@test.com",
-            Password = "WrongPassword123!"
-        };
+        var request =
+            new LoginRequest
+            {
+                Email = "candidate@test.com",
+                Password = "WrongPassword123!"
+            };
 
         // Act
-        var result = await authService.LoginAsync(request);
+        var result =
+            await authService.LoginAsync(
+                request);
 
         // Assert
         Assert.Null(result);
-        Assert.Empty(context.RefreshTokens);
+
+        Assert.Empty(
+            await context.RefreshTokens
+                .ToListAsync());
+
+        emailServiceMock.VerifyNoOtherCalls();
     }
 
     [Fact]
     public async Task LoginAsync_ShouldReturnAuthResponse_WhenCredentialsAreCorrect()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(
-                databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        await using var context = new AppDbContext(options);
-
-        var configurationValues =
-            new Dictionary<string, string?>
-            {
-                ["Jwt:Key"] =
-                    "ThisIsATestJwtKeyThatIsLongEnoughForHmacSha256",
-                ["Jwt:Issuer"] = "SkillJobAI.Tests",
-                ["Jwt:Audience"] = "SkillJobAI.Tests",
-                ["Jwt:ExpiresInMinutes"] = "15",
-                ["Jwt:RefreshTokenExpiresInDays"] = "30"
-            };
+        await using var context =
+            TestDbContextFactory.Create();
 
         var configuration =
-            new ConfigurationBuilder()
-                .AddInMemoryCollection(configurationValues)
-                .Build();
+            CreateTestConfiguration();
 
-        var passwordService = new PasswordService();
+        var passwordService =
+            new PasswordService();
 
-        var user = new SkillJobAI.Api.Entities.AppUser
-        {
-            FullName = "Test Candidate",
-            Email = "candidate@test.com",
-            PasswordHash =
-                passwordService.HashPassword("CorrectPassword123!"),
-            Role = "Candidate",
-            CreatedAt = DateTime.UtcNow
-        };
+        var user =
+            new AppUser
+            {
+                FullName = "Test Candidate",
+                Email = "candidate@test.com",
+                PasswordHash =
+                    passwordService.HashPassword(
+                        "CorrectPassword123!"),
+                Role = "Candidate",
+                CreatedAt = DateTime.UtcNow
+            };
 
         context.Users.Add(user);
+
         await context.SaveChangesAsync();
 
-        var jwtService = new JwtService(configuration);
+        var authService =
+            new AuthService(
+                context,
+                new JwtService(configuration),
+                passwordService,
+                new Mock<IEmailService>().Object,
+                configuration,
+                new Mock<ILogger<AuthService>>()
+                    .Object);
 
-        var emailServiceMock =
-            new Mock<IEmailService>();
-
-        var loggerMock =
-            new Mock<ILogger<AuthService>>();
-
-        var authService = new AuthService(
-            context,
-            jwtService,
-            passwordService,
-            emailServiceMock.Object,
-            configuration,
-            loggerMock.Object);
-
-        var request = new LoginRequest
-        {
-            Email = "candidate@test.com",
-            Password = "CorrectPassword123!"
-        };
+        var request =
+            new LoginRequest
+            {
+                Email = "candidate@test.com",
+                Password = "CorrectPassword123!"
+            };
 
         // Act
-        var result = await authService.LoginAsync(request);
+        var result =
+            await authService.LoginAsync(
+                request);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal("Login successful", result.Message);
-        Assert.False(string.IsNullOrWhiteSpace(result.Token));
-        Assert.False(string.IsNullOrWhiteSpace(result.RefreshToken));
-        Assert.True(result.TokenExpiresAt > DateTime.UtcNow);
 
-        Assert.Equal(user.Id, result.User.Id);
-        Assert.Equal(user.FullName, result.User.FullName);
-        Assert.Equal(user.Email, result.User.Email);
-        Assert.Equal(user.Role, result.User.Role);
+        Assert.Equal(
+            "Login successful",
+            result.Message);
+
+        Assert.False(
+            string.IsNullOrWhiteSpace(
+                result.Token));
+
+        Assert.False(
+            string.IsNullOrWhiteSpace(
+                result.RefreshToken));
+
+        Assert.True(
+            result.TokenExpiresAt >
+            DateTime.UtcNow);
+
+        Assert.Equal(
+            user.Id,
+            result.User.Id);
+
+        Assert.Equal(
+            user.FullName,
+            result.User.FullName);
+
+        Assert.Equal(
+            user.Email,
+            result.User.Email);
+
+        Assert.Equal(
+            user.Role,
+            result.User.Role);
 
         var storedRefreshToken =
-            await context.RefreshTokens.SingleAsync();
+            await context.RefreshTokens
+                .SingleAsync();
 
-        Assert.Equal(user.Id, storedRefreshToken.UserId);
-        Assert.False(string.IsNullOrWhiteSpace(
-            storedRefreshToken.TokenHash));
+        Assert.Equal(
+            user.Id,
+            storedRefreshToken.UserId);
+
+        Assert.False(
+            string.IsNullOrWhiteSpace(
+                storedRefreshToken.TokenHash));
 
         Assert.NotEqual(
             result.RefreshToken,
             storedRefreshToken.TokenHash);
 
-        Assert.Null(storedRefreshToken.RevokedAt);
+        Assert.Null(
+            storedRefreshToken.RevokedAt);
+
         Assert.True(
             storedRefreshToken.ExpiresAt >
             storedRefreshToken.CreatedAt);
     }
+
     [Fact]
     public async Task RefreshTokenAsync_ShouldRotateRefreshToken_WhenTokenIsValid()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(
-                databaseName: Guid.NewGuid().ToString())
-            .ConfigureWarnings(warnings =>
-                warnings.Ignore(
-                    InMemoryEventId.TransactionIgnoredWarning))
-            .Options;
-
-        await using var context = new AppDbContext(options);
-
-        var configurationValues =
-            new Dictionary<string, string?>
-            {
-                ["Jwt:Key"] =
-                    "ThisIsATestJwtKeyThatIsLongEnoughForHmacSha256",
-                ["Jwt:Issuer"] = "SkillJobAI.Tests",
-                ["Jwt:Audience"] = "SkillJobAI.Tests",
-                ["Jwt:ExpiresInMinutes"] = "15",
-                ["Jwt:RefreshTokenExpiresInDays"] = "30"
-            };
+        await using var context =
+            TestDbContextFactory.Create(
+                ignoreTransactionWarnings: true);
 
         var configuration =
-            new ConfigurationBuilder()
-                .AddInMemoryCollection(configurationValues)
-                .Build();
+            CreateTestConfiguration();
 
-        var passwordService = new PasswordService();
+        var passwordService =
+            new PasswordService();
 
-        var user = new SkillJobAI.Api.Entities.AppUser
-        {
-            FullName = "Test Candidate",
-            Email = "candidate@test.com",
-            PasswordHash =
-                passwordService.HashPassword("CorrectPassword123!"),
-            Role = "Candidate",
-            CreatedAt = DateTime.UtcNow
-        };
+        var user =
+            new AppUser
+            {
+                FullName = "Test Candidate",
+                Email = "candidate@test.com",
+                PasswordHash =
+                    passwordService.HashPassword(
+                        "CorrectPassword123!"),
+                Role = "Candidate",
+                CreatedAt = DateTime.UtcNow
+            };
 
         context.Users.Add(user);
+
         await context.SaveChangesAsync();
 
-        var jwtService = new JwtService(configuration);
+        var authService =
+            new AuthService(
+                context,
+                new JwtService(configuration),
+                passwordService,
+                new Mock<IEmailService>().Object,
+                configuration,
+                new Mock<ILogger<AuthService>>()
+                    .Object);
 
-        var emailServiceMock =
-            new Mock<IEmailService>();
-
-        var loggerMock =
-            new Mock<ILogger<AuthService>>();
-
-        var authService = new AuthService(
-            context,
-            jwtService,
-            passwordService,
-            emailServiceMock.Object,
-            configuration,
-            loggerMock.Object);
-
-        var loginResult = await authService.LoginAsync(
-            new LoginRequest
-            {
-                Email = "candidate@test.com",
-                Password = "CorrectPassword123!"
-            });
+        var loginResult =
+            await authService.LoginAsync(
+                new LoginRequest
+                {
+                    Email =
+                        "candidate@test.com",
+                    Password =
+                        "CorrectPassword123!"
+                });
 
         Assert.NotNull(loginResult);
 
         var oldRefreshTokenValue =
             loginResult.RefreshToken;
 
-        var oldStoredToken =
-            await context.RefreshTokens.SingleAsync();
-
         // Act
         var refreshResult =
             await authService.RefreshTokenAsync(
                 new RefreshTokenRequest
                 {
-                    RefreshToken = oldRefreshTokenValue
+                    RefreshToken =
+                        oldRefreshTokenValue
                 });
 
         // Assert
         Assert.NotNull(refreshResult);
-        Assert.False(string.IsNullOrWhiteSpace(
-            refreshResult.Token));
 
-        Assert.False(string.IsNullOrWhiteSpace(
-            refreshResult.RefreshToken));
+        Assert.False(
+            string.IsNullOrWhiteSpace(
+                refreshResult.Token));
+
+        Assert.False(
+            string.IsNullOrWhiteSpace(
+                refreshResult.RefreshToken));
 
         Assert.NotEqual(
             oldRefreshTokenValue,
             refreshResult.RefreshToken);
 
-        var storedTokens = await context.RefreshTokens
-            .OrderBy(token => token.Id)
-            .ToListAsync();
-
-        Assert.Equal(2, storedTokens.Count);
-
-        var revokedOldToken = storedTokens[0];
-        var newStoredToken = storedTokens[1];
-
-        Assert.NotNull(revokedOldToken.RevokedAt);
-        Assert.False(string.IsNullOrWhiteSpace(
-            revokedOldToken.ReplacedByTokenHash));
-
-        Assert.Null(newStoredToken.RevokedAt);
+        var storedTokens =
+            await context.RefreshTokens
+                .OrderBy(token => token.Id)
+                .ToListAsync();
 
         Assert.Equal(
-            revokedOldToken.ReplacedByTokenHash,
+            2,
+            storedTokens.Count);
+
+        var revokedOldToken =
+            storedTokens[0];
+
+        var newStoredToken =
+            storedTokens[1];
+
+        Assert.NotNull(
+            revokedOldToken.RevokedAt);
+
+        Assert.False(
+            string.IsNullOrWhiteSpace(
+                revokedOldToken
+                    .ReplacedByTokenHash));
+
+        Assert.Null(
+            newStoredToken.RevokedAt);
+
+        Assert.Equal(
+            revokedOldToken
+                .ReplacedByTokenHash,
             newStoredToken.TokenHash);
 
         Assert.NotEqual(
@@ -358,110 +358,138 @@ public class AuthServiceTests
             newStoredToken.ExpiresAt >
             newStoredToken.CreatedAt);
     }
+
     [Fact]
-public async Task RefreshTokenAsync_ShouldRevokeAllSessions_WhenRevokedTokenIsReused()
-{
-    // Arrange
-    var options = new DbContextOptionsBuilder<AppDbContext>()
-        .UseInMemoryDatabase(
-            databaseName: Guid.NewGuid().ToString())
-        .ConfigureWarnings(warnings =>
-            warnings.Ignore(
-                InMemoryEventId.TransactionIgnoredWarning))
-        .Options;
-
-    await using var context = new AppDbContext(options);
-
-    var configurationValues =
-        new Dictionary<string, string?>
-        {
-            ["Jwt:Key"] =
-                "ThisIsATestJwtKeyThatIsLongEnoughForHmacSha256",
-            ["Jwt:Issuer"] = "SkillJobAI.Tests",
-            ["Jwt:Audience"] = "SkillJobAI.Tests",
-            ["Jwt:ExpiresInMinutes"] = "15",
-            ["Jwt:RefreshTokenExpiresInDays"] = "30"
-        };
-
-    var configuration =
-        new ConfigurationBuilder()
-            .AddInMemoryCollection(configurationValues)
-            .Build();
-
-    var passwordService = new PasswordService();
-
-    var user = new SkillJobAI.Api.Entities.AppUser
+    public async Task RefreshTokenAsync_ShouldRevokeAllSessions_WhenRevokedTokenIsReused()
     {
-        FullName = "Test Candidate",
-        Email = "candidate@test.com",
-        PasswordHash =
-            passwordService.HashPassword("CorrectPassword123!"),
-        Role = "Candidate",
-        CreatedAt = DateTime.UtcNow
-    };
+        // Arrange
+        await using var context =
+            TestDbContextFactory.Create(
+                ignoreTransactionWarnings: true);
 
-    context.Users.Add(user);
-    await context.SaveChangesAsync();
+        var configuration =
+            CreateTestConfiguration();
 
-    var authService = new AuthService(
-        context,
-        new JwtService(configuration),
-        passwordService,
-        new Mock<IEmailService>().Object,
-        configuration,
-        new Mock<ILogger<AuthService>>().Object);
+        var passwordService =
+            new PasswordService();
 
-    var loginResult = await authService.LoginAsync(
-        new LoginRequest
-        {
-            Email = "candidate@test.com",
-            Password = "CorrectPassword123!"
-        });
-
-    Assert.NotNull(loginResult);
-
-    var oldRefreshToken = loginResult.RefreshToken;
-
-    var firstRefreshResult =
-        await authService.RefreshTokenAsync(
-            new RefreshTokenRequest
+        var user =
+            new AppUser
             {
-                RefreshToken = oldRefreshToken
-            });
+                FullName = "Test Candidate",
+                Email = "candidate@test.com",
+                PasswordHash =
+                    passwordService.HashPassword(
+                        "CorrectPassword123!"),
+                Role = "Candidate",
+                CreatedAt = DateTime.UtcNow
+            };
 
-    Assert.NotNull(firstRefreshResult);
+        context.Users.Add(user);
 
-    var newRefreshToken =
-        firstRefreshResult.RefreshToken;
+        await context.SaveChangesAsync();
 
-    // Act: alten, bereits widerrufenen Token erneut verwenden
-    var reuseResult =
-        await authService.RefreshTokenAsync(
-            new RefreshTokenRequest
+        var authService =
+            new AuthService(
+                context,
+                new JwtService(configuration),
+                passwordService,
+                new Mock<IEmailService>().Object,
+                configuration,
+                new Mock<ILogger<AuthService>>()
+                    .Object);
+
+        var loginResult =
+            await authService.LoginAsync(
+                new LoginRequest
+                {
+                    Email =
+                        "candidate@test.com",
+                    Password =
+                        "CorrectPassword123!"
+                });
+
+        Assert.NotNull(loginResult);
+
+        var oldRefreshToken =
+            loginResult.RefreshToken;
+
+        var firstRefreshResult =
+            await authService.RefreshTokenAsync(
+                new RefreshTokenRequest
+                {
+                    RefreshToken =
+                        oldRefreshToken
+                });
+
+        Assert.NotNull(firstRefreshResult);
+
+        var newRefreshToken =
+            firstRefreshResult.RefreshToken;
+
+        // Act
+        var reuseResult =
+            await authService.RefreshTokenAsync(
+                new RefreshTokenRequest
+                {
+                    RefreshToken =
+                        oldRefreshToken
+                });
+
+        // Assert
+        Assert.Null(reuseResult);
+
+        var storedTokens =
+            await context.RefreshTokens
+                .OrderBy(token => token.Id)
+                .ToListAsync();
+
+        Assert.Equal(
+            2,
+            storedTokens.Count);
+
+        Assert.All(
+            storedTokens,
+            token =>
+                Assert.NotNull(
+                    token.RevokedAt));
+
+        var newTokenResult =
+            await authService.RefreshTokenAsync(
+                new RefreshTokenRequest
+                {
+                    RefreshToken =
+                        newRefreshToken
+                });
+
+        Assert.Null(newTokenResult);
+    }
+
+    private static IConfiguration
+        CreateTestConfiguration()
+    {
+        var configurationValues =
+            new Dictionary<string, string?>
             {
-                RefreshToken = oldRefreshToken
-            });
+                ["Jwt:Key"] =
+                    "ThisIsATestJwtKeyThatIsLongEnoughForHmacSha256",
 
-    // Assert
-    Assert.Null(reuseResult);
+                ["Jwt:Issuer"] =
+                    "SkillJobAI.Tests",
 
-    var storedTokens = await context.RefreshTokens
-        .OrderBy(token => token.Id)
-        .ToListAsync();
+                ["Jwt:Audience"] =
+                    "SkillJobAI.Tests",
 
-    Assert.Equal(2, storedTokens.Count);
-    Assert.All(
-        storedTokens,
-        token => Assert.NotNull(token.RevokedAt));
+                ["Jwt:ExpiresInMinutes"] =
+                    "15",
 
-    // Auch der neue Token muss nach Reuse Detection ungültig sein.
-    var newTokenResult =
-        await authService.RefreshTokenAsync(
-            new RefreshTokenRequest
-            {
-                RefreshToken = newRefreshToken
-            });
+                ["Jwt:RefreshTokenExpiresInDays"] =
+                    "30"
+            };
 
-    Assert.Null(newTokenResult);
-}
+        return new ConfigurationBuilder()
+            .AddInMemoryCollection(
+                configurationValues)
+            .Build();
+    }
 }
