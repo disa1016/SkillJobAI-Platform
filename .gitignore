@@ -19,3 +19,7 @@ node_modules/
 
 # ASP.NET Configuration
 appsettings.Production.json
+
+**/TestResults/
+**/Logs/
+coveragereport/
