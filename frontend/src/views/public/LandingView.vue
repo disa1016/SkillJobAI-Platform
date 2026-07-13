@@ -4,108 +4,148 @@ import { computed, ref } from "vue";
 const user = ref(JSON.parse(localStorage.getItem("user") || "null"));
 
 const dashboardPath = computed(() => {
-  if (user.value?.role === "Admin") return "/admin/dashboard";
-  if (user.value?.role === "Recruiter") return "/recruiter/dashboard";
+    if (user.value?.role === "Admin") return "/admin/dashboard";
+    if (user.value?.role === "Recruiter") return "/recruiter/dashboard";
 
-  return "/dashboard";
+    return "/dashboard";
 });
 
 const features = [
-  {
-    title: "AI CV Analyse",
-    description: "Analysiere deinen Lebenslauf und erkenne deine Stärken.",
-  },
-  {
-    title: "Skill Gap",
-    description: "Vergleiche deine Skills mit Job-Anforderungen.",
-  },
-  {
-    title: "Online Learning",
-    description: "Lerne passende Kurse für deine fehlenden Skills.",
-  },
-  {
-    title: "Recruiting",
-    description: "Recruiter verwalten Jobs und Bewerbungen zentral.",
-  },
+    {
+        icon: "bi-file-earmark-person",
+        title: "AI CV Analyse",
+        description:
+            "Analysiere deinen Lebenslauf mit KI und erkenne deine Stärken.",
+    },
+    {
+        icon: "bi-bar-chart-line",
+        title: "Skill Gap",
+        description:
+            "Vergleiche deine Skills mit Job-Anforderungen und schließe Lücken.",
+    },
+    {
+        icon: "bi-mortarboard",
+        title: "Online Learning",
+        description:
+            "Lerne passende Kurse für deine fehlenden Skills.",
+    },
+    {
+        icon: "bi-briefcase",
+        title: "Recruiting",
+        description:
+            "Recruiter verwalten Jobs und Bewerbungen zentral.",
+    },
 ];
 </script>
 
 <template>
-  <div>
-    <section class="bg-primary text-white py-5">
-      <div class="container py-5 text-center">
-        <h1 class="display-4 fw-bold">SkillJob AI</h1>
+    <main class="landing-page">
+        <section class="landing-hero">
+            <div class="hero-decoration hero-decoration-left"></div>
+            <div class="hero-decoration hero-decoration-right"></div>
 
-        <p class="lead mt-3">
-          AI-powered Career Platform für Jobs, Skills und Lernen.
-        </p>
-
-        <div class="mt-4">
-          <template v-if="!user">
-            <router-link to="/register" class="btn btn-light btn-lg me-2">
-              Kostenlos starten
-            </router-link>
-
-            <router-link to="/login" class="btn btn-outline-light btn-lg">
-              Login
-            </router-link>
-          </template>
-
-          <router-link
-            v-else
-            :to="dashboardPath"
-            class="btn btn-light btn-lg"
-          >
-            Zum Dashboard
-          </router-link>
-        </div>
-      </div>
-    </section>
-
-    <section class="container py-5">
-      <div class="row g-4 text-center">
-        <div
-          v-for="feature in features"
-          :key="feature.title"
-          class="col-md-3"
-        >
-          <div class="card h-100 shadow-sm">
-            <div class="card-body">
-              <h5>{{ feature.title }}</h5>
-
-              <p class="text-muted">
-                {{ feature.description }}
-              </p>
+            <div class="hero-dots hero-dots-left">
+                <span v-for="dot in 15" :key="`left-${dot}`"></span>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <section class="bg-light py-5">
-      <div class="container text-center">
-        <h2>Von Skill Gap zu Karrierechance</h2>
+            <div class="hero-dots hero-dots-right">
+                <span v-for="dot in 15" :key="`right-${dot}`"></span>
+            </div>
 
-        <p class="text-muted mt-3">
-          SkillJob AI verbindet Jobs, Lernen, Bewerbungen und KI in einer Plattform.
-        </p>
+            <div class="hero-wave hero-wave-one"></div>
+            <div class="hero-wave hero-wave-two"></div>
+            <div class="hero-wave hero-wave-three"></div>
 
-        <router-link
-          v-if="!user"
-          to="/register"
-          class="btn btn-primary btn-lg mt-3"
-        >
-          Jetzt starten
-        </router-link>
+            <div class="container hero-container">
+                <div class="hero-content">
+                    <span class="hero-badge">
+                        AI-powered Career Platform
+                    </span>
 
-        <router-link
-          v-else
-          :to="dashboardPath"
-          class="btn btn-primary btn-lg mt-3"
-        >
-          Dashboard öffnen
-        </router-link>
-      </div>
-    </section>
-  </div>
+                    <h1 class="hero-title">
+                        <span>SkillJob</span> AI
+                    </h1>
+
+                    <p class="hero-description">
+                        Deine smarte Plattform für Jobs, Skills und persönliches
+                        Wachstum.
+                        <br class="d-none d-md-block" />
+                        Mit KI an deiner Seite erreichst du deine Ziele schneller.
+                    </p>
+
+                    <div class="hero-actions">
+                        <template v-if="!user">
+                            <router-link to="/register" class="btn landing-primary-button">
+                                <i class="bi bi-arrow-up-right me-2"></i>
+                                Kostenlos starten
+                            </router-link>
+
+                            <router-link to="/login" class="btn landing-secondary-button">
+                                Login
+                            </router-link>
+                        </template>
+
+                        <router-link v-else :to="dashboardPath" class="btn landing-primary-button">
+                            <i class="bi bi-graph-up-arrow me-2"></i>
+                            Zum Dashboard
+                        </router-link>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="features-section">
+            <div class="container">
+                <div class="row g-4">
+                    <div v-for="feature in features" :key="feature.title" class="col-12 col-md-6 col-lg-3">
+                        <article class="feature-card">
+                            <div class="feature-icon">
+                                <i :class="['bi', feature.icon]"></i>
+                            </div>
+
+                            <h2 class="feature-title">
+                                {{ feature.title }}
+                            </h2>
+
+                            <p class="feature-description">
+                                {{ feature.description }}
+                            </p>
+
+                            <a href="#" class="feature-link">
+                                Mehr erfahren
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="career-section">
+            <div class="container text-center">
+                <span class="career-label">
+                    Warum SkillJob AI?
+                </span>
+
+                <h2 class="career-title">
+                    Von Skill Gap zu Karrierechance
+                </h2>
+
+                <p class="career-description">
+                    Unsere KI-gestützten Tools helfen dir, deine Fähigkeiten zu
+                    verstehen,
+                    <br class="d-none d-md-block" />
+                    gezielt zu verbessern und die richtigen Chancen zu nutzen.
+                </p>
+
+                <router-link v-if="!user" to="/register" class="btn landing-primary-button mt-4">
+                    Jetzt starten
+                </router-link>
+
+                <router-link v-else :to="dashboardPath" class="btn landing-primary-button mt-4">
+                    Dashboard öffnen
+                </router-link>
+            </div>
+        </section>
+    </main>
 </template>

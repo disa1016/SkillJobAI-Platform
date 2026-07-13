@@ -27,18 +27,17 @@ const homePath = computed(() => {
 
 const logout = () => {
   clearAuthStorage();
-
   user.value = null;
-
   router.push("/login");
 };
 </script>
 
 <template>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <nav class="navbar navbar-expand-lg navbar-light skilljob-navbar">
     <div class="container-fluid px-4">
-      <router-link class="navbar-brand fw-bold" :to="homePath">
-        SkillJob AI
+      <router-link class="navbar-brand skilljob-brand" :to="homePath">
+        <span class="brand-mark">V</span>
+        <span>SkillJob AI</span>
       </router-link>
 
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
@@ -49,7 +48,7 @@ const logout = () => {
       <div id="mainNavbar" class="collapse navbar-collapse">
         <div class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
           <template v-if="!user">
-            <router-link to="/home" class="btn btn-outline-light btn-sm">
+            <router-link to="/home" class="btn navbar-outline-button btn-sm">
               Startseite
             </router-link>
           </template>
@@ -155,8 +154,12 @@ const logout = () => {
             </template>
 
             <div class="nav-item dropdown ms-lg-3">
-              <a class="nav-link dropdown-toggle fw-semibold text-white" href="#" role="button"
+              <a class="nav-link dropdown-toggle fw-semibold user-menu-link" href="#" role="button"
                 data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="user-avatar">
+                  <i class="bi bi-person"></i>
+                </span>
+
                 {{ user.fullName }} · {{ user.role }}
               </a>
 
