@@ -8,11 +8,13 @@ public class Job
 
     public string Description { get; set; } = "";
 
-    public string Company { get; set; } = "";
-
     public string Location { get; set; } = "";
 
     public string Salary { get; set; } = "";
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public int? CompanyId { get; set; }
+
+    public Company? Company { get; set; }
 }

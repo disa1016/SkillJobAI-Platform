@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SkillJobAI.Api.Data;
-using SkillJobAI.Api.Entities;
+using SkillJobAI.Api.Models;
+using SkillJobAI.Api.Services;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -10,39 +9,42 @@ namespace SkillJobAI.Api.Controllers;
 [Route("api/lessons")]
 public class LessonsController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly ILessonService _lessonService;
 
-    public LessonsController(AppDbContext context)
+    public LessonsController(ILessonService lessonService)
     {
-        _context = context;
+        _lessonService = lessonService;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetLessons()
     {
-        var lessons = await _context.Lessons.ToListAsync();
+        var lessons = await _lessonService.GetLessonsAsync();
         return Ok(lessons);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetLesson(int id)
     {
-        var lesson = await _context.Lessons.FindAsync(id);
+        var lesson = await _lessonService.GetLessonByIdAsync(id);
 
         if (lesson == null)
-            return NotFound();
+            return NotFound(new { message = "Lesson not found." });
 
         return Ok(lesson);
     }
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> CreateLesson(Lesson lesson)
+    public async Task<IActionResult> CreateLesson([FromBody] LessonRequest request)
     {
-        lesson.CreatedAt = DateTime.UtcNow;
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-        _context.Lessons.Add(lesson);
-        await _context.SaveChangesAsync();
+        var lesson = await _lessonService.CreateLessonAsync(request);
+
+        if (lesson == null)
+            return BadRequest(new { message = "Course not found." });
 
         return Ok(lesson);
     }

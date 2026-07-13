@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SkillJobAI.Api.Data;
 using SkillJobAI.Api.Entities;
+using SkillJobAI.Api.Models;
+using SkillJobAI.Api.Models.Responses;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -17,84 +19,126 @@ public class CoursesController : ControllerBase
         _context = context;
     }
 
-    // Alle Kurse abrufen
     [HttpGet]
-    public async Task<IActionResult> GetCourses()
+    public async Task<IActionResult> GetCourses(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? search = null)
     {
-        var courses = await _context.Courses
-            .Select(c => new
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 50) pageSize = 50;
+
+        var query = _context.Courses.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchTerm = search.ToLower();
+
+            query = query.Where(c =>
+                c.Title.ToLower().Contains(searchTerm) ||
+                c.Description.ToLower().Contains(searchTerm) ||
+                c.Category.ToLower().Contains(searchTerm) ||
+                c.Level.ToLower().Contains(searchTerm) ||
+                c.Instructor.ToLower().Contains(searchTerm));
+        }
+
+        var totalItems = await query.CountAsync();
+
+        var courses = await query
+            .OrderByDescending(c => c.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(c => new CourseResponse
             {
-                id = c.Id,
-                title = c.Title,
-                description = c.Description,
-                category = c.Category,
-                level = c.Level,
-                instructor = c.Instructor,
-                createdAt = c.CreatedAt
+                Id = c.Id,
+                Title = c.Title,
+                Description = c.Description,
+                Category = c.Category,
+                Level = c.Level,
+                Instructor = c.Instructor,
+                CreatedAt = c.CreatedAt
             })
             .ToListAsync();
 
-        return Ok(courses);
+        return Ok(new PagedResponse<CourseResponse>
+        {
+            Items = courses,
+            Page = page,
+            PageSize = pageSize,
+            TotalItems = totalItems,
+            TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize)
+        });
     }
 
-    // Einzelnen Kurs mit Lessons abrufen
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCourse(int id)
     {
         var course = await _context.Courses
-            .Include(c => c.Lessons)
-            .FirstOrDefaultAsync(c => c.Id == id);
+            .Where(c => c.Id == id)
+            .Select(c => new CourseResponse
+            {
+                Id = c.Id,
+                Title = c.Title,
+                Description = c.Description,
+                Category = c.Category,
+                Level = c.Level,
+                Instructor = c.Instructor,
+                CreatedAt = c.CreatedAt,
+                Lessons = c.Lessons
+                    .OrderBy(l => l.OrderNumber)
+                    .Select(l => new LessonResponse
+                    {
+                        Id = l.Id,
+                        CourseId = l.CourseId,
+                        Title = l.Title,
+                        Content = l.Content,
+                        VideoUrl = l.VideoUrl ?? "",
+                        OrderNumber = l.OrderNumber,
+                        CreatedAt = l.CreatedAt
+                    })
+                    .ToList()
+            })
+            .FirstOrDefaultAsync();
 
         if (course == null)
-            return NotFound();
+            return NotFound(new { message = "Course not found." });
 
-        return Ok(new
-        {
-            id = course.Id,
-            title = course.Title,
-            description = course.Description,
-            category = course.Category,
-            level = course.Level,
-            instructor = course.Instructor,
-            createdAt = course.CreatedAt,
-            lessons = course.Lessons
-                .OrderBy(l => l.OrderNumber)
-                .Select(l => new
-                {
-                    id = l.Id,
-                    courseId = l.CourseId,
-                    title = l.Title,
-                    content = l.Content,
-                    videoUrl = l.VideoUrl,
-                    orderNumber = l.OrderNumber,
-                    createdAt = l.CreatedAt
-                })
-        });
+        return Ok(course);
     }
 
-    // Kurs erstellen - nur Instructor
     [Authorize(Roles = "Instructor")]
     [HttpPost]
-    public async Task<IActionResult> CreateCourse(Course course)
+    public async Task<IActionResult> CreateCourse([FromBody] CourseRequest request)
     {
-        course.CreatedAt = DateTime.UtcNow;
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var course = new Course
+        {
+            Title = request.Title,
+            Description = request.Description,
+            Category = request.Category,
+            Level = request.Level,
+            Instructor = request.Instructor,
+            CreatedAt = DateTime.UtcNow
+        };
 
         _context.Courses.Add(course);
         await _context.SaveChangesAsync();
 
-        return Ok(new
+        return Ok(new CourseResponse
         {
-            id = course.Id,
-            title = course.Title,
-            description = course.Description,
-            category = course.Category,
-            level = course.Level,
-            instructor = course.Instructor,
-            createdAt = course.CreatedAt
+            Id = course.Id,
+            Title = course.Title,
+            Description = course.Description,
+            Category = course.Category,
+            Level = course.Level,
+            Instructor = course.Instructor,
+            CreatedAt = course.CreatedAt
         });
     }
 
-    // Kurs löschen - nur Admin
     [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCourse(int id)
@@ -102,14 +146,11 @@ public class CoursesController : ControllerBase
         var course = await _context.Courses.FindAsync(id);
 
         if (course == null)
-            return NotFound();
+            return NotFound(new { message = "Course not found." });
 
         _context.Courses.Remove(course);
         await _context.SaveChangesAsync();
 
-        return Ok(new
-        {
-            message = "Course deleted successfully"
-        });
+        return Ok(new { message = "Course deleted successfully" });
     }
 }

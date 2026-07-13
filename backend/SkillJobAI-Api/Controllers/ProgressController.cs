@@ -1,9 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SkillJobAI.Api.Data;
-using SkillJobAI.Api.Entities;
+using SkillJobAI.Api.Models;
+using SkillJobAI.Api.Services;
 
 namespace SkillJobAI.Api.Controllers;
 
@@ -11,63 +10,49 @@ namespace SkillJobAI.Api.Controllers;
 [Route("api/progress")]
 public class ProgressController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IProgressService _progressService;
 
-    public ProgressController(AppDbContext context)
+    public ProgressController(IProgressService progressService)
     {
-        _context = context;
+        _progressService = progressService;
     }
 
-    [Authorize(Roles = "Student")]
-    [HttpPost("complete")]
-    public async Task<IActionResult> CompleteLesson(LessonProgress progress)
+    private int? GetCurrentUserId()
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return int.TryParse(userIdValue, out var userId) ? userId : null;
+    }
+
+    [Authorize]
+    [HttpPost("complete")]
+    public async Task<IActionResult> CompleteLesson([FromBody] LessonProgressRequest request)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var userId = GetCurrentUserId();
 
         if (userId == null)
             return Unauthorized();
 
-        var lessonExists = await _context.Lessons
-            .AnyAsync(l => l.Id == progress.LessonId);
+        var result = await _progressService.CompleteLessonAsync(userId.Value, request);
 
-        if (!lessonExists)
-            return NotFound(new { message = "Lesson not found" });
+        if (!result.Success)
+            return BadRequest(new { message = result.ErrorMessage });
 
-        var alreadyCompleted = await _context.LessonProgresses
-            .AnyAsync(p =>
-                p.UserId == int.Parse(userId) &&
-                p.LessonId == progress.LessonId);
-
-        if (alreadyCompleted)
-            return BadRequest(new { message = "Lesson already completed" });
-
-        progress.UserId = int.Parse(userId);
-        progress.CompletedAt = DateTime.UtcNow;
-
-        _context.LessonProgresses.Add(progress);
-        await _context.SaveChangesAsync();
-
-        return Ok(progress);
+        return Ok(result.Progress);
     }
 
-    [Authorize(Roles = "Student")]
+    [Authorize]
     [HttpGet("my")]
     public async Task<IActionResult> MyProgress()
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = GetCurrentUserId();
 
         if (userId == null)
             return Unauthorized();
 
-        var progress = await _context.LessonProgresses
-            .Where(p => p.UserId == int.Parse(userId))
-            .Select(p => new
-            {
-                id = p.Id,
-                lessonId = p.LessonId,
-                completedAt = p.CompletedAt
-            })
-            .ToListAsync();
+        var progress = await _progressService.GetMyProgressAsync(userId.Value);
 
         return Ok(progress);
     }
