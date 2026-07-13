@@ -38,13 +38,30 @@ builder.Host.UseSerilog();
 // ----------------------------
 builder.Services.AddControllers();
 
-builder.Services
-.AddHealthChecks()
-.AddNpgSql(
-builder.Configuration
-.GetConnectionString(
-"DefaultConnection")!,
-name: "postgres");
+var defaultConnection =
+    builder.Configuration.GetConnectionString(
+        "DefaultConnection");
+
+if (builder.Environment.IsEnvironment("Testing"))
+{
+    // Integrationstests verwenden eine InMemory-Datenbank.
+    builder.Services.AddHealthChecks();
+}
+else
+{
+    if (string.IsNullOrWhiteSpace(defaultConnection))
+    {
+        throw new InvalidOperationException(
+            "Die Connection String " +
+            "'ConnectionStrings:DefaultConnection' fehlt.");
+    }
+
+    builder.Services
+        .AddHealthChecks()
+        .AddNpgSql(
+            defaultConnection,
+            name: "postgres");
+}
 
 // ----------------------------
 // Services registrieren
@@ -241,13 +258,13 @@ builder.Configuration
 // ----------------------------
 // PostgreSQL
 // ----------------------------
-builder.Services.AddDbContext<
-AppDbContext>(
-options =>
-options.UseNpgsql(
-builder.Configuration
-.GetConnectionString(
-"DefaultConnection")));
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddDbContext<AppDbContext>(
+        options =>
+            options.UseNpgsql(
+                defaultConnection));
+}
 
 // ----------------------------
 // JWT Services
