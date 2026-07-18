@@ -1,8 +1,9 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 
 import {
   deleteCv,
+  deleteProfileImage,
   downloadCourseCertificate,
   getMyApplications,
   getMyEnrollments,
@@ -10,12 +11,14 @@ import {
   getProfile,
   updateProfile,
   uploadCv,
+  uploadProfileImage,
 } from "@/services/candidateService";
 
 import api from "@/services/api";
 import { formatDate } from "@/utils/date";
 
 const MAX_CV_SIZE = 5 * 1024 * 1024;
+const MAX_PROFILE_IMAGE_SIZE = 10 * 1024 * 1024;
 
 const user = ref(JSON.parse(localStorage.getItem("user")) || null);
 
@@ -26,9 +29,15 @@ const progress = ref([]);
 const selectedCv = ref(null);
 const cvInput = ref(null);
 
+const selectedProfileImage = ref(null);
+const profileImageInput = ref(null);
+const profileImagePreviewUrl = ref("");
+
 const loading = ref(true);
 const uploadingCv = ref(false);
 const deletingCv = ref(false);
+const uploadingProfileImage = ref(false);
+const deletingProfileImage = ref(false);
 const downloadingCertificateId = ref(null);
 const editingProfile = ref(false);
 const savingProfile = ref(false);
@@ -39,6 +48,8 @@ const cvError = ref("");
 const certificateError = ref("");
 const profileMessage = ref("");
 const profileError = ref("");
+const profileImageMessage = ref("");
+const profileImageError = ref("");
 const profileValidationErrors = ref({});
 
 const profileForm = ref({
@@ -64,6 +75,19 @@ const cvFullUrl = computed(() => {
   if (cvUrl.startsWith("http")) return cvUrl;
 
   return `${backendUrl.value}${cvUrl}`;
+});
+
+const profileImageFullUrl = computed(() => {
+  const profileImageUrl = user.value?.profileImageUrl;
+
+  if (!profileImageUrl) return "";
+  if (profileImageUrl.startsWith("http")) return profileImageUrl;
+
+  return `${backendUrl.value}${profileImageUrl}`;
+});
+
+const displayedProfileImageUrl = computed(() => {
+  return profileImagePreviewUrl.value || profileImageFullUrl.value;
 });
 
 const normalizedRole = computed(() => {
@@ -123,6 +147,7 @@ const profileCompletion = computed(() => {
     Boolean(user.value?.linkedInUrl),
     Boolean(user.value?.githubUrl),
     Boolean(user.value?.website),
+    Boolean(user.value?.profileImageUrl),
   ];
 
   if (isCandidate.value) {
@@ -169,6 +194,118 @@ const resetCvInput = () => {
 
   if (cvInput.value) {
     cvInput.value.value = "";
+  }
+};
+
+const clearProfileImageMessages = () => {
+  profileImageMessage.value = "";
+  profileImageError.value = "";
+};
+
+const revokeProfileImagePreview = () => {
+  if (profileImagePreviewUrl.value) {
+    window.URL.revokeObjectURL(profileImagePreviewUrl.value);
+    profileImagePreviewUrl.value = "";
+  }
+};
+
+const resetProfileImageInput = () => {
+  selectedProfileImage.value = null;
+  revokeProfileImagePreview();
+
+  if (profileImageInput.value) {
+    profileImageInput.value.value = "";
+  }
+};
+
+const handleProfileImageChange = async (event) => {
+  clearProfileImageMessages();
+  revokeProfileImagePreview();
+
+  const file = event.target.files?.[0];
+
+  if (!file) {
+    selectedProfileImage.value = null;
+    return;
+  }
+
+  const allowedTypes = ["image/jpeg", "image/png"];
+  const fileName = file.name.toLowerCase();
+  const hasAllowedExtension =
+    fileName.endsWith(".jpg") ||
+    fileName.endsWith(".jpeg") ||
+    fileName.endsWith(".png");
+
+  if (!allowedTypes.includes(file.type) && !hasAllowedExtension) {
+    resetProfileImageInput();
+    profileImageError.value =
+      "Bitte nur JPG-, JPEG- oder PNG-Dateien auswählen.";
+    return;
+  }
+
+  if (file.size > MAX_PROFILE_IMAGE_SIZE) {
+    resetProfileImageInput();
+    profileImageError.value =
+      "Das Profilbild darf maximal 2 MB groß sein.";
+    return;
+  }
+
+  selectedProfileImage.value = file;
+  profileImagePreviewUrl.value = window.URL.createObjectURL(file);
+
+  await handleUploadProfileImage();
+};
+
+const handleUploadProfileImage = async () => {
+  clearProfileImageMessages();
+
+  if (!selectedProfileImage.value) {
+    profileImageError.value = "Bitte zuerst ein Profilbild auswählen.";
+    return;
+  }
+
+  uploadingProfileImage.value = true;
+
+  try {
+    await uploadProfileImage(selectedProfileImage.value);
+    await loadProfile();
+
+    resetProfileImageInput();
+    profileImageMessage.value =
+      "Profilbild wurde erfolgreich hochgeladen.";
+  } catch (err) {
+    profileImageError.value =
+      err.response?.data?.message ||
+      "Profilbild konnte nicht hochgeladen werden.";
+  } finally {
+    uploadingProfileImage.value = false;
+  }
+};
+
+const handleDeleteProfileImage = async () => {
+  clearProfileImageMessages();
+
+  const confirmed = window.confirm(
+    "Möchtest du dein Profilbild wirklich löschen?"
+  );
+
+  if (!confirmed) return;
+
+  deletingProfileImage.value = true;
+
+  try {
+    await deleteProfileImage();
+    await loadProfile();
+
+    resetProfileImageInput();
+    profileImageMessage.value =
+      "Profilbild wurde erfolgreich gelöscht.";
+  } catch (err) {
+    profileImageError.value =
+      err.response?.data?.message ||
+      "Profilbild konnte nicht gelöscht werden.";
+  } finally {
+    deletingProfileImage.value = false;
   }
 };
 
@@ -441,6 +578,7 @@ const downloadCertificate = async (courseId, courseTitle) => {
 };
 
 onMounted(loadProfileData);
+onBeforeUnmount(revokeProfileImagePreview);
 </script>
 
 <template>
@@ -484,9 +622,36 @@ onMounted(loadProfileData);
           <div class="profile-hero-decoration"></div>
 
           <div class="profile-hero-content">
-            <div class="profile-avatar">
-              {{ userInitials }}
-            </div>
+            <label for="profileImageFile" class="profile-avatar overflow-visible position-relative flex-shrink-0"
+              role="button" tabindex="0" title="Profilbild ändern (maximal 2 MB)" aria-label="Profilbild ändern"
+              style="width: 128px; height: 128px; cursor: pointer;" @keydown.enter.prevent="profileImageInput?.click()"
+              @keydown.space.prevent="profileImageInput?.click()">
+              <span class="d-block w-100 h-100 rounded-circle overflow-hidden border border-4 border-white shadow-sm">
+                <img v-if="displayedProfileImageUrl" :src="displayedProfileImageUrl"
+                  :alt="`Profilbild von ${user?.fullName || 'Benutzer'}`" class="w-100 h-100 object-fit-cover" />
+                <span v-else class="w-100 h-100 d-flex align-items-center justify-content-center">
+                  {{ userInitials }}
+                </span>
+              </span>
+
+              <span
+                class="position-absolute bottom-0 end-0 d-flex align-items-center justify-content-center rounded-circle bg-white text-success shadow border"
+                style="width: 38px; height: 38px; transform: translate(10%, 10%);" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.5 4h-5L7.8 6H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2.8z" />
+                  <circle cx="12" cy="13" r="3" />
+                </svg>
+              </span>
+
+              <span v-if="uploadingProfileImage"
+                class="position-absolute top-50 start-50 translate-middle spinner-border text-light" role="status"
+                aria-label="Profilbild wird hochgeladen"></span>
+            </label>
+
+            <input id="profileImageFile" ref="profileImageInput" type="file"
+              accept="image/jpeg,image/png,.jpg,.jpeg,.png" class="visually-hidden"
+              :disabled="uploadingProfileImage || deletingProfileImage" @change="handleProfileImageChange" />
 
             <div class="profile-identity">
               <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
@@ -506,6 +671,12 @@ onMounted(loadProfileData);
               <p v-if="user?.createdAt" class="profile-member-since mb-0">
                 Mitglied seit {{ formatDate(user.createdAt) }}
               </p>
+
+              <button v-if="user?.profileImageUrl" type="button"
+                class="btn btn-link btn-sm text-white text-decoration-underline p-0 mt-2"
+                :disabled="uploadingProfileImage || deletingProfileImage" @click="handleDeleteProfileImage">
+                {{ deletingProfileImage ? "Foto wird entfernt..." : "Foto entfernen" }}
+              </button>
             </div>
 
             <div class="profile-completion">
@@ -549,6 +720,14 @@ onMounted(loadProfileData);
                   @click="startProfileEditing">
                   Profil bearbeiten
                 </button>
+              </div>
+
+              <div v-if="profileImageMessage" class="alert alert-success">
+                {{ profileImageMessage }}
+              </div>
+
+              <div v-if="profileImageError" class="alert alert-danger">
+                {{ profileImageError }}
               </div>
 
               <div v-if="profileMessage" class="alert alert-success">

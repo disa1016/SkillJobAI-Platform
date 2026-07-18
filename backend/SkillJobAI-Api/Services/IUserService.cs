@@ -12,15 +12,32 @@ public interface IUserService
         UpdateProfileRequest request
     );
 
-    Task<(bool Success, string? ErrorMessage, string? CvUrl)> UploadCvAsync(
+    Task<(
+        bool Success,
+        string? ErrorMessage,
+        string? CvUrl
+    )> UploadCvAsync(
         int userId,
         IFormFile file
     );
 
     Task<bool> DeleteCvAsync(int userId);
 
+    Task<(
+        bool Success,
+        string? ErrorMessage,
+        string? ProfileImageUrl
+    )> UploadProfileImageAsync(
+        int userId,
+        IFormFile file
+    );
+
+    Task<bool> DeleteProfileImageAsync(int userId);
+
     Task<UserResponse?> UpdateUserRoleAsync(
         int id,
         UpdateUserRoleRequest request
     );
+
+    
 }

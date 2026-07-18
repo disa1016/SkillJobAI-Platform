@@ -45,12 +45,9 @@ export const getMyEnrollments = async () => {
 };
 
 export const downloadCourseCertificate = async (courseId) => {
-  const { data } = await api.get(
-    `/certificates/course/${courseId}`,
-    {
-      responseType: "blob",
-    }
-  );
+  const { data } = await api.get(`/certificates/course/${courseId}`, {
+    responseType: "blob",
+  });
 
   return data;
 };
@@ -84,14 +81,34 @@ export const applyToJob = async ({
     formData.append("portfolioFile", portfolioFile);
   }
 
+  const { data } = await api.post("/applications", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return data;
+};
+export const uploadProfileImage = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
   const { data } = await api.post(
-    "/applications",
+    "/users/profile-image",
     formData,
     {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     }
+  );
+
+  return data;
+};
+
+export const deleteProfileImage = async () => {
+  const { data } = await api.delete(
+    "/users/profile-image"
   );
 
   return data;

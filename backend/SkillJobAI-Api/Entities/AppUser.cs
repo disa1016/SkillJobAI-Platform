@@ -26,6 +26,9 @@ public class AppUser
     [StringLength(500)]
     public string? CvUrl { get; set; }
 
+    [StringLength(500)]
+    public string? ProfileImageUrl { get; set; }
+
     [Phone]
     [StringLength(50)]
     public string? PhoneNumber { get; set; }
@@ -50,6 +53,7 @@ public class AppUser
     [Url]
     [StringLength(500)]
     public string? Website { get; set; }
+    
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
