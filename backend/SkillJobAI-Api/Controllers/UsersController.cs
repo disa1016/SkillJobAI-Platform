@@ -1,13 +1,16 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SkillJobAI.Api.Models;
+using SkillJobAI.Api.Models.Responses;
 using SkillJobAI.Api.Services;
 
 namespace SkillJobAI.Api.Controllers;
 
 [ApiController]
 [Route("api/users")]
+[Produces("application/json")]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -19,78 +22,185 @@ public class UsersController : ControllerBase
 
     private int? GetCurrentUserId()
     {
-        var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return int.TryParse(userIdValue, out var userId) ? userId : null;
+        var userIdValue = User
+            .FindFirstValue(ClaimTypes.NameIdentifier);
+
+        return int.TryParse(userIdValue, out var userId)
+            ? userId
+            : null;
     }
 
+    // GET: /api/users/profile
     [Authorize]
     [HttpGet("profile")]
-    public async Task<IActionResult> Profile()
+    [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetProfile()
     {
         var userId = GetCurrentUserId();
 
         if (userId == null)
-            return Unauthorized();
+        {
+            return Unauthorized(new
+            {
+                message = "Invalid or missing user identity."
+            });
+        }
 
         var user = await _userService.GetProfileAsync(userId.Value);
 
         if (user == null)
-            return NotFound(new { message = "User not found." });
+        {
+            return NotFound(new
+            {
+                message = "User not found."
+            });
+        }
 
         return Ok(user);
     }
 
-    [Authorize]
-    [HttpPost("cv")]
-    public async Task<IActionResult> UploadCv(IFormFile file)
+// PUT: /api/users/profile
+[Authorize]
+[HttpPut("profile")]
+[Consumes("application/json")]
+[ProducesResponseType(StatusCodes.Status200OK)]
+[ProducesResponseType(StatusCodes.Status400BadRequest)]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+[ProducesResponseType(StatusCodes.Status404NotFound)]
+public async Task<IActionResult> UpdateProfile(
+    [FromBody] UpdateProfileRequest request)
+{
+    var userId = GetCurrentUserId();
+
+    if (userId == null)
     {
-        var userId = GetCurrentUserId();
-
-        if (userId == null)
-            return Unauthorized();
-
-        var result = await _userService.UploadCvAsync(userId.Value, file);
-
-        if (!result.Success)
-            return BadRequest(new { message = result.ErrorMessage });
-
-        return Ok(new
+        return Unauthorized(new
         {
-            message = "CV uploaded successfully.",
-            cvUrl = result.CvUrl
+            message = "Invalid or missing user identity."
         });
     }
 
+    var user = await _userService.UpdateProfileAsync(
+        userId.Value,
+        request
+    );
+
+    if (user == null)
+    {
+        return NotFound(new
+        {
+            message = "User not found."
+        });
+    }
+
+    return Ok(new
+    {
+        message = "Profile updated successfully.",
+        user
+    });
+}
+
+// POST: /api/users/cv
+[Authorize]
+[HttpPost("cv")]
+[Consumes("multipart/form-data")]
+[ProducesResponseType(StatusCodes.Status200OK)]
+[ProducesResponseType(StatusCodes.Status400BadRequest)]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+public async Task<IActionResult> UploadCv(
+    IFormFile file)
+{
+    var userId = GetCurrentUserId();
+
+    if (userId == null)
+    {
+        return Unauthorized(new
+        {
+            message = "Invalid or missing user identity."
+        });
+    }
+
+    var result = await _userService.UploadCvAsync(
+        userId.Value,
+        file
+    );
+
+    if (!result.Success)
+    {
+        return BadRequest(new
+        {
+            message = result.ErrorMessage
+        });
+    }
+
+    return Ok(new
+    {
+        message = "CV uploaded successfully.",
+        cvUrl = result.CvUrl
+    });
+}
+
+    // DELETE: /api/users/cv
     [Authorize]
     [HttpDelete("cv")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteCv()
     {
         var userId = GetCurrentUserId();
 
         if (userId == null)
-            return Unauthorized();
+        {
+            return Unauthorized(new
+            {
+                message = "Invalid or missing user identity."
+            });
+        }
 
         var deleted = await _userService.DeleteCvAsync(userId.Value);
 
         if (!deleted)
-            return NotFound(new { message = "User not found." });
+        {
+            return NotFound(new
+            {
+                message = "User not found."
+            });
+        }
 
-        return Ok(new { message = "CV deleted successfully." });
+        return Ok(new
+        {
+            message = "CV deleted successfully."
+        });
     }
 
+    // PUT: /api/users/{id}/role
     [Authorize(Roles = "Admin")]
-    [HttpPut("{id}/role")]
+    [HttpPut("{id:int}/role")]
+    [Consumes("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateUserRole(
         int id,
         [FromBody] UpdateUserRoleRequest request)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        var user = await _userService.UpdateUserRoleAsync(id, request);
+        var user = await _userService.UpdateUserRoleAsync(
+            id,
+            request
+        );
 
         if (user == null)
-            return NotFound(new { message = "User not found." });
+        {
+            return NotFound(new
+            {
+                message = "User not found."
+            });
+        }
 
         return Ok(new
         {

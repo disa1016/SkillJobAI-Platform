@@ -7,11 +7,20 @@ public interface IUserService
 {
     Task<UserResponse?> GetProfileAsync(int userId);
 
+    Task<UserResponse?> UpdateProfileAsync(
+        int userId,
+        UpdateProfileRequest request
+    );
+
     Task<(bool Success, string? ErrorMessage, string? CvUrl)> UploadCvAsync(
         int userId,
-        IFormFile file);
+        IFormFile file
+    );
 
     Task<bool> DeleteCvAsync(int userId);
 
-    Task<UserResponse?> UpdateUserRoleAsync(int id, UpdateUserRoleRequest request);
+    Task<UserResponse?> UpdateUserRoleAsync(
+        int id,
+        UpdateUserRoleRequest request
+    );
 }

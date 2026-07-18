@@ -4,17 +4,25 @@ export const getCandidateDashboard = async () => {
   const { data } = await api.get("/candidate/dashboard");
   return data;
 };
+
 export const getMyApplications = async () => {
   const { data } = await api.get("/applications/my");
   return data;
 };
+
 export const getProfile = async () => {
   const { data } = await api.get("/users/profile");
   return data;
 };
 
+export const updateProfile = async (profileData) => {
+  const { data } = await api.put("/users/profile", profileData);
+  return data;
+};
+
 export const uploadCv = async (file) => {
   const formData = new FormData();
+
   formData.append("file", file);
 
   const { data } = await api.post("/users/cv", formData, {
@@ -27,7 +35,8 @@ export const uploadCv = async (file) => {
 };
 
 export const deleteCv = async () => {
-  await api.delete("/users/cv");
+  const { data } = await api.delete("/users/cv");
+  return data;
 };
 
 export const getMyEnrollments = async () => {
@@ -36,16 +45,21 @@ export const getMyEnrollments = async () => {
 };
 
 export const downloadCourseCertificate = async (courseId) => {
-  const { data } = await api.get(`/certificates/course/${courseId}`, {
-    responseType: "blob",
-  });
+  const { data } = await api.get(
+    `/certificates/course/${courseId}`,
+    {
+      responseType: "blob",
+    }
+  );
 
   return data;
 };
+
 export const getMyProgress = async () => {
   const { data } = await api.get("/progress/my");
   return data;
 };
+
 export const applyToJob = async ({
   jobId,
   coverLetter,
@@ -58,15 +72,27 @@ export const applyToJob = async ({
   formData.append("jobId", jobId);
   formData.append("coverLetter", coverLetter);
 
-  if (cvFile) formData.append("cvFile", cvFile);
-  if (certificateFile) formData.append("certificateFile", certificateFile);
-  if (portfolioFile) formData.append("portfolioFile", portfolioFile);
+  if (cvFile) {
+    formData.append("cvFile", cvFile);
+  }
 
-  const { data } = await api.post("/applications", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  if (certificateFile) {
+    formData.append("certificateFile", certificateFile);
+  }
+
+  if (portfolioFile) {
+    formData.append("portfolioFile", portfolioFile);
+  }
+
+  const { data } = await api.post(
+    "/applications",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
 
   return data;
 };
