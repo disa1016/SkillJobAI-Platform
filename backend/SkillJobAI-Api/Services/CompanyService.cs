@@ -9,6 +9,7 @@ namespace SkillJobAI.Api.Services;
 public class CompanyService : ICompanyService
 {
     private readonly AppDbContext _context;
+    private const long MaxCompanyLogoSize = 10 * 1024 * 1024;
 
     public CompanyService(AppDbContext context)
     {
@@ -139,6 +140,9 @@ public class CompanyService : ICompanyService
 
         await _context.SaveChangesAsync();
 
+        var totalJobs = await _context.Jobs
+     .CountAsync(j => j.CompanyId == company.Id);
+
         return new CompanyResponse
         {
             Id = company.Id,
@@ -148,7 +152,7 @@ public class CompanyService : ICompanyService
             LogoUrl = company.LogoUrl ?? "",
             Location = company.Location ?? "",
             CreatedAt = company.CreatedAt,
-            TotalJobs = 0
+            TotalJobs = totalJobs
         };
     }
 
@@ -163,6 +167,14 @@ public class CompanyService : ICompanyService
 
         if (file == null || file.Length == 0)
             return (false, "No file uploaded.", null);
+        if (file.Length > MaxCompanyLogoSize)
+        {
+            return (
+                false,
+                "Company logo must be smaller than 10 MB.",
+                null
+            );
+        }
 
         var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
         var extension = Path.GetExtension(file.FileName).ToLower();

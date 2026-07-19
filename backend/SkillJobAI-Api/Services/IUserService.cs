@@ -38,6 +38,8 @@ public interface IUserService
         int id,
         UpdateUserRoleRequest request
     );
-
+Task<(string FilePath, string DownloadName)?> GetCvDownloadAsync(
+    int userId
+);
     
 }

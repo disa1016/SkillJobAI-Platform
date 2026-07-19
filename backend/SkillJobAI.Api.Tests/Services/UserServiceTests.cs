@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using SkillJobAI.Api.Data;
 using SkillJobAI.Api.Entities;
 using SkillJobAI.Api.Models;
 using SkillJobAI.Api.Services;
@@ -18,7 +20,7 @@ public class UserServiceTests
             TestDbContextFactory.Create();
 
         var userService =
-            new UserService(context);
+            CreateUserService(context);
 
         // Act
         var result =
@@ -54,7 +56,7 @@ public class UserServiceTests
         await context.SaveChangesAsync();
 
         var userService =
-            new UserService(context);
+            CreateUserService(context);
 
         // Act
         var result =
@@ -81,7 +83,7 @@ public class UserServiceTests
             result.Role);
 
         Assert.Equal(
-            user.CvUrl,
+            "/api/users/cv",
             result.CvUrl);
 
         Assert.Equal(
@@ -105,7 +107,7 @@ public class UserServiceTests
         await context.SaveChangesAsync();
 
         var userService =
-            new UserService(context);
+            CreateUserService(context);
 
         // Act
         var result =
@@ -128,7 +130,7 @@ public class UserServiceTests
             TestDbContextFactory.Create();
 
         var userService =
-            new UserService(context);
+            CreateUserService(context);
 
         var testFile =
             CreatePdfFormFile();
@@ -166,7 +168,7 @@ public class UserServiceTests
         await context.SaveChangesAsync();
 
         var userService =
-            new UserService(context);
+            CreateUserService(context);
 
         // Act
         var result =
@@ -198,7 +200,7 @@ public class UserServiceTests
         await context.SaveChangesAsync();
 
         var userService =
-            new UserService(context);
+            CreateUserService(context);
 
         using var stream =
             new MemoryStream();
@@ -241,7 +243,7 @@ public class UserServiceTests
         await context.SaveChangesAsync();
 
         var userService =
-            new UserService(context);
+            CreateUserService(context);
 
         using var stream =
             new MemoryStream(
@@ -290,7 +292,7 @@ public class UserServiceTests
         await context.SaveChangesAsync();
 
         var userService =
-            new UserService(context);
+            CreateUserService(context);
 
         var fileMock =
             new Mock<IFormFile>();
@@ -340,7 +342,7 @@ public class UserServiceTests
         await context.SaveChangesAsync();
 
         var userService =
-            new UserService(context);
+            CreateUserService(context);
 
         var testFile =
             CreatePdfFormFile();
@@ -362,40 +364,9 @@ public class UserServiceTests
             Assert.True(result.Success);
             Assert.Null(result.ErrorMessage);
 
-            Assert.False(
-                string.IsNullOrWhiteSpace(
-                    result.CvUrl));
-
-            Assert.StartsWith(
-                $"/uploads/cv/cv-user-{user.Id}-",
-                result.CvUrl);
-
-            Assert.EndsWith(
-                ".pdf",
-                result.CvUrl);
-
-            physicalFilePath =
-                ConvertUrlToPhysicalPath(
-                    result.CvUrl!);
-
-            Assert.True(
-                File.Exists(
-                    physicalFilePath));
-
-            var storedBytes =
-                await File.ReadAllBytesAsync(
-                    physicalFilePath);
-
             Assert.Equal(
-                new byte[]
-                {
-                    1,
-                    2,
-                    3,
-                    4,
-                    5
-                },
-                storedBytes);
+                "/api/users/cv",
+                result.CvUrl);
 
             context.ChangeTracker.Clear();
 
@@ -406,9 +377,34 @@ public class UserServiceTests
                             existingUser.Id ==
                             user.Id);
 
-            Assert.Equal(
-                result.CvUrl,
+            Assert.False(
+                string.IsNullOrWhiteSpace(
+                    storedUser.CvUrl));
+
+            Assert.StartsWith(
+                "profile-cv/cv-user-" +
+                $"{user.Id}-",
                 storedUser.CvUrl);
+
+            Assert.EndsWith(
+                ".pdf",
+                storedUser.CvUrl);
+
+            physicalFilePath =
+                ConvertPrivateCvPathToPhysicalPath(
+                    storedUser.CvUrl!);
+
+            Assert.True(
+                File.Exists(
+                    physicalFilePath));
+
+            var storedBytes =
+                await File.ReadAllBytesAsync(
+                    physicalFilePath);
+
+            Assert.Equal(
+                GetValidPdfBytes(),
+                storedBytes);
         }
         finally
         {
@@ -425,7 +421,7 @@ public class UserServiceTests
             TestDbContextFactory.Create();
 
         var userService =
-            new UserService(context);
+            CreateUserService(context);
 
         // Act
         var result =
@@ -452,7 +448,7 @@ public class UserServiceTests
         await context.SaveChangesAsync();
 
         var userService =
-            new UserService(context);
+            CreateUserService(context);
 
         // Act
         var result =
@@ -514,7 +510,7 @@ public class UserServiceTests
         await context.SaveChangesAsync();
 
         var userService =
-            new UserService(context);
+            CreateUserService(context);
 
         try
         {
@@ -570,7 +566,7 @@ public class UserServiceTests
         await context.SaveChangesAsync();
 
         var userService =
-            new UserService(context);
+            CreateUserService(context);
 
         // Act
         var result =
@@ -601,7 +597,7 @@ public class UserServiceTests
             TestDbContextFactory.Create();
 
         var userService =
-            new UserService(context);
+            CreateUserService(context);
 
         var request =
             new UpdateUserRoleRequest
@@ -633,7 +629,7 @@ public class UserServiceTests
         await context.SaveChangesAsync();
 
         var userService =
-            new UserService(context);
+            CreateUserService(context);
 
         var request =
             new UpdateUserRoleRequest
@@ -684,6 +680,40 @@ public class UserServiceTests
             storedUser.Role);
     }
 
+    private static UserService CreateUserService(
+        AppDbContext context)
+    {
+        var currentDirectory =
+            Directory.GetCurrentDirectory();
+
+        var webRootPath =
+            Path.Combine(
+                currentDirectory,
+                "wwwroot");
+
+        Directory.CreateDirectory(
+            webRootPath);
+
+        var environment =
+            new Mock<IWebHostEnvironment>();
+
+        environment
+            .SetupGet(value => value.ContentRootPath)
+            .Returns(currentDirectory);
+
+        environment
+            .SetupGet(value => value.WebRootPath)
+            .Returns(webRootPath);
+
+        environment
+            .SetupGet(value => value.EnvironmentName)
+            .Returns("Testing");
+
+        return new UserService(
+            context,
+            environment.Object);
+    }
+
     private static AppUser CreateUser()
     {
         return new AppUser
@@ -710,14 +740,7 @@ public class UserServiceTests
         CreatePdfFormFile()
     {
         var bytes =
-            new byte[]
-            {
-                1,
-                2,
-                3,
-                4,
-                5
-            };
+            GetValidPdfBytes();
 
         var stream =
             new MemoryStream(bytes);
@@ -742,6 +765,27 @@ public class UserServiceTests
             stream);
     }
 
+    private static byte[] GetValidPdfBytes()
+    {
+        return
+        [
+            (byte)'%',
+            (byte)'P',
+            (byte)'D',
+            (byte)'F',
+            (byte)'-',
+            (byte)'1',
+            (byte)'.',
+            (byte)'4',
+            (byte)'\n',
+            (byte)'%',
+            (byte)'%',
+            (byte)'E',
+            (byte)'O',
+            (byte)'F'
+        ];
+    }
+
     private static string ConvertUrlToPhysicalPath(
         string cvUrl)
     {
@@ -755,6 +799,25 @@ public class UserServiceTests
         return Path.Combine(
             Directory.GetCurrentDirectory(),
             "wwwroot",
+            relativePath);
+    }
+
+    private static string ConvertPrivateCvPathToPhysicalPath(
+        string storedPath)
+    {
+        var relativePath =
+            storedPath
+                .TrimStart('/', '\\')
+                .Replace(
+                    '/',
+                    Path.DirectorySeparatorChar)
+                .Replace(
+                    '\\',
+                    Path.DirectorySeparatorChar);
+
+        return Path.Combine(
+            Directory.GetCurrentDirectory(),
+            "private_uploads",
             relativePath);
     }
 

@@ -22,10 +22,14 @@ public class UsersController : ControllerBase
 
     private int? GetCurrentUserId()
     {
-        var userIdValue = User
-            .FindFirstValue(ClaimTypes.NameIdentifier);
+        var userIdValue = User.FindFirstValue(
+            ClaimTypes.NameIdentifier
+        );
 
-        return int.TryParse(userIdValue, out var userId)
+        return int.TryParse(
+            userIdValue,
+            out var userId
+        )
             ? userId
             : null;
     }
@@ -33,24 +37,34 @@ public class UsersController : ControllerBase
     // GET: /api/users/profile
     [Authorize]
     [HttpGet("profile")]
-    [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(
+        typeof(UserResponse),
+        StatusCodes.Status200OK
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status404NotFound
+    )]
     public async Task<IActionResult> GetProfile()
     {
         var userId = GetCurrentUserId();
 
-        if (userId == null)
+        if (userId is null)
         {
             return Unauthorized(new
             {
-                message = "Invalid or missing user identity."
+                message =
+                    "Invalid or missing user identity."
             });
         }
 
-        var user = await _userService.GetProfileAsync(userId.Value);
+        var user = await _userService.GetProfileAsync(
+            userId.Value
+        );
 
-        if (user == null)
+        if (user is null)
         {
             return NotFound(new
             {
@@ -65,29 +79,40 @@ public class UsersController : ControllerBase
     [Authorize]
     [HttpPut("profile")]
     [Consumes("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(
+        StatusCodes.Status200OK
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status400BadRequest
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status404NotFound
+    )]
     public async Task<IActionResult> UpdateProfile(
-        [FromBody] UpdateProfileRequest request)
+        [FromBody] UpdateProfileRequest request
+    )
     {
         var userId = GetCurrentUserId();
 
-        if (userId == null)
+        if (userId is null)
         {
             return Unauthorized(new
             {
-                message = "Invalid or missing user identity."
+                message =
+                    "Invalid or missing user identity."
             });
         }
 
-        var user = await _userService.UpdateProfileAsync(
-            userId.Value,
-            request
-        );
+        var user =
+            await _userService.UpdateProfileAsync(
+                userId.Value,
+                request
+            );
 
-        if (user == null)
+        if (user is null)
         {
             return NotFound(new
             {
@@ -97,157 +122,108 @@ public class UsersController : ControllerBase
 
         return Ok(new
         {
-            message = "Profile updated successfully.",
+            message =
+                "Profile updated successfully.",
+
             user
         });
     }
-   
-   // POST: /api/users/profile-image
-[Authorize]
-[HttpPost("profile-image")]
-[Consumes("multipart/form-data")]
-[ProducesResponseType(StatusCodes.Status200OK)]
-[ProducesResponseType(StatusCodes.Status400BadRequest)]
-[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-[ProducesResponseType(StatusCodes.Status404NotFound)]
-public async Task<IActionResult> UploadProfileImage(
-    IFormFile file
-)
-{
-    var userId = GetCurrentUserId();
 
-    if (userId == null)
-    {
-        return Unauthorized(new
-        {
-            message = "Invalid or missing user identity."
-        });
-    }
-
-    var result = await _userService.UploadProfileImageAsync(
-        userId.Value,
-        file
-    );
-
-    if (!result.Success)
-    {
-        if (result.ErrorMessage == "User not found.")
-        {
-            return NotFound(new
-            {
-                message = result.ErrorMessage
-            });
-        }
-
-        return BadRequest(new
-        {
-            message = result.ErrorMessage
-        });
-    }
-
-    return Ok(new
-    {
-        message = "Profile image uploaded successfully.",
-        profileImageUrl = result.ProfileImageUrl
-    });
-}
-
-
-// DELETE: /api/users/profile-image
-[Authorize]
-[HttpDelete("profile-image")]
-[ProducesResponseType(StatusCodes.Status200OK)]
-[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-[ProducesResponseType(StatusCodes.Status404NotFound)]
-public async Task<IActionResult> DeleteProfileImage()
-{
-    var userId = GetCurrentUserId();
-
-    if (userId == null)
-    {
-        return Unauthorized(new
-        {
-            message = "Invalid or missing user identity."
-        });
-    }
-
-    var deleted = await _userService.DeleteProfileImageAsync(
-        userId.Value
-    );
-
-    if (!deleted)
-    {
-        return NotFound(new
-        {
-            message = "User not found."
-        });
-    }
-
-    return Ok(new
-    {
-        message = "Profile image deleted successfully."
-    });
-}
-
-    // POST: /api/users/cv
+    // POST: /api/users/profile-image
     [Authorize]
-    [HttpPost("cv")]
+    [HttpPost("profile-image")]
     [Consumes("multipart/form-data")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> UploadCv(
-        IFormFile file)
+    [ProducesResponseType(
+        StatusCodes.Status200OK
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status400BadRequest
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status404NotFound
+    )]
+    public async Task<IActionResult> UploadProfileImage(
+        IFormFile file
+    )
     {
         var userId = GetCurrentUserId();
 
-        if (userId == null)
+        if (userId is null)
         {
             return Unauthorized(new
             {
-                message = "Invalid or missing user identity."
+                message =
+                    "Invalid or missing user identity."
             });
         }
 
-        var result = await _userService.UploadCvAsync(
-            userId.Value,
-            file
-        );
+        var result =
+            await _userService.UploadProfileImageAsync(
+                userId.Value,
+                file
+            );
 
         if (!result.Success)
         {
+            if (result.ErrorMessage ==
+                "User not found.")
+            {
+                return NotFound(new
+                {
+                    message =
+                        result.ErrorMessage
+                });
+            }
+
             return BadRequest(new
             {
-                message = result.ErrorMessage
+                message =
+                    result.ErrorMessage
             });
         }
 
         return Ok(new
         {
-            message = "CV uploaded successfully.",
-            cvUrl = result.CvUrl
+            message =
+                "Profile image uploaded successfully.",
+
+            profileImageUrl =
+                result.ProfileImageUrl
         });
     }
 
-    // DELETE: /api/users/cv
+    // DELETE: /api/users/profile-image
     [Authorize]
-    [HttpDelete("cv")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteCv()
+    [HttpDelete("profile-image")]
+    [ProducesResponseType(
+        StatusCodes.Status200OK
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status404NotFound
+    )]
+    public async Task<IActionResult> DeleteProfileImage()
     {
         var userId = GetCurrentUserId();
 
-        if (userId == null)
+        if (userId is null)
         {
             return Unauthorized(new
             {
-                message = "Invalid or missing user identity."
+                message =
+                    "Invalid or missing user identity."
             });
         }
 
-        var deleted = await _userService.DeleteCvAsync(userId.Value);
+        var deleted =
+            await _userService.DeleteProfileImageAsync(
+                userId.Value
+            );
 
         if (!deleted)
         {
@@ -259,29 +235,155 @@ public async Task<IActionResult> DeleteProfileImage()
 
         return Ok(new
         {
-            message = "CV deleted successfully."
+            message =
+                "Profile image deleted successfully."
         });
     }
 
-    // PUT: /api/users/{id}/role
-    [Authorize(Roles = "Admin")]
-    [HttpPut("{id:int}/role")]
-    [Consumes("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateUserRole(
-        int id,
-        [FromBody] UpdateUserRoleRequest request)
+    // POST: /api/users/cv
+    [Authorize]
+    [HttpPost("cv")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(
+        StatusCodes.Status200OK
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status400BadRequest
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status404NotFound
+    )]
+    public async Task<IActionResult> UploadCv(
+        IFormFile file
+    )
     {
-        var user = await _userService.UpdateUserRoleAsync(
-            id,
-            request
-        );
+        var userId = GetCurrentUserId();
 
-        if (user == null)
+        if (userId is null)
+        {
+            return Unauthorized(new
+            {
+                message =
+                    "Invalid or missing user identity."
+            });
+        }
+
+        var result =
+            await _userService.UploadCvAsync(
+                userId.Value,
+                file
+            );
+
+        if (!result.Success)
+        {
+            if (result.ErrorMessage ==
+                "User not found.")
+            {
+                return NotFound(new
+                {
+                    message =
+                        result.ErrorMessage
+                });
+            }
+
+            return BadRequest(new
+            {
+                message =
+                    result.ErrorMessage
+            });
+        }
+
+        return Ok(new
+        {
+            message =
+                "CV uploaded successfully.",
+
+            cvUrl =
+                result.CvUrl
+        });
+    }
+
+    // GET: /api/users/cv
+    [Authorize]
+    [HttpGet("cv")]
+    [Produces("application/pdf")]
+    [ProducesResponseType(
+        StatusCodes.Status200OK
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status404NotFound
+    )]
+    public async Task<IActionResult> DownloadCv()
+    {
+        var userId = GetCurrentUserId();
+
+        if (userId is null)
+        {
+            return Unauthorized(new
+            {
+                message =
+                    "Invalid or missing user identity."
+            });
+        }
+
+        var cv =
+            await _userService.GetCvDownloadAsync(
+                userId.Value
+            );
+
+        if (cv is null)
+        {
+            return NotFound(new
+            {
+                message = "CV not found."
+            });
+        }
+
+        return PhysicalFile(
+            cv.Value.FilePath,
+            "application/pdf",
+            cv.Value.DownloadName,
+            enableRangeProcessing: true
+        );
+    }
+
+    // DELETE: /api/users/cv
+    [Authorize]
+    [HttpDelete("cv")]
+    [ProducesResponseType(
+        StatusCodes.Status200OK
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status404NotFound
+    )]
+    public async Task<IActionResult> DeleteCv()
+    {
+        var userId = GetCurrentUserId();
+
+        if (userId is null)
+        {
+            return Unauthorized(new
+            {
+                message =
+                    "Invalid or missing user identity."
+            });
+        }
+
+        var deleted =
+            await _userService.DeleteCvAsync(
+                userId.Value
+            );
+
+        if (!deleted)
         {
             return NotFound(new
             {
@@ -291,8 +393,56 @@ public async Task<IActionResult> DeleteProfileImage()
 
         return Ok(new
         {
-            message = "User role updated successfully.",
+            message =
+                "CV deleted successfully."
+        });
+    }
+
+    // PUT: /api/users/{id}/role
+    [Authorize(Roles = "Admin")]
+    [HttpPut("{id:int}/role")]
+    [Consumes("application/json")]
+    [ProducesResponseType(
+        StatusCodes.Status200OK
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status400BadRequest
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status403Forbidden
+    )]
+    [ProducesResponseType(
+        StatusCodes.Status404NotFound
+    )]
+    public async Task<IActionResult> UpdateUserRole(
+        int id,
+        [FromBody] UpdateUserRoleRequest request
+    )
+    {
+        var user =
+            await _userService.UpdateUserRoleAsync(
+                id,
+                request
+            );
+
+        if (user is null)
+        {
+            return NotFound(new
+            {
+                message = "User not found."
+            });
+        }
+
+        return Ok(new
+        {
+            message =
+                "User role updated successfully.",
+
             user
         });
     }
 }
+
