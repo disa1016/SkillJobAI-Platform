@@ -16,12 +16,7 @@ const loading = ref(false);
 const error = ref("");
 const success = ref("");
 
-const roles = [
-  { value: "Student", label: "Student" },
-  { value: "Candidate", label: "Candidate" },
-  { value: "Recruiter", label: "Recruiter" },
-  { value: "Employer", label: "Employer" },
-];
+
 
 const handleRegister = async () => {
   error.value = "";
@@ -29,18 +24,26 @@ const handleRegister = async () => {
   loading.value = true;
 
   try {
-    await register({
+    const data = await register({
       fullName: fullName.value,
       email: email.value,
       password: password.value,
-      role: role.value,
     });
+
+    success.value =
+      "Registrierung erfolgreich.";
+
+    await router.replace(
+      data.user?.role === "Admin"
+        ? "/admin/dashboard"
+        : data.user?.role === "Recruiter"
+          ? "/recruiter/dashboard"
+          : "/dashboard"
+    );
 
     success.value = "Registrierung erfolgreich.";
 
-    setTimeout(() => {
-      router.push("/login");
-    }, 1200);
+    
   } catch (err) {
     error.value =
       err.response?.data?.message || "Registrierung fehlgeschlagen.";
@@ -61,17 +64,9 @@ const handleRegister = async () => {
         Create your account
       </p>
 
-      <BaseAlert
-  v-if="error"
-  type="danger"
-  :message="error"
-/>
+      <BaseAlert v-if="error" type="danger" :message="error" />
 
-<BaseAlert
-  v-if="success"
-  type="success"
-  :message="success"
-/>
+      <BaseAlert v-if="success" type="success" :message="success" />
 
       <form @submit.prevent="handleRegister">
         <div class="mb-3">
@@ -92,16 +87,7 @@ const handleRegister = async () => {
           <input v-model="password" type="password" class="form-control" autocomplete="new-password" required />
         </div>
 
-        <div class="mb-3">
-          <label class="form-label">Account-Typ</label>
-
-          <select v-model="role" class="form-select">
-            <option v-for="item in roles" :key="item.value" :value="item.value">
-              {{ item.label }}
-            </option>
-          </select>
-        </div>
-
+     
         <button type="submit" class="btn btn-primary w-100" :disabled="loading">
           {{ loading ? "Bitte warten..." : "Registrieren" }}
         </button>

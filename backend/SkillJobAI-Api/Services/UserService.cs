@@ -1,6 +1,10 @@
+using System.IO.Compression;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using SkillJobAI.Api.Constants;
 using SkillJobAI.Api.Data;
 using SkillJobAI.Api.Entities;
 using SkillJobAI.Api.Models;
@@ -44,14 +48,20 @@ public class UserService : IUserService
 
     private readonly AppDbContext _context;
     private readonly IWebHostEnvironment _environment;
+    private readonly PasswordService _passwordService;
+    private readonly ILogger<UserService> _logger;
 
     public UserService(
         AppDbContext context,
-        IWebHostEnvironment environment
+        IWebHostEnvironment environment,
+        PasswordService passwordService,
+        ILogger<UserService> logger
     )
     {
         _context = context;
         _environment = environment;
+        _passwordService = passwordService;
+        _logger = logger;
     }
 
     public async Task<UserResponse?> GetProfileAsync(
@@ -546,6 +556,642 @@ public class UserService : IUserService
         return MapToResponse(user);
     }
 
+    public async Task<(
+        bool Success,
+        string? ErrorMessage,
+        byte[]? ZipBytes,
+        string? DownloadName
+    )> ExportPersonalDataAsync(
+        int userId
+    )
+    {
+        var user =
+            await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    existingUser =>
+                        existingUser.Id == userId);
+
+        if (user is null)
+        {
+            return (
+                false,
+                "User not found.",
+                null,
+                null
+            );
+        }
+
+        var applications =
+            await (
+                from application
+                    in _context.Applications
+
+                join job
+                    in _context.Jobs
+                    on application.JobId
+                    equals job.Id
+
+                where application.UserId == userId
+
+                orderby application.CreatedAt
+                    descending
+
+                select new
+                {
+                    application.Id,
+                    application.JobId,
+
+                    JobTitle =
+                        job.Title,
+
+                    CompanyId =
+                        job.CompanyId,
+
+                    JobLocation =
+                        job.Location,
+
+                    application.CoverLetter,
+                    application.Status,
+                    application.CreatedAt,
+
+                    HasCvFile =
+                        !string.IsNullOrWhiteSpace(
+                            application.CvFileUrl),
+
+                    HasCertificateFile =
+                        !string.IsNullOrWhiteSpace(
+                            application.CertificateFileUrl),
+
+                    HasPortfolioFile =
+                        !string.IsNullOrWhiteSpace(
+                            application.PortfolioFileUrl)
+                }
+            )
+            .AsNoTracking()
+            .ToListAsync();
+
+        var skills =
+            await (
+                from userSkill
+                    in _context.UserSkills
+
+                join skill
+                    in _context.Skills
+                    on userSkill.SkillId
+                    equals skill.Id
+
+                where userSkill.UserId == userId
+
+                orderby skill.Name
+
+                select new
+                {
+                    skill.Id,
+                    skill.Name
+                }
+            )
+            .AsNoTracking()
+            .ToListAsync();
+
+        var enrollments =
+            await (
+                from enrollment
+                    in _context.Enrollments
+
+                join course
+                    in _context.Courses
+                    on enrollment.CourseId
+                    equals course.Id
+
+                where enrollment.UserId == userId
+
+                orderby enrollment.EnrolledAt
+                    descending
+
+                select new
+                {
+                    enrollment.Id,
+                    enrollment.CourseId,
+
+                    CourseTitle =
+                        course.Title,
+
+                    enrollment.EnrolledAt,
+                    enrollment.IsCompleted
+                }
+            )
+            .AsNoTracking()
+            .ToListAsync();
+
+        var lessonProgress =
+            await (
+                from progress
+                    in _context.LessonProgresses
+
+                join lesson
+                    in _context.Lessons
+                    on progress.LessonId
+                    equals lesson.Id
+
+                where progress.UserId == userId
+
+                orderby progress.CompletedAt
+                    descending
+
+                select new
+                {
+                    progress.Id,
+                    progress.LessonId,
+
+                    LessonTitle =
+                        lesson.Title,
+
+                    progress.CompletedAt
+                }
+            )
+            .AsNoTracking()
+            .ToListAsync();
+
+        var careerGoals =
+            await (
+                from userCareerGoal
+                    in _context.UserCareerGoals
+
+                join careerGoal
+                    in _context.CareerGoals
+                    on userCareerGoal.CareerGoalId
+                    equals careerGoal.Id
+
+                where userCareerGoal.UserId == userId
+
+                orderby userCareerGoal.StartedAt
+                    descending
+
+                select new
+                {
+                    userCareerGoal.Id,
+                    userCareerGoal.CareerGoalId,
+                    careerGoal.Name,
+                    careerGoal.Description,
+                    careerGoal.DurationMonths,
+                    userCareerGoal.StartedAt
+                }
+            )
+            .AsNoTracking()
+            .ToListAsync();
+
+        var companyMemberships =
+            await (
+                from membership
+                    in _context.CompanyMembers
+
+                join company
+                    in _context.Companies
+                    on membership.CompanyId
+                    equals company.Id
+
+                where membership.UserId == userId
+
+                orderby membership.JoinedAt
+                    descending
+
+                select new
+                {
+                    membership.Id,
+                    membership.CompanyId,
+
+                    CompanyName =
+                        company.Name,
+
+                    membership.Role,
+                    membership.JoinedAt
+                }
+            )
+            .AsNoTracking()
+            .ToListAsync();
+
+        var exportCreatedAt =
+            DateTime.UtcNow;
+
+        var personalData = new
+        {
+            ExportInformation = new
+            {
+                ExportedAtUtc =
+                    exportCreatedAt,
+
+                Application =
+                    "SkillJob AI",
+
+                FormatVersion = 1
+            },
+
+            Profile = new
+            {
+                user.Id,
+                user.FullName,
+                user.Email,
+                user.Role,
+                user.PhoneNumber,
+                user.Location,
+                user.Headline,
+                user.About,
+                user.LinkedInUrl,
+                user.GithubUrl,
+                user.Website,
+                user.CreatedAt,
+
+                HasCv =
+                    !string.IsNullOrWhiteSpace(
+                        user.CvUrl),
+
+                HasProfileImage =
+                    !string.IsNullOrWhiteSpace(
+                        user.ProfileImageUrl)
+            },
+
+            Applications =
+                applications,
+
+            Skills =
+                skills,
+
+            Enrollments =
+                enrollments,
+
+            LessonProgress =
+                lessonProgress,
+
+            CareerGoals =
+                careerGoals,
+
+            CompanyMemberships =
+                companyMemberships
+        };
+
+        var jsonOptions =
+            new JsonSerializerOptions
+            {
+                WriteIndented = true,
+
+                PropertyNamingPolicy =
+                    JsonNamingPolicy.CamelCase,
+
+                DefaultIgnoreCondition =
+                    JsonIgnoreCondition
+                        .WhenWritingNull
+            };
+
+        await using var memoryStream =
+            new MemoryStream();
+
+        using (
+            var archive =
+                new ZipArchive(
+                    memoryStream,
+                    ZipArchiveMode.Create,
+                    leaveOpen: true)
+        )
+        {
+            var jsonEntry =
+                archive.CreateEntry(
+                    "personal-data.json",
+                    CompressionLevel.Optimal);
+
+            await using (
+                var jsonStream =
+                    jsonEntry.Open()
+            )
+            {
+                await JsonSerializer
+                    .SerializeAsync(
+                        jsonStream,
+                        personalData,
+                        jsonOptions);
+            }
+
+            var profileCvPath =
+                ResolveStoredCvPath(
+                    user.CvUrl);
+
+            AddFileToArchiveIfExists(
+                archive,
+                profileCvPath,
+                "files/profile/cv.pdf"
+            );
+
+            var profileImagePath =
+                ResolvePublicFilePath(
+                    user.ProfileImageUrl);
+
+            if (profileImagePath is not null)
+            {
+                var extension =
+                    Path.GetExtension(
+                        profileImagePath);
+
+                if (string.IsNullOrWhiteSpace(
+                        extension))
+                {
+                    extension = ".bin";
+                }
+
+                AddFileToArchiveIfExists(
+                    archive,
+                    profileImagePath,
+                    "files/profile/" +
+                    $"profile-image{extension}"
+                );
+            }
+
+            var applicationFiles =
+                await _context.Applications
+                    .AsNoTracking()
+                    .Where(application =>
+                        application.UserId == userId)
+                    .Select(application => new
+                    {
+                        application.Id,
+                        application.CvFileUrl,
+                        application.CertificateFileUrl,
+                        application.PortfolioFileUrl
+                    })
+                    .ToListAsync();
+
+            foreach (
+                var application
+                in applicationFiles
+            )
+            {
+                var applicationFolder =
+                    "files/applications/" +
+                    application.Id;
+
+                AddFileToArchiveIfExists(
+                    archive,
+                    ResolveApplicationFilePath(
+                        application.CvFileUrl),
+                    $"{applicationFolder}/cv.pdf"
+                );
+
+                AddFileToArchiveIfExists(
+                    archive,
+                    ResolveApplicationFilePath(
+                        application.CertificateFileUrl),
+                    $"{applicationFolder}/certificate.pdf"
+                );
+
+                AddFileToArchiveIfExists(
+                    archive,
+                    ResolveApplicationFilePath(
+                        application.PortfolioFileUrl),
+                    $"{applicationFolder}/portfolio.pdf"
+                );
+            }
+        }
+
+        var fileName =
+            "skilljobai-data-export-" +
+            $"{exportCreatedAt:yyyy-MM-dd-HHmmss}.zip";
+
+        return (
+            true,
+            null,
+            memoryStream.ToArray(),
+            fileName
+        );
+    }
+
+    public async Task<(
+        bool Success,
+        string? ErrorMessage
+    )> DeleteAccountAsync(
+        int userId,
+        DeleteAccountRequest request
+    )
+    {
+        if (!request.ConfirmDeletion)
+        {
+            return (
+                false,
+                "Account deletion was not confirmed."
+            );
+        }
+
+        if (string.IsNullOrWhiteSpace(
+                request.Password))
+        {
+            return (
+                false,
+                "Password is required."
+            );
+        }
+
+        var user =
+            await _context.Users
+                .FirstOrDefaultAsync(
+                    existingUser =>
+                        existingUser.Id == userId);
+
+        if (user is null)
+        {
+            return (
+                false,
+                "User not found."
+            );
+        }
+
+        if (string.Equals(
+                user.Role,
+                AppRoles.Admin,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return (
+                false,
+                "Administrator accounts cannot be deleted through the profile page."
+            );
+        }
+
+        var passwordIsValid =
+            _passwordService.VerifyPassword(
+                request.Password,
+                user.PasswordHash);
+
+        if (!passwordIsValid)
+        {
+            return (
+                false,
+                "The entered password is incorrect."
+            );
+        }
+
+        /*
+         * Die Dateipfade werden vor dem Löschen
+         * der Datenbankeinträge ermittelt.
+         */
+        var profileCvPath =
+            ResolveStoredCvPath(
+                user.CvUrl);
+
+        var profileImagePath =
+            ResolvePublicFilePath(
+                user.ProfileImageUrl);
+
+        var applications =
+            await _context.Applications
+                .Where(application =>
+                    application.UserId == userId)
+                .ToListAsync();
+
+        var applicationFilePaths =
+            applications
+                .SelectMany(application =>
+                    new[]
+                    {
+                        ResolveApplicationFilePath(
+                            application.CvFileUrl),
+
+                        ResolveApplicationFilePath(
+                            application.CertificateFileUrl),
+
+                        ResolveApplicationFilePath(
+                            application.PortfolioFileUrl)
+                    })
+                .Where(path =>
+                    !string.IsNullOrWhiteSpace(path))
+                .Select(path => path!)
+                .Distinct(
+                    StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+        var lessonProgresses =
+            await _context.LessonProgresses
+                .Where(progress =>
+                    progress.UserId == userId)
+                .ToListAsync();
+
+        var enrollments =
+            await _context.Enrollments
+                .Where(enrollment =>
+                    enrollment.UserId == userId)
+                .ToListAsync();
+
+        var userSkills =
+            await _context.UserSkills
+                .Where(userSkill =>
+                    userSkill.UserId == userId)
+                .ToListAsync();
+
+        var userCareerGoals =
+            await _context.UserCareerGoals
+                .Where(userCareerGoal =>
+                    userCareerGoal.UserId == userId)
+                .ToListAsync();
+
+        var companyMemberships =
+            await _context.CompanyMembers
+                .Where(companyMember =>
+                    companyMember.UserId == userId)
+                .ToListAsync();
+
+        var passwordResetTokens =
+            await _context.PasswordResetTokens
+                .Where(token =>
+                    token.UserId == userId)
+                .ToListAsync();
+
+        var refreshTokens =
+            await _context.RefreshTokens
+                .Where(token =>
+                    token.UserId == userId)
+                .ToListAsync();
+
+        await using var transaction =
+            await _context.Database
+                .BeginTransactionAsync();
+
+        try
+        {
+            _context.LessonProgresses
+                .RemoveRange(
+                    lessonProgresses);
+
+            _context.Enrollments
+                .RemoveRange(
+                    enrollments);
+
+            _context.UserSkills
+                .RemoveRange(
+                    userSkills);
+
+            _context.UserCareerGoals
+                .RemoveRange(
+                    userCareerGoals);
+
+            _context.CompanyMembers
+                .RemoveRange(
+                    companyMemberships);
+
+            _context.PasswordResetTokens
+                .RemoveRange(
+                    passwordResetTokens);
+
+            _context.RefreshTokens
+                .RemoveRange(
+                    refreshTokens);
+
+            _context.Applications
+                .RemoveRange(
+                    applications);
+
+            _context.Users.Remove(user);
+
+            await _context.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+        }
+        catch (Exception exception)
+        {
+            await transaction.RollbackAsync();
+
+            _logger.LogError(
+                exception,
+                "Fehler beim Löschen des Benutzerkontos. UserId: {UserId}",
+                userId);
+
+            throw;
+        }
+
+        /*
+         * Dateien werden erst nach erfolgreichem
+         * Datenbank-Commit entfernt.
+         */
+        DeleteFileIfExistsSafely(
+            profileCvPath);
+
+        DeleteFileIfExistsSafely(
+            profileImagePath);
+
+        foreach (
+            var applicationFilePath
+            in applicationFilePaths
+        )
+        {
+            DeleteFileIfExistsSafely(
+                applicationFilePath);
+        }
+
+        _logger.LogInformation(
+            "Benutzerkonto vollständig gelöscht. UserId: {UserId}",
+            userId);
+
+        return (
+            true,
+            null
+        );
+    }
+
     private static string?
         NormalizeOptionalValue(
             string? value
@@ -605,7 +1251,8 @@ public class UserService : IUserService
                 user.Website
                 ?? string.Empty,
 
-            CreatedAt = user.CreatedAt
+            CreatedAt =
+                user.CreatedAt
         };
     }
 
@@ -649,18 +1296,21 @@ public class UserService : IUserService
     }
 
     private string? ResolveStoredCvPath(
-        string storedPath
+        string? storedPath
     )
     {
+        if (string.IsNullOrWhiteSpace(
+                storedPath))
+        {
+            return null;
+        }
+
         /*
          * Neue CVs:
          * profile-cv/datei.pdf
          *
          * Alte CVs:
          * /uploads/cv/datei.pdf
-         *
-         * Alte Dateien werden nur aus Gründen
-         * der Rückwärtskompatibilität gelesen.
          */
 
         if (storedPath.StartsWith(
@@ -678,6 +1328,69 @@ public class UserService : IUserService
         return ResolveSafePath(
             GetPrivateUploadRootPath(),
             storedPath);
+    }
+
+    private string? ResolvePublicFilePath(
+        string? fileUrl
+    )
+    {
+        if (string.IsNullOrWhiteSpace(
+                fileUrl))
+        {
+            return null;
+        }
+
+        return ResolveSafePath(
+            GetWebRootPath(),
+            fileUrl);
+    }
+
+    private string? ResolveApplicationFilePath(
+        string? storedPath
+    )
+    {
+        if (string.IsNullOrWhiteSpace(
+                storedPath))
+        {
+            return null;
+        }
+
+        var normalizedStoredPath =
+            storedPath
+                .TrimStart('/', '\\')
+                .Replace(
+                    '\\',
+                    '/');
+
+        /*
+         * Neue Bewerbungsdateien:
+         *
+         * private_uploads/applications/...
+         */
+        if (normalizedStoredPath.StartsWith(
+                "private_uploads/",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return ResolveSafePath(
+                _environment.ContentRootPath,
+                normalizedStoredPath);
+        }
+
+        /*
+         * Unterstützung für ältere Dateien:
+         *
+         * uploads/...
+         */
+        if (normalizedStoredPath.StartsWith(
+                "uploads/",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return ResolveSafePath(
+                GetWebRootPath(),
+                normalizedStoredPath);
+        }
+
+        return null;
     }
 
     private void DeleteStoredCvFile(
@@ -713,8 +1426,7 @@ public class UserService : IUserService
         }
 
         var filePath =
-            ResolveSafePath(
-                GetWebRootPath(),
+            ResolvePublicFilePath(
                 fileUrl);
 
         if (filePath is null)
@@ -722,7 +1434,57 @@ public class UserService : IUserService
             return;
         }
 
-        DeleteFileIfExists(filePath);
+        DeleteFileIfExists(
+            filePath);
+    }
+
+    private static void AddFileToArchiveIfExists(
+        ZipArchive archive,
+        string? sourceFilePath,
+        string archiveEntryName
+    )
+    {
+        if (string.IsNullOrWhiteSpace(
+                sourceFilePath) ||
+            !File.Exists(sourceFilePath))
+        {
+            return;
+        }
+
+        archive.CreateEntryFromFile(
+            sourceFilePath,
+            archiveEntryName,
+            CompressionLevel.Optimal);
+    }
+
+    private void DeleteFileIfExistsSafely(
+        string? filePath
+    )
+    {
+        if (string.IsNullOrWhiteSpace(
+                filePath))
+        {
+            return;
+        }
+
+        try
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+        catch (Exception exception)
+        {
+            /*
+             * Die Datenbanklöschung ist zu diesem
+             * Zeitpunkt bereits abgeschlossen.
+             */
+            _logger.LogError(
+                exception,
+                "Datei konnte nach der Kontolöschung nicht entfernt werden: {FilePath}",
+                filePath);
+        }
     }
 
     private static string? ResolveSafePath(
@@ -731,7 +1493,8 @@ public class UserService : IUserService
     )
     {
         var normalizedRoot =
-            Path.GetFullPath(allowedRoot);
+            Path.GetFullPath(
+                allowedRoot);
 
         var normalizedRelativePath =
             relativePath

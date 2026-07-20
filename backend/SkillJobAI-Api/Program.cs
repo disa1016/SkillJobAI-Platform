@@ -266,7 +266,11 @@ builder.Services.AddCors(options =>
                     "http://localhost:5173",
                     "https://skill-job-ai-platform.vercel.app")
                 .AllowAnyHeader()
-                .AllowAnyMethod();
+                .AllowAnyMethod()
+
+                // Erforderlich, damit der Browser
+                // das HttpOnly-Cookie senden darf.
+                .AllowCredentials();
         });
 });
 

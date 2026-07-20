@@ -1,43 +1,38 @@
 <script setup>
 import { ref } from "vue";
-import { useRouter } from "vue-router";
-import { resetPassword } from "@/services/authService";
+import { forgotPassword } from "@/services/authService";
 import BaseAlert from "@/components/shared/BaseAlert.vue";
 
-const router = useRouter();
-
 const email = ref("");
-const newPassword = ref("");
 
 const loading = ref(false);
 const error = ref("");
 const success = ref("");
 
-const handleResetPassword = async () => {
+const handleForgotPassword = async () => {
   error.value = "";
   success.value = "";
   loading.value = true;
 
   try {
-    await resetPassword({
-      email: email.value,
-      newPassword: newPassword.value,
+    const data = await forgotPassword({
+      email: email.value.trim(),
     });
 
-    success.value = "Passwort wurde erfolgreich geändert.";
+    success.value =
+      data?.message ||
+      "Falls ein Konto mit dieser E-Mail-Adresse existiert, wurde eine E-Mail zum Zurücksetzen des Passworts versendet.";
 
-    setTimeout(() => {
-      router.push("/login");
-    }, 1200);
+    email.value = "";
   } catch (err) {
     error.value =
-      err.response?.data?.message || "Passwort konnte nicht geändert werden.";
+      err.response?.data?.message ||
+      "Die Anfrage konnte nicht verarbeitet werden.";
   } finally {
     loading.value = false;
   }
 };
 </script>
-
 <template>
   <div class="container min-vh-100 d-flex align-items-center justify-content-center">
     <div class="card shadow p-4" style="max-width: 460px; width: 100%">
@@ -45,46 +40,24 @@ const handleResetPassword = async () => {
         Passwort vergessen
       </h2>
 
-      <BaseAlert
-        type="danger"
-        :message="error"
-      />
+      <BaseAlert type="danger" :message="error" />
 
-      <BaseAlert
-        type="success"
-        :message="success"
-      />
+      <BaseAlert type="success" :message="success" />
 
       <form @submit.prevent="handleResetPassword">
         <div class="mb-3">
           <label class="form-label">E-Mail</label>
 
-          <input
-            v-model="email"
-            type="email"
-            class="form-control"
-            autocomplete="email"
-            required
-          />
+          <input v-model="email" type="email" class="form-control" autocomplete="email" required />
         </div>
 
         <div class="mb-3">
           <label class="form-label">Neues Passwort</label>
 
-          <input
-            v-model="newPassword"
-            type="password"
-            class="form-control"
-            autocomplete="new-password"
-            required
-          />
+          <input v-model="newPassword" type="password" class="form-control" autocomplete="new-password" required />
         </div>
 
-        <button
-          type="submit"
-          class="btn btn-primary w-100"
-          :disabled="loading"
-        >
+        <button type="submit" class="btn btn-primary w-100" :disabled="loading">
           {{ loading ? "Bitte warten..." : "Passwort zurücksetzen" }}
         </button>
       </form>

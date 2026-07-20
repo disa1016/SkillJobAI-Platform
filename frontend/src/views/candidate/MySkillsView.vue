@@ -122,25 +122,38 @@ onMounted(loadData);
                 </div>
             </div>
 
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5>Aktuelle Skills</h5>
+         <div class="card shadow-sm">
+    <div class="card-body">
+        <h5>Aktuelle Skills</h5>
 
-                    <ul v-if="hasMySkills" class="list-group">
-                        <li v-for="skill in mySkills" :key="skill.id"
-                            class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>{{ skill.name }}</span>
+        <ul
+            v-if="hasMySkills"
+            class="list-group"
+        >
+            <li
+                v-for="skill in mySkills"
+                :key="skill.id"
+                class="list-group-item d-flex justify-content-between align-items-center"
+            >
+                <span>{{ skill.name }}</span>
 
-                            <button type="button" class="btn btn-sm btn-outline-danger" :disabled="updating"
-                                @click="removeSkill(skill.id)">
-                                Entfernen
-                            </button>
-                        </li>
-                    </ul>
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    :disabled="updating"
+                    @click="removeSkill(skill.id)"
+                >
+                    Entfernen
+                </button>
+            </li>
+        </ul>
 
-                    <BaseEmptyState message="Du hast noch keine Skills hinzugefügt." />
-                </div>
-            </div>
+        <BaseEmptyState
+            v-else
+            message="Du hast noch keine Skills hinzugefügt."
+        />
+    </div>
+</div>
         </template>
     </div>
 </template>

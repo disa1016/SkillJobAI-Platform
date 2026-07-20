@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 
+import { refreshSession } from "@/services/authService";
 // Public
 import LandingView from "@/views/public/LandingView.vue";
 import ContactView from "@/views/public/ContactView.vue";
@@ -18,6 +19,9 @@ import ProfileView from "@/views/candidate/ProfileView.vue";
 import MySkillsView from "@/views/candidate/MySkillsView.vue";
 import MyApplicationsView from "@/views/candidate/MyApplicationsView.vue";
 import CareerRoadmapView from "@/views/candidate/CareerRoadmapView.vue";
+
+// Account
+import AccountSettingsView from "@/views/account/AccountSettingsView.vue";
 
 // Courses
 import CoursesView from "@/views/courses/CoursesView.vue";
@@ -63,42 +67,192 @@ const routes = [
 
   { path: "/login", name: "Login", component: LoginView },
   { path: "/register", name: "Register", component: RegisterView },
-  { path: "/forgot-password", name: "ForgotPassword", component: ForgotPasswordView },
+  {
+    path: "/forgot-password",
+    name: "ForgotPassword",
+    component: ForgotPasswordView,
+  },
 
-  { path: "/dashboard", name: "Dashboard", component: DashboardView, meta: { requiresAuth: true } },
-  { path: "/profile", name: "Profile", component: ProfileView, meta: { requiresAuth: true } },
-  { path: "/profile/skills", name: "MySkills", component: MySkillsView, meta: { requiresAuth: true } },
-  { path: "/my-applications", name: "MyApplications", component: MyApplicationsView, meta: { requiresAuth: true } },
-  { path: "/career-roadmap", name: "CareerRoadmap", component: CareerRoadmapView, meta: { requiresAuth: true } },
+  {
+    path: "/dashboard",
+    name: "Dashboard",
+    component: DashboardView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/profile",
+    name: "Profile",
+    component: ProfileView,
+    meta: { requiresAuth: true },
+  },
+  {
+  path: "/account",
+  name: "AccountSettings",
+  component: AccountSettingsView,
+  meta: { requiresAuth: true },
+},
+  {
+    path: "/profile/skills",
+    name: "MySkills",
+    component: MySkillsView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/my-applications",
+    name: "MyApplications",
+    component: MyApplicationsView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/career-roadmap",
+    name: "CareerRoadmap",
+    component: CareerRoadmapView,
+    meta: { requiresAuth: true },
+  },
 
-  { path: "/courses", name: "Courses", component: CoursesView, meta: { requiresAuth: true } },
-  { path: "/courses/:id", name: "CourseDetails", component: CourseDetailsView, meta: { requiresAuth: true } },
+  {
+    path: "/courses",
+    name: "Courses",
+    component: CoursesView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/courses/:id",
+    name: "CourseDetails",
+    component: CourseDetailsView,
+    meta: { requiresAuth: true },
+  },
 
-  { path: "/jobs", name: "Jobs", component: JobsView, meta: { requiresAuth: true } },
-  { path: "/jobs/:id", name: "JobDetails", component: JobDetailsView, meta: { requiresAuth: true } },
-  { path: "/jobs/:id/skill-gap", name: "SkillGap", component: SkillGapView, meta: { requiresAuth: true } },
+  {
+    path: "/jobs",
+    name: "Jobs",
+    component: JobsView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/jobs/:id",
+    name: "JobDetails",
+    component: JobDetailsView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/jobs/:id/skill-gap",
+    name: "SkillGap",
+    component: SkillGapView,
+    meta: { requiresAuth: true },
+  },
 
-  { path: "/companies", name: "Companies", component: CompaniesView, meta: { requiresAuth: true } },
-  { path: "/companies/:id", name: "CompanyDetail", component: CompanyDetailView, meta: { requiresAuth: true } },
+  {
+    path: "/companies",
+    name: "Companies",
+    component: CompaniesView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/companies/:id",
+    name: "CompanyDetail",
+    component: CompanyDetailView,
+    meta: { requiresAuth: true },
+  },
 
-  { path: "/ai/cv-analyzer", name: "CvAnalyzer", component: CvAnalyzerView, meta: { requiresAuth: true } },
-  { path: "/ai/job-match", name: "JobMatch", component: JobMatchView, meta: { requiresAuth: true } },
-  { path: "/ai/job-recommendations", name: "JobRecommendations", component: JobRecommendationsView, meta: { requiresAuth: true } },
-  { path: "/ai/cover-letter", name: "CoverLetter", component: CoverLetterView, meta: { requiresAuth: true } },
+  {
+    path: "/ai/cv-analyzer",
+    name: "CvAnalyzer",
+    component: CvAnalyzerView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/ai/job-match",
+    name: "JobMatch",
+    component: JobMatchView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/ai/job-recommendations",
+    name: "JobRecommendations",
+    component: JobRecommendationsView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/ai/cover-letter",
+    name: "CoverLetter",
+    component: CoverLetterView,
+    meta: { requiresAuth: true },
+  },
 
-  { path: "/recruiter/dashboard", name: "RecruiterDashboard", component: RecruiterDashboardView, meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] } },
-  { path: "/recruiter/jobs", name: "RecruiterJobs", component: RecruiterJobsView, meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] } },
-  { path: "/recruiter/jobs/create", name: "CreateRecruiterJob", component: CreateRecruiterJobView, meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] } },
-  { path: "/recruiter/jobs/edit/:id", name: "EditRecruiterJob", component: EditRecruiterJobView, meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] } },
-  { path: "/recruiter/applications", name: "RecruiterApplications", component: RecruiterApplicationsView, meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] } },
-  { path: "/recruiter/applications/:id", name: "RecruiterApplicationDetails", component: RecruiterApplicationDetailsView, meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] } },
-  { path: "/recruiter/candidates", name: "RecruiterCandidates", component: RecruiterCandidatesView, meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] } },
-  { path: "/recruiter/candidates/:id", name: "RecruiterCandidateDetails", component: RecruiterCandidateDetailsView, meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] } },
+  {
+    path: "/recruiter/dashboard",
+    name: "RecruiterDashboard",
+    component: RecruiterDashboardView,
+    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
+  },
+  {
+    path: "/recruiter/jobs",
+    name: "RecruiterJobs",
+    component: RecruiterJobsView,
+    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
+  },
+  {
+    path: "/recruiter/jobs/create",
+    name: "CreateRecruiterJob",
+    component: CreateRecruiterJobView,
+    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
+  },
+  {
+    path: "/recruiter/jobs/edit/:id",
+    name: "EditRecruiterJob",
+    component: EditRecruiterJobView,
+    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
+  },
+  {
+    path: "/recruiter/applications",
+    name: "RecruiterApplications",
+    component: RecruiterApplicationsView,
+    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
+  },
+  {
+    path: "/recruiter/applications/:id",
+    name: "RecruiterApplicationDetails",
+    component: RecruiterApplicationDetailsView,
+    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
+  },
+  {
+    path: "/recruiter/candidates",
+    name: "RecruiterCandidates",
+    component: RecruiterCandidatesView,
+    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
+  },
+  {
+    path: "/recruiter/candidates/:id",
+    name: "RecruiterCandidateDetails",
+    component: RecruiterCandidateDetailsView,
+    meta: { requiresAuth: true, roles: ["Recruiter", "Admin"] },
+  },
 
-  { path: "/admin/dashboard", name: "AdminDashboard", component: AdminDashboardView, meta: { requiresAuth: true, roles: ["Admin"] } },
-  { path: "/admin/users", name: "AdminUsers", component: AdminUsersView, meta: { requiresAuth: true, roles: ["Admin"] } },
-  { path: "/admin/companies", name: "AdminCompanies", component: AdminCompaniesView, meta: { requiresAuth: true, roles: ["Admin"] } },
-  { path: "/admin/company-members", name: "AdminCompanyMembers", component: AdminCompanyMembersView, meta: { requiresAuth: true, roles: ["Admin"] } },
+  {
+    path: "/admin/dashboard",
+    name: "AdminDashboard",
+    component: AdminDashboardView,
+    meta: { requiresAuth: true, roles: ["Admin"] },
+  },
+  {
+    path: "/admin/users",
+    name: "AdminUsers",
+    component: AdminUsersView,
+    meta: { requiresAuth: true, roles: ["Admin"] },
+  },
+  {
+    path: "/admin/companies",
+    name: "AdminCompanies",
+    component: AdminCompaniesView,
+    meta: { requiresAuth: true, roles: ["Admin"] },
+  },
+  {
+    path: "/admin/company-members",
+    name: "AdminCompanyMembers",
+    component: AdminCompanyMembersView,
+    meta: { requiresAuth: true, roles: ["Admin"] },
+  },
 
   { path: "/:pathMatch(.*)*", name: "NotFound", component: NotFoundView },
 ];
@@ -114,30 +268,56 @@ const getRedirectPathByRole = (role) => {
   return "/dashboard";
 };
 
-router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+router.beforeEach(async (to) => {
+  let token = localStorage.getItem("token");
+
+  let user = JSON.parse(localStorage.getItem("user") || "null");
+
+  /*
+   * Ist kein Access Token vorhanden, kann eventuell
+   * noch eine gültige HttpOnly-Cookie-Sitzung bestehen.
+   */
+  if (!token && to.meta.requiresAuth) {
+    try {
+      const session = await refreshSession();
+
+      token = session.token;
+      user = session.user;
+    } catch {
+      return {
+        path: "/login",
+        query: {
+          redirect: to.fullPath,
+        },
+      };
+    }
+  }
 
   if (to.path === "/" && token) {
-    return next(getRedirectPathByRole(user?.role));
+    return getRedirectPathByRole(user?.role);
   }
 
   if (to.meta.requiresAuth && !token) {
-    return next("/login");
+    return {
+      path: "/login",
+      query: {
+        redirect: to.fullPath,
+      },
+    };
   }
 
   if (to.meta.roles && !to.meta.roles.includes(user?.role)) {
-    return next(getRedirectPathByRole(user?.role));
+    return getRedirectPathByRole(user?.role);
   }
 
   if (
     to.path === "/dashboard" &&
     (user?.role === "Recruiter" || user?.role === "Admin")
   ) {
-    return next(getRedirectPathByRole(user.role));
+    return getRedirectPathByRole(user.role);
   }
 
-  next();
+  return true;
 });
 
 export default router;

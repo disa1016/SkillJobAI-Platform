@@ -1054,3 +1054,67 @@ a {
         width: 100%;
     }
 }
+
+/* ========================================
+   Admin Companies View
+======================================== */
+
+.admin-companies-view .company-logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+}
+
+.admin-companies-view .logo-upload-panel {
+    padding: 24px;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+}
+
+.admin-companies-view .logo-preview-container {
+    min-height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow: hidden;
+    border: 1px dashed #ced4da;
+    border-radius: 12px;
+    background: #f8f9fa;
+}
+
+.admin-companies-view .logo-preview {
+    display: block;
+    width: 100%;
+    max-width: 220px;
+    max-height: 220px;
+    object-fit: contain;
+}
+
+.admin-companies-view .logo-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 90px;
+    height: 90px;
+    margin-inline: auto;
+    border: 2px dashed #adb5bd;
+    border-radius: 50%;
+    font-weight: 600;
+}
+
+.admin-companies-view .delete-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.admin-companies-view .delete-dialog {
+    width: 100%;
+    max-width: 500px;
+}

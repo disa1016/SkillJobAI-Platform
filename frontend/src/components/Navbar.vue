@@ -1,31 +1,66 @@
 <script setup>
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
+import {
+  logout as logoutUser,
+} from "@/services/authService";
 
 const router = useRouter();
 
-const user = ref(JSON.parse(localStorage.getItem("user") || "null"));
+const user = ref(
+  JSON.parse(
+    localStorage.getItem("user") || "null"
+  )
+);
 
-const isAdmin = computed(() => user.value?.role === "Admin");
-const isRecruiter = computed(() => user.value?.role === "Recruiter");
+const logoutLoading = ref(false);
+
+const isAdmin = computed(
+  () => user.value?.role === "Admin"
+);
+
+const isRecruiter = computed(
+  () => user.value?.role === "Recruiter"
+);
+
 const isCandidate = computed(
-  () => user.value?.role === "Candidate" || user.value?.role === "Student"
+  () =>
+    user.value?.role === "Candidate" ||
+    user.value?.role === "Student"
 );
 
 const homePath = computed(() => {
-  if (!user.value) return "/home";
-  if (isAdmin.value) return "/admin/dashboard";
-  if (isRecruiter.value) return "/recruiter/dashboard";
+  if (!user.value) {
+    return "/home";
+  }
+
+  if (isAdmin.value) {
+    return "/admin/dashboard";
+  }
+
+  if (isRecruiter.value) {
+    return "/recruiter/dashboard";
+  }
+
   return "/dashboard";
 });
 
-const logout = () => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
+const logout = async () => {
+  if (logoutLoading.value) {
+    return;
+  }
 
-  user.value = null;
+  logoutLoading.value = true;
 
-  router.push("/login");
+  try {
+    await logoutUser();
+
+    user.value = null;
+
+    await router.replace("/login");
+  } finally {
+    logoutLoading.value = false;
+  }
 };
 </script>
 
@@ -177,8 +212,12 @@ const logout = () => {
                 </li>
 
                 <li>
-                  <button class="dropdown-item text-danger" @click="logout">
-                    Logout
+                  <button class="dropdown-item text-danger" type="button" :disabled="logoutLoading" @click="logout">
+                    {{
+                      logoutLoading
+                        ? "Abmeldung..."
+                    : "Logout"
+                    }}
                   </button>
                 </li>
               </ul>

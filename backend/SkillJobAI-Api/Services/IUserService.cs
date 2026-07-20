@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using SkillJobAI.Api.Models;
 using SkillJobAI.Api.Models.Responses;
 
@@ -5,7 +6,9 @@ namespace SkillJobAI.Api.Services;
 
 public interface IUserService
 {
-    Task<UserResponse?> GetProfileAsync(int userId);
+    Task<UserResponse?> GetProfileAsync(
+        int userId
+    );
 
     Task<UserResponse?> UpdateProfileAsync(
         int userId,
@@ -21,7 +24,16 @@ public interface IUserService
         IFormFile file
     );
 
-    Task<bool> DeleteCvAsync(int userId);
+    Task<(
+        string FilePath,
+        string DownloadName
+    )?> GetCvDownloadAsync(
+        int userId
+    );
+
+    Task<bool> DeleteCvAsync(
+        int userId
+    );
 
     Task<(
         bool Success,
@@ -32,14 +44,29 @@ public interface IUserService
         IFormFile file
     );
 
-    Task<bool> DeleteProfileImageAsync(int userId);
+    Task<bool> DeleteProfileImageAsync(
+        int userId
+    );
 
     Task<UserResponse?> UpdateUserRoleAsync(
         int id,
         UpdateUserRoleRequest request
     );
-Task<(string FilePath, string DownloadName)?> GetCvDownloadAsync(
-    int userId
-);
-    
+
+    Task<(
+        bool Success,
+        string? ErrorMessage,
+        byte[]? ZipBytes,
+        string? DownloadName
+    )> ExportPersonalDataAsync(
+        int userId
+    );
+
+    Task<(
+        bool Success,
+        string? ErrorMessage
+    )> DeleteAccountAsync(
+        int userId,
+        DeleteAccountRequest request
+    );
 }

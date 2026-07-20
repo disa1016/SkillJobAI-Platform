@@ -1,9 +1,10 @@
 <script setup>
 import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { login } from "@/services/authService";
 import BaseAlert from "@/components/shared/BaseAlert.vue";
 
+const route = useRoute();
 const router = useRouter();
 
 const email = ref("");
@@ -12,25 +13,59 @@ const password = ref("");
 const loading = ref(false);
 const error = ref("");
 
+const getHomePathByRole = (role) => {
+  if (role === "Admin") {
+    return "/admin/dashboard";
+  }
+
+  if (role === "Recruiter") {
+    return "/recruiter/dashboard";
+  }
+
+  return "/dashboard";
+};
+
+const getSafeRedirectPath = (user) => {
+  const requestedPath =
+    typeof route.query.redirect === "string"
+      ? route.query.redirect
+      : null;
+
+  /*
+   * Es werden nur interne relative Pfade erlaubt.
+   * Dadurch verhindern wir offene Weiterleitungen.
+   */
+  if (
+    requestedPath &&
+    requestedPath.startsWith("/") &&
+    !requestedPath.startsWith("//")
+  ) {
+    return requestedPath;
+  }
+
+  return getHomePathByRole(user?.role);
+};
+
 const handleLogin = async () => {
-    error.value = "";
-    loading.value = true;
+  error.value = "";
+  loading.value = true;
 
-    try {
-        const data = await login({
-            email: email.value,
-            password: password.value,
-        });
+  try {
+    const data = await login({
+      email: email.value,
+      password: password.value,
+    });
 
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-
-        router.push("/dashboard");
-    } catch {
-        error.value = "E-Mail oder Passwort ist falsch.";
-    } finally {
-        loading.value = false;
-    }
+    await router.replace(
+      getSafeRedirectPath(data.user)
+    );
+  } catch (err) {
+    error.value =
+      err.response?.data?.message ||
+      "E-Mail oder Passwort ist falsch.";
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
 
