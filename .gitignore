@@ -23,3 +23,26 @@ appsettings.Production.json
 **/TestResults/
 **/Logs/
 coveragereport/
+# Backend uploads
+backend/SkillJobAI-Api/private_uploads/
+backend/SkillJobAI-Api/wwwroot/uploads/
+
+# Frontend output
+frontend/dist/
+
+# Test output
+**/TestResults/
+**/coverage/
+**/coverage.cobertura.xml
+
+# Logs
+**/Logs/
+*.log
+
+# Local tooling
+.vscode/
+.idea/
+
+# Operating system
+.DS_Store
+Thumbs.db
