@@ -8,6 +8,9 @@ import {
 
 import api from "@/services/api";
 import BasePagination from "@/components/shared/BasePagination.vue";
+import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
+import BaseSpinner from "@/components/shared/BaseSpinner.vue";
+import PageHeader from "@/components/shared/PageHeader.vue";
 
 /*
 |--------------------------------------------------------------------------
@@ -857,470 +860,256 @@ onBeforeUnmount(() => {
 
 
 <template>
-    <div class="container py-4 admin-companies-view">
-        <!-- Firmenübersicht -->
+    <main class="container py-4">
         <template v-if="!showCreateForm">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-                <div>
-                    <h2 class="mb-1">
-                        Firmen verwalten
-                    </h2>
+            <PageHeader title="Firmen verwalten"
+                description="Firmen erstellen, bearbeiten, löschen und mit Logos verwalten.">
+                <template #actions>
+                    <div class="d-grid d-sm-flex gap-2">
+                        <button type="button" class="btn btn-primary" :disabled="loading" @click="openCreateForm">
+                            <i class="bi bi-plus-lg me-2" aria-hidden="true"></i>
+                            Neue Firma
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" :disabled="loading"
+                            @click="loadCompanies()">
+                            <span v-if="loading" class="spinner-border spinner-border-sm me-2"
+                                aria-hidden="true"></span>
+                            <i v-else class="bi bi-arrow-clockwise me-2" aria-hidden="true"></i>
+                            Aktualisieren
+                        </button>
+                    </div>
+                </template>
+            </PageHeader>
 
-                    <p class="text-muted mb-0">
-                        Firmen erstellen, bearbeiten und
-                        verwalten
-                    </p>
-                </div>
-
-                <div class="d-flex flex-wrap gap-2">
-                    <button type="button" class="btn btn-success" :disabled="loading" @click="openCreateForm">
-                        Neue Firma
-                    </button>
-
-                    <button type="button" class="btn btn-outline-primary" :disabled="loading" @click="loadCompanies()">
-                        <span v-if="loading" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-
-                        Aktualisieren
-                    </button>
-                </div>
-            </div>
-
-            <!-- Suche -->
-            <div class="card shadow-sm mb-4">
+            <div class="card border-0 shadow-sm mb-4">
                 <div class="card-body">
-                    <div class="row g-2 align-items-center">
-                        <div class="col-md">
-                            <input v-model="search" type="search" class="form-control" placeholder="Firma suchen..."
-                                :disabled="loading" @keyup.enter="
-                                    searchCompanies
-                                " />
+                    <form class="row g-2 align-items-end" @submit.prevent="searchCompanies">
+                        <div class="col-12 col-md">
+                            <label for="companySearch" class="form-label">Firma suchen</label>
+                            <input id="companySearch" v-model="search" type="search" class="form-control"
+                                placeholder="Name oder Standort" :disabled="loading" />
                         </div>
-
-                        <div class="col-md-auto">
-                            <div class="d-flex flex-wrap gap-2">
-                                <button type="button" class="btn btn-primary" :disabled="loading" @click="
-                                    searchCompanies
-                                ">
-                                    Suchen
-                                </button>
-
-                                <button type="button" class="btn btn-outline-secondary" :disabled="loading" @click="
-                                    clearSearch
-                                ">
+                        <div class="col-12 col-md-auto">
+                            <div class="d-grid d-sm-flex gap-2">
+                                <button type="submit" class="btn btn-primary" :disabled="loading">Suchen</button>
+                                <button type="button" class="btn btn-outline-secondary" :disabled="loading"
+                                    @click="clearSearch">
                                     Zurücksetzen
                                 </button>
                             </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
 
-            <!-- Meldungen -->
-            <div v-if="error" class="alert alert-danger" role="alert">
-                {{ error }}
-            </div>
+            <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div>
+            <div v-if="success" class="alert alert-success" role="alert">{{ success }}</div>
 
-            <div v-if="success" class="alert alert-success" role="alert">
-                {{ success }}
-            </div>
+            <BaseSpinner v-if="loading" message="Firmen werden geladen..." />
 
-            <div v-if="loading" class="alert alert-info d-flex align-items-center gap-2">
-                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-
-                Firmen werden geladen...
-            </div>
-
-            <!-- Tabelle -->
             <template v-else>
-                <p class="text-muted">
-                    {{ totalItems }} Firmen gefunden ·
-                    Seite {{ page }} von {{ totalPages }}
+                <p class="text-body-secondary mb-3">
+                    {{ totalItems }} Firmen gefunden · Seite {{ page }} von {{ totalPages }}
                 </p>
 
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped align-middle mb-0">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div v-if="hasCompanies" class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Logo</th>
-                                        <th>Name</th>
-                                        <th>Standort</th>
-                                        <th>Website</th>
-                                        <th>Jobs</th>
-                                        <th>Aktionen</th>
+                                        <th scope="col">ID</th>
+                                        <th scope="col">Logo</th>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">Standort</th>
+                                        <th scope="col">Website</th>
+                                        <th scope="col">Jobs</th>
+                                        <th scope="col" class="text-end">Aktionen</th>
                                     </tr>
                                 </thead>
-
                                 <tbody>
                                     <tr v-for="company in companies" :key="company.id">
+                                        <td>{{ company.id }}</td>
                                         <td>
-                                            {{ company.id }}
+                                            <img v-if="company.logoUrl" :src="getLogoSrc(company.logoUrl)"
+                                                :alt="`${company.name} Logo`" class="img-thumbnail" width="56"
+                                                height="56" />
+                                            <span v-else class="badge text-bg-light">Kein Logo</span>
                                         </td>
-
                                         <td>
-                                            <img v-if="
-                                                company.logoUrl
-                                            " :src="getLogoSrc(
-                                                    company.logoUrl
-                                                )
-                                                    " :alt="company.name
-                                                    " class="company-logo border rounded bg-light p-1" />
-
-                                            <span v-else class="text-muted small">
-                                                Kein Logo
-                                            </span>
+                                            <input v-model="company.name" type="text"
+                                                class="form-control form-control-sm" maxlength="100" />
                                         </td>
-
-                                        <td style="
-                                                min-width: 200px;
-                                            ">
-                                            <input v-model="company.name
-                                                " type="text" class="form-control form-control-sm" maxlength="100" />
-                                        </td>
-
-                                        <td style="
-                                                min-width: 180px;
-                                            ">
-                                            <input v-model="company.location
-                                                " type="text" class="form-control form-control-sm" maxlength="100" />
-                                        </td>
-
-                                        <td style="
-                                                min-width: 240px;
-                                            ">
-                                            <input v-model="company.websiteUrl
-                                                " type="text" class="form-control form-control-sm"
-                                                placeholder="https://example.com" @blur="
-                                                    company.websiteUrl =
-                                                    normalizeUrl(
-                                                        company.websiteUrl
-                                                    )
-                                                    " />
-                                        </td>
-
                                         <td>
-                                            {{
-                                                company.totalJobs ??
-                                                0
-                                            }}
+                                            <input v-model="company.location" type="text"
+                                                class="form-control form-control-sm" maxlength="100" />
                                         </td>
-
                                         <td>
-                                            <div class="d-flex flex-wrap gap-2">
-                                                <button type="button" class="btn btn-primary btn-sm" :disabled="updatingCompanyId ===
-                                                    company.id
-                                                    " @click="
-                                                        updateCompany(
-                                                            company
-                                                        )
-                                                        ">
-                                                    <span v-if="
-                                                        updatingCompanyId ===
-                                                        company.id
-                                                    " class="spinner-border spinner-border-sm me-2"
-                                                        aria-hidden="true"></span>
-
+                                            <input v-model="company.websiteUrl" type="text"
+                                                class="form-control form-control-sm" placeholder="https://example.com"
+                                                @blur="company.websiteUrl = normalizeUrl(company.websiteUrl)" />
+                                        </td>
+                                        <td>{{ company.totalJobs ?? 0 }}</td>
+                                        <td>
+                                            <div class="d-flex flex-column flex-xl-row justify-content-end gap-2">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                    :disabled="uploadingLogoCompanyId === company.id"
+                                                    @click="$refs[`logoInput-${company.id}`]?.click()">
+                                                    Logo wählen
+                                                </button>
+                                                <input :ref="`logoInput-${company.id}`" type="file" class="d-none"
+                                                    accept=".jpg,.jpeg,.png,.webp"
+                                                    @change="handleLogoSelected(company.id, $event)" />
+                                                <button type="button" class="btn btn-outline-primary btn-sm"
+                                                    :disabled="!selectedFiles[company.id] || uploadingLogoCompanyId === company.id"
+                                                    @click="uploadLogo(company)">
+                                                    Logo hochladen
+                                                </button>
+                                                <button type="button" class="btn btn-primary btn-sm"
+                                                    :disabled="updatingCompanyId === company.id"
+                                                    @click="updateCompany(company)">
+                                                    <span v-if="updatingCompanyId === company.id"
+                                                        class="spinner-border spinner-border-sm me-2"></span>
                                                     Speichern
                                                 </button>
-
-                                                <button type="button" class="btn btn-danger btn-sm" :disabled="deletingCompanyId ===
-                                                    company.id
-                                                    " @click="
-                                                        openDeleteDialog(
-                                                            company
-                                                        )
-                                                        ">
+                                                <button type="button" class="btn btn-outline-danger btn-sm"
+                                                    @click="openDeleteDialog(company)">
                                                     Löschen
                                                 </button>
                                             </div>
-                                        </td>
-                                    </tr>
-
-                                    <tr v-if="
-                                        !hasCompanies
-                                    ">
-                                        <td colspan="7" class="text-center text-muted py-4">
-                                            Keine Firmen
-                                            gefunden.
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <BasePagination :page="page" :total-pages="totalPages
-                            " :can-go-previous="canGoPrevious
-                                " :can-go-next="canGoNext
-                                " @previous="
-                                goToPreviousPage
-                            " @next="
-                                goToNextPage
-                            " />
+                        <BaseEmptyState v-else icon="bi-building" title="Keine Firmen vorhanden"
+                            message="Für die aktuelle Suche wurden keine Firmen gefunden." />
+                    </div>
+
+                    <div v-if="hasCompanies" class="card-footer bg-body border-top">
+                        <BasePagination :page="page" :total-pages="totalPages" :can-go-previous="canGoPrevious"
+                            :can-go-next="canGoNext" @previous="goToPreviousPage" @next="goToNextPage" />
                     </div>
                 </div>
             </template>
         </template>
 
-        <!-- Formular zum Erstellen -->
         <template v-else>
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-                <div>
-                    <h2 class="mb-1">
-                        Neue Firma erstellen
-                    </h2>
+            <PageHeader title="Neue Firma erstellen"
+                description="Firmendaten erfassen und optional ein Logo hochladen.">
+                <template #actions>
+                    <button type="button" class="btn btn-outline-secondary" :disabled="creating"
+                        @click="closeCreateForm">
+                        <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>
+                        Zur Firmenübersicht
+                    </button>
+                </template>
+            </PageHeader>
 
-                    <p class="text-muted mb-0">
-                        Trage die Firmendaten ein und
-                        lade optional ein Logo hoch.
-                    </p>
-                </div>
+            <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div>
 
-                <button type="button" class="btn btn-outline-secondary" :disabled="creating" @click="closeCreateForm">
-                    Zurück zu Companies
-                </button>
-            </div>
-
-            <div v-if="error" class="alert alert-danger" role="alert">
-                {{ error }}
-            </div>
-
-            <div class="card shadow-sm">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <form novalidate @submit.prevent="
-                        createCompany
-                    ">
+                    <form novalidate @submit.prevent="createCompany">
                         <div class="row g-4">
-                            <!-- Linke Spalte -->
-                            <div class="col-lg-8">
-                                <div class="row g-4">
-                                    <div class="col-md-6">
-                                        <label for="companyName" class="form-label fw-semibold">
-                                            Firmenname
-                                            <span class="text-danger">
-                                                *
-                                            </span>
-                                        </label>
-
-                                        <input id="companyName" v-model="newCompany.name
-                                            " type="text" class="form-control form-control-lg" :class="{
-                                                'is-invalid':
-                                                    createFormTouched.name &&
-                                                    createFormErrors.name,
-                                                'is-valid':
-                                                    createFormTouched.name &&
-                                                    !createFormErrors.name,
-                                            }" maxlength="100" autofocus placeholder="z. B. Musterfirma GmbH"
-                                            :disabled="creating
-                                                " @blur="
-                                                markCreateFieldTouched(
-                                                    'name'
-                                                )
-                                                " />
-
-                                        <div v-if="
-                                            createFormTouched.name &&
-                                            createFormErrors.name
-                                        " class="invalid-feedback">
-                                            {{
-                                                createFormErrors.name
-                                            }}
-                                        </div>
+                            <div class="col-12 col-lg-8">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">
+                                        <label for="companyName" class="form-label">Firmenname *</label>
+                                        <input id="companyName" v-model="newCompany.name" type="text"
+                                            class="form-control"
+                                            :class="{ 'is-invalid': createFormTouched.name && createFormErrors.name }"
+                                            maxlength="100" :disabled="creating"
+                                            @blur="markCreateFieldTouched('name')" />
+                                        <div class="invalid-feedback">{{ createFormErrors.name }}</div>
                                     </div>
 
-                                    <div class="col-md-6">
-                                        <label for="companyLocation" class="form-label fw-semibold">
-                                            Standort
-                                        </label>
-
-                                        <input id="companyLocation" v-model="newCompany.location
-                                            " type="text" class="form-control form-control-lg" :class="{
-                                                'is-invalid':
-                                                    createFormTouched.location &&
-                                                    createFormErrors.location,
-                                                'is-valid':
-                                                    createFormTouched.location &&
-                                                    !createFormErrors.location &&
-                                                    newCompany.location,
-                                            }" maxlength="100" placeholder="z. B. Berlin" :disabled="creating
-                                                " @blur="
-                                                markCreateFieldTouched(
-                                                    'location'
-                                                )
-                                                " />
-
-                                        <div v-if="
-                                            createFormTouched.location &&
-                                            createFormErrors.location
-                                        " class="invalid-feedback">
-                                            {{
-                                                createFormErrors.location
-                                            }}
-                                        </div>
+                                    <div class="col-12 col-md-6">
+                                        <label for="companyLocation" class="form-label">Standort</label>
+                                        <input id="companyLocation" v-model="newCompany.location" type="text"
+                                            class="form-control"
+                                            :class="{ 'is-invalid': createFormTouched.location && createFormErrors.location }"
+                                            maxlength="100" :disabled="creating"
+                                            @blur="markCreateFieldTouched('location')" />
+                                        <div class="invalid-feedback">{{ createFormErrors.location }}</div>
                                     </div>
 
                                     <div class="col-12">
-                                        <label for="companyWebsite" class="form-label fw-semibold">
-                                            Website
-                                        </label>
-
-                                        <input id="companyWebsite" v-model="newCompany.websiteUrl
-                                            " type="text" class="form-control form-control-lg" :class="{
-                                                'is-invalid':
-                                                    createFormTouched.websiteUrl &&
-                                                    createFormErrors.websiteUrl,
-                                                'is-valid':
-                                                    createFormTouched.websiteUrl &&
-                                                    !createFormErrors.websiteUrl &&
-                                                    newCompany.websiteUrl,
-                                            }" placeholder="z. B. example.com" :disabled="creating
-                                                " @blur="
-                                                handleCreateWebsiteBlur
-                                            " />
-
-                                        <div v-if="
-                                            createFormTouched.websiteUrl &&
-                                            createFormErrors.websiteUrl
-                                        " class="invalid-feedback">
-                                            {{
-                                                createFormErrors.websiteUrl
-                                            }}
+                                        <label for="companyWebsite" class="form-label">Website</label>
+                                        <input id="companyWebsite" v-model="newCompany.websiteUrl" type="text"
+                                            class="form-control"
+                                            :class="{ 'is-invalid': createFormTouched.websiteUrl && createFormErrors.websiteUrl }"
+                                            placeholder="example.com" :disabled="creating"
+                                            @blur="handleCreateWebsiteBlur" />
+                                        <div v-if="createFormTouched.websiteUrl && createFormErrors.websiteUrl"
+                                            class="invalid-feedback">
+                                            {{ createFormErrors.websiteUrl }}
                                         </div>
-
-                                        <div v-else class="form-text">
-                                            https:// wird beim
-                                            Verlassen des Feldes
-                                            automatisch ergänzt.
-                                        </div>
+                                        <div v-else class="form-text">https:// wird automatisch ergänzt.</div>
                                     </div>
 
                                     <div class="col-12">
-                                        <label for="companyDescription" class="form-label fw-semibold">
-                                            Beschreibung
-                                        </label>
-
-                                        <textarea id="companyDescription" v-model="newCompany.description
-                                            " class="form-control" :class="{
-                                                'is-invalid':
-                                                    createFormTouched.description &&
-                                                    createFormErrors.description,
-                                                'is-valid':
-                                                    createFormTouched.description &&
-                                                    !createFormErrors.description &&
-                                                    newCompany.description,
-                                            }" rows="7" maxlength="1000"
-                                            placeholder="Beschreibe die Firma, ihre Leistungen und ihre Schwerpunkte."
-                                            :disabled="creating
-                                                " @blur="
-                                                markCreateFieldTouched(
-                                                    'description'
-                                                )
-                                                "></textarea>
-
-                                        <div v-if="
-                                            createFormTouched.description &&
-                                            createFormErrors.description
-                                        " class="invalid-feedback">
-                                            {{
-                                                createFormErrors.description
-                                            }}
+                                        <label for="companyDescription" class="form-label">Beschreibung</label>
+                                        <textarea id="companyDescription" v-model="newCompany.description"
+                                            class="form-control"
+                                            :class="{ 'is-invalid': createFormTouched.description && createFormErrors.description }"
+                                            rows="7" maxlength="1000" :disabled="creating"
+                                            @blur="markCreateFieldTouched('description')"></textarea>
+                                        <div v-if="createFormTouched.description && createFormErrors.description"
+                                            class="invalid-feedback">
+                                            {{ createFormErrors.description }}
                                         </div>
-
-                                        <div v-else class="form-text text-end">
-                                            {{
-                                                newCompany.description
-                                                    .length
-                                            }}
-                                            / 1000 Zeichen
+                                        <div v-else class="form-text text-end">{{ newCompany.description.length }} /
+                                            1000 Zeichen
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Rechte Spalte: Logo -->
-                            <div class="col-lg-4">
-                                <div class="logo-upload-panel h-100">
-                                    <label for="newCompanyLogo" class="form-label fw-semibold">
-                                        Firmenlogo
-                                    </label>
-
-                                    <div class="logo-preview-container mb-3">
-                                        <img v-if="
-                                            newCompanyLogoPreview
-                                        " :src="newCompanyLogoPreview
-                                                " alt="Vorschau des Firmenlogos" class="logo-preview" />
-
-                                        <div v-else class="text-center text-muted">
-                                            <div class="logo-placeholder mb-2">
-                                                Logo
+                            <div class="col-12 col-lg-4">
+                                <div class="card bg-body-tertiary border-0 h-100">
+                                    <div class="card-body">
+                                        <label for="newCompanyLogo" class="form-label">Firmenlogo</label>
+                                        <div class="ratio ratio-1x1 bg-body border rounded mb-3 overflow-hidden">
+                                            <img v-if="newCompanyLogoPreview" :src="newCompanyLogoPreview"
+                                                alt="Vorschau des Firmenlogos"
+                                                class="w-100 h-100 object-fit-contain p-3" />
+                                            <div v-else
+                                                class="d-flex flex-column justify-content-center align-items-center text-body-secondary">
+                                                <i class="bi bi-image fs-1" aria-hidden="true"></i>
+                                                <span class="small">Kein Logo ausgewählt</span>
                                             </div>
-
-                                            <small>
-                                                Noch kein Logo
-                                                ausgewählt
-                                            </small>
                                         </div>
+                                        <input id="newCompanyLogo" type="file" accept=".jpg,.jpeg,.png,.webp"
+                                            class="form-control"
+                                            :class="{ 'is-invalid': createFormTouched.logo && createFormErrors.logo }"
+                                            :disabled="creating" @change="handleNewCompanyLogoSelected" />
+                                        <div v-if="createFormTouched.logo && createFormErrors.logo"
+                                            class="invalid-feedback">
+                                            {{ createFormErrors.logo }}
+                                        </div>
+                                        <div v-else class="form-text">JPG, PNG oder WebP, maximal 5 MB.</div>
+                                        <button v-if="newCompanyLogo" type="button"
+                                            class="btn btn-outline-danger btn-sm mt-3" :disabled="creating"
+                                            @click="removeNewCompanyLogo">
+                                            Logo entfernen
+                                        </button>
                                     </div>
-
-                                    <input id="newCompanyLogo" type="file" accept=".jpg,.jpeg,.png,.webp"
-                                        class="form-control" :class="{
-                                            'is-invalid':
-                                                createFormTouched.logo &&
-                                                createFormErrors.logo,
-                                        }" :disabled="creating
-                                            " @change="
-                                            handleNewCompanyLogoSelected
-                                        " />
-
-                                    <div v-if="
-                                        createFormTouched.logo &&
-                                        createFormErrors.logo
-                                    " class="invalid-feedback">
-                                        {{
-                                            createFormErrors.logo
-                                        }}
-                                    </div>
-
-                                    <div v-else class="form-text">
-                                        JPG, PNG oder WebP,
-                                        maximal 5 MB.
-                                    </div>
-
-                                    <button v-if="
-                                        newCompanyLogo
-                                    " type="button" class="btn btn-outline-danger btn-sm mt-3" :disabled="creating
-                                            " @click="
-                                            removeNewCompanyLogo
-                                        ">
-                                        Logo entfernen
-                                    </button>
                                 </div>
                             </div>
                         </div>
 
                         <hr class="my-4" />
-
-                        <div class="d-flex flex-wrap justify-content-end gap-2">
-                            <button type="button" class="btn btn-outline-secondary btn-lg" :disabled="creating
-                                " @click="
-                                    closeCreateForm
-                                ">
+                        <div class="d-grid d-sm-flex justify-content-sm-end gap-2">
+                            <button type="button" class="btn btn-outline-secondary" :disabled="creating"
+                                @click="closeCreateForm">
                                 Abbrechen
                             </button>
-
-                            <button type="submit" class="btn btn-success btn-lg" :disabled="creating ||
-                                !isCreateFormValid
-                                ">
-                                <span v-if="
-                                    creating
-                                " class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-
-                                {{
-                                    creating
-                                        ? "Firma wird erstellt..."
-                                        : "Firma erstellen"
-                                }}
+                            <button type="submit" class="btn btn-primary" :disabled="creating || !isCreateFormValid">
+                                <span v-if="creating" class="spinner-border spinner-border-sm me-2"
+                                    aria-hidden="true"></span>
+                                {{ creating ? "Firma wird erstellt..." : "Firma erstellen" }}
                             </button>
                         </div>
                     </form>
@@ -1328,59 +1117,36 @@ onBeforeUnmount(() => {
             </div>
         </template>
 
-        <!-- Eigener Löschdialog -->
-        <div v-if="showDeleteDialog" class="delete-dialog-backdrop" role="presentation" @click.self="closeDeleteDialog">
-            <div class="delete-dialog card shadow-lg" role="dialog" aria-modal="true"
+        <template v-if="showDeleteDialog">
+            <div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true"
                 aria-labelledby="deleteDialogTitle">
-                <div class="card-body p-4">
-                    <h4 id="deleteDialogTitle" class="mb-3">
-                        Firma löschen?
-                    </h4>
-
-                    <p class="mb-2">
-                        Möchtest du die Firma
-                        <strong>
-                            {{
-                                companyToDelete?.name
-                            }}
-                        </strong>
-                        wirklich löschen?
-                    </p>
-
-                    <p class="text-muted small mb-4">
-                        Diese Aktion kann nicht
-                        rückgängig gemacht werden.
-                    </p>
-
-                    <div class="d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-outline-secondary" :disabled="deletingCompanyId !==
-                            null
-                            " @click="
-                                closeDeleteDialog
-                            ">
-                            Abbrechen
-                        </button>
-
-                        <button type="button" class="btn btn-danger" :disabled="deletingCompanyId !==
-                            null
-                            " @click="
-                                confirmDeleteCompany
-                            ">
-                            <span v-if="
-                                deletingCompanyId !==
-                                null
-                            " class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-
-                            {{
-                                deletingCompanyId !==
-                                    null
-                                    ? "Wird gelöscht..."
-                                    : "Firma löschen"
-                            }}
-                        </button>
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 id="deleteDialogTitle" class="modal-title h5">Firma löschen?</h2>
+                            <button type="button" class="btn-close" :disabled="deletingCompanyId !== null"
+                                @click="closeDeleteDialog"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Möchtest du die Firma <strong>{{ companyToDelete?.name }}</strong> wirklich löschen?</p>
+                            <p class="text-body-secondary mb-0">Diese Aktion kann nicht rückgängig gemacht werden.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary"
+                                :disabled="deletingCompanyId !== null" @click="closeDeleteDialog">
+                                Abbrechen
+                            </button>
+                            <button type="button" class="btn btn-danger" :disabled="deletingCompanyId !== null"
+                                @click="confirmDeleteCompany">
+                                <span v-if="deletingCompanyId !== null" class="spinner-border spinner-border-sm me-2"
+                                    aria-hidden="true"></span>
+                                {{ deletingCompanyId !== null ? "Wird gelöscht..." : "Firma löschen" }}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+            <div class="modal-backdrop fade show"></div>
+        </template>
+    </main>
 </template>

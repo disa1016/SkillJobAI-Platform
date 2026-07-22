@@ -1,6 +1,8 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 
+import PageHeader from "@/components/shared/PageHeader.vue";
+
 import {
     deleteAdminUser,
     getAdminUsers,
@@ -69,17 +71,20 @@ onMounted(loadUsers);
 
 
 <template>
-    <div class="container py-4">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-            <h2 class="mb-0">User Management</h2>
+    <main class="container py-4">
+        <PageHeader title="Benutzerverwaltung" description="Rollen verwalten und Benutzerkonten administrieren.">
+            <template #actions>
+                <button type="button" class="btn btn-outline-primary" :disabled="loading" @click="loadUsers">
+                    <i class="bi bi-arrow-clockwise me-2" aria-hidden="true"></i>
+                    Aktualisieren
+                </button>
+            </template>
+        </PageHeader>
 
-            <button type="button" class="btn btn-outline-primary btn-sm" :disabled="loading" @click="loadUsers">
-                Aktualisieren
-            </button>
-        </div>
-
-        <div v-if="loading" class="alert alert-info">
-            Lade Benutzer...
+        <div v-if="loading" class="d-flex justify-content-center py-5">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Benutzer werden geladen...</span>
+            </div>
         </div>
 
         <div v-else-if="error" class="alert alert-danger">
@@ -91,10 +96,10 @@ onMounted(loadUsers);
                 {{ success }}
             </div>
 
-            <div class="card shadow-sm">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-striped align-middle mb-0">
+                        <table class="table table-hover align-middle mb-0">
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -112,8 +117,8 @@ onMounted(loadUsers);
                                     <td>{{ user.fullName || "Ohne Namen" }}</td>
                                     <td>{{ user.email || "Keine E-Mail" }}</td>
 
-                                    <td style="max-width: 220px">
-                                        <select v-model="user.role" class="form-select">
+                                    <td>
+                                        <select v-model="user.role" class="form-select form-select-sm">
                                             <option v-for="role in roles" :key="role" :value="role">
                                                 {{ role }}
                                             </option>
@@ -129,7 +134,7 @@ onMounted(loadUsers);
                                                 Speichern
                                             </button>
 
-                                            <button type="button" class="btn btn-danger btn-sm"
+                                            <button type="button" class="btn btn-outline-danger btn-sm"
                                                 @click="deleteUser(user.id)">
                                                 Löschen
                                             </button>
@@ -138,7 +143,7 @@ onMounted(loadUsers);
                                 </tr>
 
                                 <tr v-if="!hasUsers">
-                                    <td colspan="6" class="text-center text-muted">
+                                    <td colspan="6" class="text-center text-body-secondary py-5">
                                         Keine Benutzer gefunden.
                                     </td>
                                 </tr>
@@ -148,5 +153,5 @@ onMounted(loadUsers);
                 </div>
             </div>
         </template>
-    </div>
+    </main>
 </template>

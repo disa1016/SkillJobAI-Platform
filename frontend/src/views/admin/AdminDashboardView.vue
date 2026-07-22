@@ -1,63 +1,32 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
-import { getAdminDashboard } from "@/services/adminService";
 
 import BaseAlert from "@/components/shared/BaseAlert.vue";
 import BaseCard from "@/components/shared/BaseCard.vue";
+import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
 import BaseSpinner from "@/components/shared/BaseSpinner.vue";
+import PageHeader from "@/components/shared/PageHeader.vue";
+
+import { getAdminDashboard } from "@/services/adminService";
 
 const dashboard = ref(null);
 const loading = ref(true);
 const error = ref("");
 
 const overviewStats = computed(() => [
-    {
-        label: "Users",
-        value: dashboard.value?.totalUsers ?? 0,
-    },
-    {
-        label: "Companies",
-        value: dashboard.value?.totalCompanies ?? 0,
-    },
-    {
-        label: "Jobs",
-        value: dashboard.value?.totalJobs ?? 0,
-    },
-    {
-        label: "Applications",
-        value: dashboard.value?.totalApplications ?? 0,
-    },
-    {
-        label: "Courses",
-        value: dashboard.value?.totalCourses ?? 0,
-    },
-    {
-        label: "Skills",
-        value: dashboard.value?.totalSkills ?? 0,
-    },
+    { label: "Benutzer", value: dashboard.value?.totalUsers ?? 0, icon: "bi-people" },
+    { label: "Unternehmen", value: dashboard.value?.totalCompanies ?? 0, icon: "bi-buildings" },
+    { label: "Stellenangebote", value: dashboard.value?.totalJobs ?? 0, icon: "bi-briefcase" },
+    { label: "Bewerbungen", value: dashboard.value?.totalApplications ?? 0, icon: "bi-file-earmark-person" },
+    { label: "Kurse", value: dashboard.value?.totalCourses ?? 0, icon: "bi-journal-bookmark" },
+    { label: "Skills", value: dashboard.value?.totalSkills ?? 0, icon: "bi-lightbulb" },
 ]);
 
 const roleStats = computed(() => [
-    {
-        label: "Neue User heute",
-        value: dashboard.value?.newUsersToday ?? 0,
-        borderClass: "border-primary",
-    },
-    {
-        label: "Neue Bewerbungen heute",
-        value: dashboard.value?.newApplicationsToday ?? 0,
-        borderClass: "border-success",
-    },
-    {
-        label: "Recruiter",
-        value: dashboard.value?.totalRecruiters ?? 0,
-        borderClass: "border-info",
-    },
-    {
-        label: "Admins",
-        value: dashboard.value?.totalAdmins ?? 0,
-        borderClass: "border-danger",
-    },
+    { label: "Neue Benutzer heute", value: dashboard.value?.newUsersToday ?? 0, icon: "bi-person-plus" },
+    { label: "Neue Bewerbungen heute", value: dashboard.value?.newApplicationsToday ?? 0, icon: "bi-file-earmark-plus" },
+    { label: "Recruiter", value: dashboard.value?.totalRecruiters ?? 0, icon: "bi-person-workspace" },
+    { label: "Admins", value: dashboard.value?.totalAdmins ?? 0, icon: "bi-shield-check" },
 ]);
 
 const loadDashboard = async () => {
@@ -67,7 +36,7 @@ const loadDashboard = async () => {
     try {
         dashboard.value = await getAdminDashboard();
     } catch {
-        error.value = "Admin Dashboard konnte nicht geladen werden.";
+        error.value = "Admin-Dashboard konnte nicht geladen werden.";
     } finally {
         loading.value = false;
     }
@@ -77,57 +46,68 @@ onMounted(loadDashboard);
 </script>
 
 <template>
-    <div class="container py-4">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-            <h2 class="mb-0">Admin Dashboard</h2>
-
-            <router-link to="/admin/users" class="btn btn-primary">
-                User Management öffnen
-            </router-link>
-        </div>
+    <main class="container py-4">
+        <PageHeader title="Admin-Dashboard"
+            description="Zentrale Übersicht über Benutzer, Unternehmen und Plattformaktivitäten.">
+            <template #actions>
+                <router-link to="/admin/users" class="btn btn-primary">
+                    <i class="bi bi-people me-2" aria-hidden="true"></i>
+                    Benutzer verwalten
+                </router-link>
+            </template>
+        </PageHeader>
 
         <BaseSpinner v-if="loading" message="Dashboard wird geladen..." />
 
         <BaseAlert v-else-if="error" type="danger" :message="error" />
 
         <template v-else-if="dashboard">
-            <section class="mb-4">
-                <h5 class="mb-3">Übersicht</h5>
+            <section class="mb-5" aria-labelledby="admin-overview-heading">
+                <div class="mb-3">
+                    <h2 id="admin-overview-heading" class="h5 mb-1">Übersicht</h2>
+                    <p class="text-body-secondary mb-0">Aktuelle Gesamtzahlen der Plattform.</p>
+                </div>
 
                 <div class="row g-3">
-                    <div v-for="stat in overviewStats" :key="stat.label" class="col-md-4">
+                    <div v-for="stat in overviewStats" :key="stat.label" class="col-12 col-sm-6 col-lg-4">
                         <BaseCard>
-                            <h6 class="text-muted">
-                                {{ stat.label }}
-                            </h6>
+                            <div class="d-flex justify-content-between align-items-start gap-3">
+                                <div>
+                                    <p class="text-body-secondary mb-2">{{ stat.label }}</p>
+                                    <p class="h2 mb-0">{{ stat.value }}</p>
+                                </div>
 
-                            <h2 class="mb-0">
-                                {{ stat.value }}
-                            </h2>
+                                <i class="bi fs-3 text-primary" :class="stat.icon" aria-hidden="true"></i>
+                            </div>
                         </BaseCard>
                     </div>
                 </div>
             </section>
 
-            <section>
-                <h5 class="mb-3">Heute & Rollen</h5>
+            <section aria-labelledby="admin-today-heading">
+                <div class="mb-3">
+                    <h2 id="admin-today-heading" class="h5 mb-1">Heute und Rollen</h2>
+                    <p class="text-body-secondary mb-0">Neue Aktivitäten und Verteilung wichtiger Rollen.</p>
+                </div>
 
                 <div class="row g-3">
-                    <div v-for="stat in roleStats" :key="stat.label" class="col-md-3">
+                    <div v-for="stat in roleStats" :key="stat.label" class="col-12 col-sm-6 col-xl-3">
                         <BaseCard>
-                            <div :class="stat.borderClass">
-                                <h6 class="text-muted">
-                                    {{ stat.label }}
-                                </h6>
+                            <div class="d-flex justify-content-between align-items-start gap-3">
+                                <div>
+                                    <p class="text-body-secondary mb-2">{{ stat.label }}</p>
+                                    <p class="h2 mb-0">{{ stat.value }}</p>
+                                </div>
 
-                                <h2 class="mb-0">
-                                    {{ stat.value }}
-                                </h2>
+                                <i class="bi fs-3 text-primary" :class="stat.icon" aria-hidden="true"></i>
                             </div>
                         </BaseCard>
                     </div>
                 </div>
             </section>
         </template>
-    </div>
+
+        <BaseEmptyState v-else title="Keine Dashboard-Daten"
+            message="Es konnten keine Admin-Dashboard-Daten gefunden werden." icon="bi-speedometer2" />
+    </main>
 </template>

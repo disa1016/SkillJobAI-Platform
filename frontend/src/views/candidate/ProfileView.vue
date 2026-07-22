@@ -16,6 +16,8 @@ import {
 
 import api from "@/services/api";
 import { formatDate } from "@/utils/date";
+import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
+import BaseSpinner from "@/components/shared/BaseSpinner.vue";
 
 const MAX_CV_SIZE = 5 * 1024 * 1024;
 const MAX_PROFILE_IMAGE_SIZE = 10 * 1024 * 1024;
@@ -110,17 +112,6 @@ const roleLabel = computed(() => {
   };
 
   return roleLabels[normalizedRole.value] || user.value?.role || "Keine Rolle";
-});
-
-const roleBadgeClass = computed(() => {
-  const roleClasses = {
-    candidate: "role-candidate",
-    student: "role-candidate",
-    recruiter: "role-recruiter",
-    admin: "role-admin",
-  };
-
-  return roleClasses[normalizedRole.value] || "role-default";
 });
 
 const userInitials = computed(() => {
@@ -582,747 +573,470 @@ onBeforeUnmount(revokeProfileImagePreview);
 </script>
 
 <template>
-  <div class="profile-page">
-    <div class="container py-4 py-lg-5">
-      <div v-if="loading" class="profile-state-card">
-        <div class="spinner-border text-success" role="status">
-          <span class="visually-hidden">Profil wird geladen...</span>
+  <main class="container py-4">
+    <BaseSpinner v-if="loading" message="Profil wird geladen..." class="py-5" />
+
+    <div v-else-if="error" class="alert alert-danger" role="alert">
+      <div class="d-flex flex-column flex-md-row align-items-md-center gap-3">
+        <div class="flex-grow-1">
+          <strong>Profil konnte nicht geladen werden.</strong>
+          <div class="mt-1">{{ error }}</div>
         </div>
 
-        <h2 class="h5 mt-3 mb-1">Profil wird geladen</h2>
+        <button type="button" class="btn btn-outline-danger" @click="loadProfileData">
+          Erneut versuchen
+        </button>
+      </div>
+    </div>
 
-        <p class="text-muted mb-0">
-          Deine Profildaten werden vorbereitet.
-        </p>
+    <template v-else>
+      <div v-if="certificateError" class="alert alert-warning" role="alert">
+        {{ certificateError }}
       </div>
 
-      <div v-else-if="error" class="alert alert-danger shadow-sm">
-        <div class="d-flex flex-column flex-md-row align-items-md-center gap-3">
-          <div class="flex-grow-1">
-            <strong>Profil konnte nicht geladen werden.</strong>
-
-            <div class="mt-1">
-              {{ error }}
-            </div>
-          </div>
-
-          <button type="button" class="btn btn-outline-danger" @click="loadProfileData">
-            Erneut versuchen
-          </button>
-        </div>
-      </div>
-
-      <template v-else>
-        <div v-if="certificateError" class="alert alert-warning shadow-sm">
-          {{ certificateError }}
-        </div>
-
-        <!-- Profil-Kopfbereich -->
-        <section class="profile-hero mb-4">
-          <div class="profile-hero-decoration"></div>
-
-          <div class="profile-hero-content">
-            <label for="profileImageFile" class="profile-avatar overflow-visible position-relative flex-shrink-0"
-              role="button" tabindex="0" title="Profilbild ändern (maximal 2 MB)" aria-label="Profilbild ändern"
-              style="width: 128px; height: 128px; cursor: pointer;" @keydown.enter.prevent="profileImageInput?.click()"
-              @keydown.space.prevent="profileImageInput?.click()">
-              <span class="d-block w-100 h-100 rounded-circle overflow-hidden border border-4 border-white shadow-sm">
+      <section class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <div class="row align-items-center g-4">
+            <div class="col-12 col-md-auto text-center">
+              <label for="profileImageFile" class="position-relative d-inline-block" role="button" tabindex="0"
+                title="Profilbild ändern" aria-label="Profilbild ändern"
+                @keydown.enter.prevent="profileImageInput?.click()" @keydown.space.prevent="profileImageInput?.click()">
                 <img v-if="displayedProfileImageUrl" :src="displayedProfileImageUrl"
-                  :alt="`Profilbild von ${user?.fullName || 'Benutzer'}`" class="w-100 h-100 object-fit-cover" />
-                <span v-else class="w-100 h-100 d-flex align-items-center justify-content-center">
+                  :alt="`Profilbild von ${user?.fullName || 'Benutzer'}`" width="128" height="128"
+                  class="rounded-circle object-fit-cover border shadow-sm" />
+
+                <span v-else
+                  class="d-inline-flex align-items-center justify-content-center rounded-circle bg-body-tertiary border shadow-sm fs-2 fw-semibold p-4">
                   {{ userInitials }}
                 </span>
-              </span>
 
-              <span
-                class="position-absolute bottom-0 end-0 d-flex align-items-center justify-content-center rounded-circle bg-white text-success shadow border"
-                style="width: 38px; height: 38px; transform: translate(10%, 10%);" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M14.5 4h-5L7.8 6H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2.8z" />
-                  <circle cx="12" cy="13" r="3" />
-                </svg>
-              </span>
-
-              <span v-if="uploadingProfileImage"
-                class="position-absolute top-50 start-50 translate-middle spinner-border text-light" role="status"
-                aria-label="Profilbild wird hochgeladen"></span>
-            </label>
-
-            <input id="profileImageFile" ref="profileImageInput" type="file"
-              accept="image/jpeg,image/png,.jpg,.jpeg,.png" class="visually-hidden"
-              :disabled="uploadingProfileImage || deletingProfileImage" @change="handleProfileImageChange" />
-
-            <div class="profile-identity">
-              <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                <h1 class="profile-name mb-0">
-                  {{ user?.fullName || "Unbekannter Benutzer" }}
-                </h1>
-
-                <span class="role-badge" :class="roleBadgeClass">
-                  {{ roleLabel }}
+                <span
+                  class="position-absolute bottom-0 end-0 d-flex align-items-center justify-content-center rounded-circle bg-body border shadow-sm p-2"
+                  aria-hidden="true">
+                  <i class="bi bi-camera"></i>
                 </span>
+
+                <span v-if="uploadingProfileImage"
+                  class="position-absolute top-50 start-50 translate-middle spinner-border" role="status">
+                  <span class="visually-hidden">Profilbild wird hochgeladen...</span>
+                </span>
+              </label>
+
+              <input id="profileImageFile" ref="profileImageInput" type="file"
+                accept="image/jpeg,image/png,.jpg,.jpeg,.png" class="visually-hidden"
+                :disabled="uploadingProfileImage || deletingProfileImage" @change="handleProfileImageChange" />
+
+              <div v-if="user?.profileImageUrl" class="mt-2">
+                <button type="button" class="btn btn-outline-danger btn-sm"
+                  :disabled="uploadingProfileImage || deletingProfileImage" @click="handleDeleteProfileImage">
+                  <span v-if="deletingProfileImage" class="spinner-border spinner-border-sm me-2"></span>
+                  {{ deletingProfileImage ? "Wird entfernt..." : "Foto entfernen" }}
+                </button>
               </div>
-
-              <p class="profile-email mb-2">
-                {{ user?.email || "Keine E-Mail hinterlegt" }}
-              </p>
-
-              <p v-if="user?.createdAt" class="profile-member-since mb-0">
-                Mitglied seit {{ formatDate(user.createdAt) }}
-              </p>
-
-              <button v-if="user?.profileImageUrl" type="button"
-                class="btn btn-link btn-sm text-white text-decoration-underline p-0 mt-2"
-                :disabled="uploadingProfileImage || deletingProfileImage" @click="handleDeleteProfileImage">
-                {{ deletingProfileImage ? "Foto wird entfernt..." : "Foto entfernen" }}
-              </button>
             </div>
 
-            <div class="profile-completion">
-              <div class="completion-header">
-                <span>Profilstatus</span>
-                <strong>{{ profileCompletion }} %</strong>
+            <div class="col-12 col-md">
+              <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <h1 class="h3 mb-0">
+                  {{ user?.fullName || "Unbekannter Benutzer" }}
+                </h1>
+                <span class="badge text-bg-primary">{{ roleLabel }}</span>
               </div>
 
+              <p class="text-body-secondary mb-1">
+                {{ user?.email || "Keine E-Mail hinterlegt" }}
+              </p>
+              <p v-if="user?.headline" class="mb-1">{{ user.headline }}</p>
+              <p v-if="user?.createdAt" class="small text-body-secondary mb-0">
+                Mitglied seit {{ formatDate(user.createdAt) }}
+              </p>
+            </div>
+
+            <div class="col-12 col-lg-4">
+              <div class="d-flex justify-content-between mb-2">
+                <span class="fw-semibold">Profilstatus</span>
+                <span>{{ profileCompletion }} %</span>
+              </div>
               <div class="progress" role="progressbar" :aria-valuenow="profileCompletion" aria-valuemin="0"
                 aria-valuemax="100">
                 <div class="progress-bar" :style="{ width: `${profileCompletion}%` }"></div>
               </div>
-
-              <small>
+              <p class="small text-body-secondary mb-0 mt-2">
                 {{
                   profileCompletion === 100
                     ? "Dein Profil ist vollständig."
                     : "Vervollständige dein Profil für bessere Ergebnisse."
                 }}
-              </small>
+              </p>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <div class="row g-4">
-          <!-- Allgemeine Informationen -->
-          <div :class="isCandidate ? 'col-lg-5' : 'col-12'">
-            <section class="content-card h-100">
-              <div class="section-heading">
+      <div class="row g-4">
+        <div :class="isCandidate ? 'col-12 col-lg-5' : 'col-12'">
+          <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-body border-bottom py-3">
+              <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
                 <div>
-                  <p class="section-eyebrow">
-                    Konto
-                  </p>
-
-                  <h2 class="section-title">
-                    Persönliche Informationen
-                  </h2>
+                  <h2 class="h5 mb-1">Persönliche Informationen</h2>
+                  <p class="small text-body-secondary mb-0">Kontaktdaten und öffentliche Profilangaben</p>
                 </div>
-
-                <button v-if="!editingProfile" type="button" class="btn btn-outline-success btn-sm"
+                <button v-if="!editingProfile" type="button" class="btn btn-outline-primary btn-sm"
                   @click="startProfileEditing">
+                  <i class="bi bi-pencil me-1"></i>
                   Profil bearbeiten
                 </button>
               </div>
+            </div>
 
-              <div v-if="profileImageMessage" class="alert alert-success">
+            <div class="card-body">
+              <div v-if="profileImageMessage" class="alert alert-success" role="alert">
                 {{ profileImageMessage }}
               </div>
-
-              <div v-if="profileImageError" class="alert alert-danger">
+              <div v-if="profileImageError" class="alert alert-danger" role="alert">
                 {{ profileImageError }}
               </div>
-
-              <div v-if="profileMessage" class="alert alert-success">
+              <div v-if="profileMessage" class="alert alert-success" role="alert">
                 {{ profileMessage }}
               </div>
-
-              <div v-if="profileError" class="alert alert-danger">
+              <div v-if="profileError" class="alert alert-danger" role="alert">
                 {{ profileError }}
               </div>
 
               <form v-if="editingProfile" @submit.prevent="handleUpdateProfile">
-                <div class="mb-3">
-                  <label for="profileFullName" class="form-label fw-semibold">
-                    Vollständiger Name
-                  </label>
-                  <input id="profileFullName" v-model="profileForm.fullName" type="text" class="form-control"
-                    :class="{ 'is-invalid': getProfileFieldError('fullName') }" autocomplete="name" required />
-                  <div class="invalid-feedback">
-                    {{ getProfileFieldError("fullName") }}
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label for="profileFullName" class="form-label">Vollständiger Name</label>
+                    <input id="profileFullName" v-model="profileForm.fullName" type="text" class="form-control"
+                      :class="{ 'is-invalid': getProfileFieldError('fullName') }" autocomplete="name" required />
+                    <div class="invalid-feedback">{{ getProfileFieldError("fullName") }}</div>
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label for="profilePhoneNumber" class="form-label">Telefonnummer</label>
+                    <input id="profilePhoneNumber" v-model="profileForm.phoneNumber" type="tel" class="form-control"
+                      :class="{ 'is-invalid': getProfileFieldError('phoneNumber') }" placeholder="+491234567890"
+                      autocomplete="tel" />
+                    <div class="invalid-feedback">{{ getProfileFieldError("phoneNumber") }}</div>
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label for="profileLocation" class="form-label">Standort</label>
+                    <input id="profileLocation" v-model="profileForm.location" type="text" class="form-control"
+                      :class="{ 'is-invalid': getProfileFieldError('location') }" placeholder="Berlin" />
+                    <div class="invalid-feedback">{{ getProfileFieldError("location") }}</div>
+                  </div>
+
+                  <div class="col-12">
+                    <label for="profileHeadline" class="form-label">Berufsbezeichnung</label>
+                    <input id="profileHeadline" v-model="profileForm.headline" type="text" class="form-control"
+                      :class="{ 'is-invalid': getProfileFieldError('headline') }" placeholder="Full-Stack Developer" />
+                    <div class="invalid-feedback">{{ getProfileFieldError("headline") }}</div>
+                  </div>
+
+                  <div class="col-12">
+                    <label for="profileAbout" class="form-label">Über mich</label>
+                    <textarea id="profileAbout" v-model="profileForm.about" class="form-control"
+                      :class="{ 'is-invalid': getProfileFieldError('about') }" rows="5"
+                      placeholder="Erzähle etwas über dich..."></textarea>
+                    <div class="invalid-feedback">{{ getProfileFieldError("about") }}</div>
+                  </div>
+
+                  <div class="col-12">
+                    <label for="profileLinkedIn" class="form-label">LinkedIn</label>
+                    <input id="profileLinkedIn" v-model="profileForm.linkedInUrl" type="url" class="form-control"
+                      :class="{ 'is-invalid': getProfileFieldError('linkedInUrl') }"
+                      placeholder="https://www.linkedin.com/in/..." />
+                    <div class="invalid-feedback">{{ getProfileFieldError("linkedInUrl") }}</div>
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label for="profileGithub" class="form-label">GitHub</label>
+                    <input id="profileGithub" v-model="profileForm.githubUrl" type="url" class="form-control"
+                      :class="{ 'is-invalid': getProfileFieldError('githubUrl') }"
+                      placeholder="https://github.com/..." />
+                    <div class="invalid-feedback">{{ getProfileFieldError("githubUrl") }}</div>
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label for="profileWebsite" class="form-label">Website</label>
+                    <input id="profileWebsite" v-model="profileForm.website" type="url" class="form-control"
+                      :class="{ 'is-invalid': getProfileFieldError('website') }" placeholder="https://example.com" />
+                    <div class="invalid-feedback">{{ getProfileFieldError("website") }}</div>
                   </div>
                 </div>
 
-                <div class="mb-3">
-                  <label for="profilePhoneNumber" class="form-label fw-semibold">
-                    Telefonnummer
-                  </label>
-                  <input id="profilePhoneNumber" v-model="profileForm.phoneNumber" type="tel" class="form-control"
-                    :class="{ 'is-invalid': getProfileFieldError('phoneNumber') }" placeholder="+491234567890"
-                    autocomplete="tel" />
-                  <div class="invalid-feedback">
-                    {{ getProfileFieldError("phoneNumber") }}
-                  </div>
-                </div>
-
-                <div class="mb-3">
-                  <label for="profileLocation" class="form-label fw-semibold">
-                    Standort
-                  </label>
-                  <input id="profileLocation" v-model="profileForm.location" type="text" class="form-control"
-                    :class="{ 'is-invalid': getProfileFieldError('location') }" placeholder="Berlin" />
-                  <div class="invalid-feedback">
-                    {{ getProfileFieldError("location") }}
-                  </div>
-                </div>
-
-                <div class="mb-3">
-                  <label for="profileHeadline" class="form-label fw-semibold">
-                    Berufsbezeichnung
-                  </label>
-                  <input id="profileHeadline" v-model="profileForm.headline" type="text" class="form-control"
-                    :class="{ 'is-invalid': getProfileFieldError('headline') }" placeholder="Full-Stack Developer" />
-                  <div class="invalid-feedback">
-                    {{ getProfileFieldError("headline") }}
-                  </div>
-                </div>
-
-                <div class="mb-3">
-                  <label for="profileAbout" class="form-label fw-semibold">
-                    Über mich
-                  </label>
-                  <textarea id="profileAbout" v-model="profileForm.about" class="form-control"
-                    :class="{ 'is-invalid': getProfileFieldError('about') }" rows="5"
-                    placeholder="Erzähle etwas über dich..."></textarea>
-                  <div class="invalid-feedback">
-                    {{ getProfileFieldError("about") }}
-                  </div>
-                </div>
-
-                <div class="mb-3">
-                  <label for="profileLinkedIn" class="form-label fw-semibold">
-                    LinkedIn
-                  </label>
-                  <input id="profileLinkedIn" v-model="profileForm.linkedInUrl" type="url" class="form-control"
-                    :class="{ 'is-invalid': getProfileFieldError('linkedInUrl') }"
-                    placeholder="https://www.linkedin.com/in/..." />
-                  <div class="invalid-feedback">
-                    {{ getProfileFieldError("linkedInUrl") }}
-                  </div>
-                </div>
-
-                <div class="mb-3">
-                  <label for="profileGithub" class="form-label fw-semibold">
-                    GitHub
-                  </label>
-                  <input id="profileGithub" v-model="profileForm.githubUrl" type="url" class="form-control"
-                    :class="{ 'is-invalid': getProfileFieldError('githubUrl') }" placeholder="https://github.com/..." />
-                  <div class="invalid-feedback">
-                    {{ getProfileFieldError("githubUrl") }}
-                  </div>
-                </div>
-
-                <div class="mb-3">
-                  <label for="profileWebsite" class="form-label fw-semibold">
-                    Website
-                  </label>
-                  <input id="profileWebsite" v-model="profileForm.website" type="url" class="form-control"
-                    :class="{ 'is-invalid': getProfileFieldError('website') }" placeholder="https://example.com" />
-                  <div class="invalid-feedback">
-                    {{ getProfileFieldError("website") }}
-                  </div>
-                </div>
-
-                <div class="d-flex flex-column flex-sm-row justify-content-end gap-2">
+                <div class="d-flex flex-column flex-sm-row justify-content-end gap-2 mt-4">
                   <button type="button" class="btn btn-outline-secondary" :disabled="savingProfile"
                     @click="cancelProfileEditing">
                     Abbrechen
                   </button>
-
-                  <button type="submit" class="btn btn-success" :disabled="savingProfile">
+                  <button type="submit" class="btn btn-primary" :disabled="savingProfile">
                     <span v-if="savingProfile" class="spinner-border spinner-border-sm me-2"></span>
                     {{ savingProfile ? "Wird gespeichert..." : "Änderungen speichern" }}
                   </button>
                 </div>
               </form>
 
-              <div v-else class="information-list">
-                <div class="information-item">
-                  <div class="information-icon">N</div>
-                  <div>
-                    <span class="information-label">Vollständiger Name</span>
-                    <strong class="information-value">
-                      {{ user?.fullName || "Nicht angegeben" }}
-                    </strong>
+              <div v-else class="list-group list-group-flush">
+                <div class="list-group-item px-0 d-flex gap-3">
+                  <i class="bi bi-person text-body-secondary"></i>
+                  <div><small class="text-body-secondary d-block">Vollständiger Name</small><span>{{ user?.fullName ||
+                      "Nicht angegeben" }}</span></div>
+                </div>
+                <div class="list-group-item px-0 d-flex gap-3">
+                  <i class="bi bi-envelope text-body-secondary"></i>
+                  <div class="overflow-hidden"><small class="text-body-secondary d-block">E-Mail-Adresse</small><span
+                      class="text-break">{{ user?.email || "Nicht angegeben" }}</span></div>
+                </div>
+                <div class="list-group-item px-0 d-flex gap-3">
+                  <i class="bi bi-telephone text-body-secondary"></i>
+                  <div><small class="text-body-secondary d-block">Telefonnummer</small><span>{{ user?.phoneNumber ||
+                      "Nicht angegeben" }}</span></div>
+                </div>
+                <div class="list-group-item px-0 d-flex gap-3">
+                  <i class="bi bi-geo-alt text-body-secondary"></i>
+                  <div><small class="text-body-secondary d-block">Standort</small><span>{{ user?.location || "Nicht angegeben" }}</span></div>
+                </div>
+                <div class="list-group-item px-0 d-flex gap-3">
+                  <i class="bi bi-briefcase text-body-secondary"></i>
+                  <div><small class="text-body-secondary d-block">Berufsbezeichnung</small><span>{{ user?.headline ||
+                      "Nicht angegeben" }}</span></div>
+                </div>
+                <div v-if="user?.about" class="list-group-item px-0 d-flex gap-3">
+                  <i class="bi bi-info-circle text-body-secondary"></i>
+                  <div><small class="text-body-secondary d-block">Über mich</small><span class="text-break">{{
+                      user.about }}</span></div>
+                </div>
+                <div class="list-group-item px-0 d-flex gap-3">
+                  <i class="bi bi-shield-check text-body-secondary"></i>
+                  <div><small class="text-body-secondary d-block">Benutzerrolle</small><span>{{ roleLabel }}</span>
                   </div>
+                </div>
+                <div v-if="user?.linkedInUrl" class="list-group-item px-0 d-flex gap-3">
+                  <i class="bi bi-linkedin text-body-secondary"></i>
+                  <div><small class="text-body-secondary d-block">LinkedIn</small><a :href="user.linkedInUrl"
+                      target="_blank" rel="noopener noreferrer">Profil öffnen</a></div>
+                </div>
+                <div v-if="user?.githubUrl" class="list-group-item px-0 d-flex gap-3">
+                  <i class="bi bi-github text-body-secondary"></i>
+                  <div><small class="text-body-secondary d-block">GitHub</small><a :href="user.githubUrl"
+                      target="_blank" rel="noopener noreferrer">Profil öffnen</a></div>
+                </div>
+                <div v-if="user?.website" class="list-group-item px-0 d-flex gap-3">
+                  <i class="bi bi-globe text-body-secondary"></i>
+                  <div><small class="text-body-secondary d-block">Website</small><a :href="user.website" target="_blank"
+                      rel="noopener noreferrer">Website öffnen</a></div>
+                </div>
+                <div v-if="user?.createdAt" class="list-group-item px-0 d-flex gap-3">
+                  <i class="bi bi-calendar3 text-body-secondary"></i>
+                  <div><small class="text-body-secondary d-block">Registriert am</small><span>{{
+                    formatDate(user.createdAt) }}</span></div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div v-if="isCandidate" class="col-12 col-lg-7">
+          <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-body border-bottom py-3">
+              <div class="d-flex justify-content-between align-items-center gap-3">
+                <div>
+                  <h2 class="h5 mb-1">Lebenslauf</h2>
+                  <p class="small text-body-secondary mb-0">PDF-Dokument für Bewerbungen</p>
+                </div>
+                <span :class="user?.cvUrl ? 'badge text-bg-success' : 'badge text-bg-secondary'">
+                  {{ user?.cvUrl ? "Hochgeladen" : "Nicht vorhanden" }}
+                </span>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div v-if="cvMessage" class="alert alert-success" role="alert">{{ cvMessage }}</div>
+              <div v-if="cvError" class="alert alert-danger" role="alert">{{ cvError }}</div>
+
+              <div v-if="user?.cvUrl" class="border rounded p-3 mb-4">
+                <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3">
+                  <i class="bi bi-file-earmark-pdf fs-1 text-danger"></i>
+                  <div class="flex-grow-1">
+                    <strong class="d-block">Dein aktueller Lebenslauf</strong>
+                    <span class="small text-body-secondary">Bereit für Bewerbungen</span>
+                  </div>
+                  <div class="d-flex flex-column flex-sm-row gap-2">
+                    <a :href="cvFullUrl" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary">CV
+                      anzeigen</a>
+                    <button type="button" class="btn btn-outline-danger" :disabled="deletingCv" @click="handleDeleteCv">
+                      <span v-if="deletingCv" class="spinner-border spinner-border-sm me-2"></span>
+                      {{ deletingCv ? "Wird gelöscht..." : "CV löschen" }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <BaseEmptyState v-else title="Noch kein Lebenslauf vorhanden"
+                message="Lade einen PDF-Lebenslauf hoch, um dich direkt bewerben zu können." icon="bi-file-earmark-pdf"
+                class="mb-4" />
+
+              <div class="border rounded p-3">
+                <label for="cvFile" class="form-label">Neuen Lebenslauf auswählen</label>
+                <input id="cvFile" ref="cvInput" type="file" accept="application/pdf,.pdf" class="form-control"
+                  @change="handleCvChange" />
+                <div v-if="selectedCvName" class="small mt-2">
+                  Ausgewählte Datei: <strong>{{ selectedCvName }}</strong>
                 </div>
 
-                <div class="information-item">
-                  <div class="information-icon">@</div>
-                  <div>
-                    <span class="information-label">E-Mail-Adresse</span>
-                    <strong class="information-value">
-                      {{ user?.email || "Nicht angegeben" }}
-                    </strong>
-                  </div>
+                <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mt-3">
+                  <small class="text-body-secondary">PDF-Datei, maximal 5 MB.</small>
+                  <button type="button" class="btn btn-primary" :disabled="!selectedCv || uploadingCv"
+                    @click="handleUploadCv">
+                    <span v-if="uploadingCv" class="spinner-border spinner-border-sm me-2"></span>
+                    {{ uploadingCv ? "Wird hochgeladen..." : "Lebenslauf hochladen" }}
+                  </button>
                 </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
 
-                <div class="information-item">
-                  <div class="information-icon">T</div>
-                  <div>
-                    <span class="information-label">Telefonnummer</span>
-                    <strong class="information-value">
-                      {{ user?.phoneNumber || "Nicht angegeben" }}
-                    </strong>
-                  </div>
-                </div>
+      <template v-if="isCandidate">
+        <section class="mt-4">
+          <div class="mb-3">
+            <h2 class="h4 mb-1">Deine Aktivitäten</h2>
+            <p class="text-body-secondary mb-0">Bewerbungen, Kurse und abgeschlossene Lektionen</p>
+          </div>
 
-                <div class="information-item">
-                  <div class="information-icon">O</div>
-                  <div>
-                    <span class="information-label">Standort</span>
-                    <strong class="information-value">
-                      {{ user?.location || "Nicht angegeben" }}
-                    </strong>
+          <div class="row g-3">
+            <div class="col-12 col-md-4">
+              <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-send fs-2 text-body-secondary"></i>
+                    <div>
+                      <div class="display-6 fw-semibold">{{ applications.length }}</div>
+                      <div class="text-body-secondary">Bewerbungen</div>
+                    </div>
                   </div>
                 </div>
+              </div>
+            </div>
+            <div class="col-12 col-md-4">
+              <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-book fs-2 text-body-secondary"></i>
+                    <div>
+                      <div class="display-6 fw-semibold">{{ enrollments.length }}</div>
+                      <div class="text-body-secondary">Kurse</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-md-4">
+              <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-check-circle fs-2 text-body-secondary"></i>
+                    <div>
+                      <div class="display-6 fw-semibold">{{ progress.length }}</div>
+                      <div class="text-body-secondary">Lektionen</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-                <div class="information-item">
-                  <div class="information-icon">B</div>
-                  <div>
-                    <span class="information-label">Berufsbezeichnung</span>
-                    <strong class="information-value">
-                      {{ user?.headline || "Nicht angegeben" }}
-                    </strong>
+        <div class="row g-4 mt-1">
+          <div class="col-12 col-lg-6">
+            <section class="card border-0 shadow-sm h-100">
+              <div class="card-header bg-body border-bottom py-3 d-flex justify-content-between align-items-center">
+                <h2 class="h5 mb-0">Meine Bewerbungen</h2>
+                <span class="badge text-bg-secondary">{{ applications.length }}</span>
+              </div>
+              <div class="card-body p-0">
+                <div v-if="hasApplications" class="list-group list-group-flush">
+                  <div v-for="application in applications" :key="application.id" class="list-group-item py-3">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                      <div>
+                        <strong class="d-block">{{ application.job?.title || "Job gelöscht" }}</strong>
+                        <span class="small text-body-secondary">{{ application.job?.company || "Keine Firma" }}</span>
+                      </div>
+                      <span class="badge text-bg-secondary">{{ application.status || "Unbekannt" }}</span>
+                    </div>
                   </div>
                 </div>
-
-                <div v-if="user?.about" class="information-item">
-                  <div class="information-icon">I</div>
-                  <div>
-                    <span class="information-label">Über mich</span>
-                    <strong class="information-value">{{ user.about }}</strong>
-                  </div>
-                </div>
-
-                <div class="information-item">
-                  <div class="information-icon">R</div>
-                  <div>
-                    <span class="information-label">Benutzerrolle</span>
-                    <strong class="information-value">{{ roleLabel }}</strong>
-                  </div>
-                </div>
-
-                <div v-if="user?.linkedInUrl" class="information-item">
-                  <div class="information-icon">in</div>
-                  <div>
-                    <span class="information-label">LinkedIn</span>
-                    <a :href="user.linkedInUrl" target="_blank" rel="noopener noreferrer" class="information-value">
-                      Profil öffnen
-                    </a>
-                  </div>
-                </div>
-
-                <div v-if="user?.githubUrl" class="information-item">
-                  <div class="information-icon">G</div>
-                  <div>
-                    <span class="information-label">GitHub</span>
-                    <a :href="user.githubUrl" target="_blank" rel="noopener noreferrer" class="information-value">
-                      Profil öffnen
-                    </a>
-                  </div>
-                </div>
-
-                <div v-if="user?.website" class="information-item">
-                  <div class="information-icon">W</div>
-                  <div>
-                    <span class="information-label">Website</span>
-                    <a :href="user.website" target="_blank" rel="noopener noreferrer" class="information-value">
-                      Website öffnen
-                    </a>
-                  </div>
-                </div>
-
-                <div v-if="user?.createdAt" class="information-item">
-                  <div class="information-icon">D</div>
-                  <div>
-                    <span class="information-label">Registriert am</span>
-                    <strong class="information-value">
-                      {{ formatDate(user.createdAt) }}
-                    </strong>
-                  </div>
-                </div>
+                <BaseEmptyState v-else title="Noch keine Bewerbungen"
+                  message="Deine eingereichten Bewerbungen werden hier angezeigt." icon="bi-send" />
               </div>
             </section>
           </div>
 
-          <!-- Lebenslauf -->
-          <div v-if="isCandidate" class="col-lg-7">
-            <section class="content-card h-100">
-              <div class="section-heading">
-                <div>
-                  <p class="section-eyebrow">
-                    Bewerbungsunterlagen
-                  </p>
-
-                  <h2 class="section-title">
-                    Lebenslauf
-                  </h2>
-                </div>
-
-                <span class="document-status" :class="{ available: user?.cvUrl }">
-                  {{ user?.cvUrl ? "Hochgeladen" : "Nicht vorhanden" }}
-                </span>
+          <div class="col-12 col-lg-6">
+            <section class="card border-0 shadow-sm h-100">
+              <div class="card-header bg-body border-bottom py-3 d-flex justify-content-between align-items-center">
+                <h2 class="h5 mb-0">Meine Kurse</h2>
+                <span class="badge text-bg-secondary">{{ enrollments.length }}</span>
               </div>
-
-              <div v-if="cvMessage" class="alert alert-success">
-                {{ cvMessage }}
-              </div>
-
-              <div v-if="cvError" class="alert alert-danger">
-                {{ cvError }}
-              </div>
-
-              <div v-if="user?.cvUrl" class="current-document">
-                <div class="document-preview">
-                  <div class="pdf-symbol">
-                    PDF
-                  </div>
-
-                  <div class="flex-grow-1">
-                    <strong class="d-block">
-                      Dein aktueller Lebenslauf
-                    </strong>
-
-                    <span class="text-muted small">
-                      Bereit für Bewerbungen
-                    </span>
+              <div class="card-body p-0">
+                <div v-if="hasEnrollments" class="list-group list-group-flush">
+                  <div v-for="enrollment in enrollments" :key="enrollment.id" class="list-group-item py-3">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between gap-3">
+                      <div>
+                        <strong class="d-block">{{ enrollment.course?.title || "Kurs gelöscht" }}</strong>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                          <span class="badge text-bg-light">{{ enrollment.course?.level || "Kein Level" }}</span>
+                          <span class="badge text-bg-light">{{ enrollment.course?.category || "Keine Kategorie"
+                            }}</span>
+                        </div>
+                      </div>
+                      <button type="button" class="btn btn-outline-primary btn-sm align-self-sm-start"
+                        :disabled="downloadingCertificateId === enrollment.courseId"
+                        @click="downloadCertificate(enrollment.courseId, enrollment.course?.title)">
+                        <span v-if="downloadingCertificateId === enrollment.courseId"
+                          class="spinner-border spinner-border-sm me-2"></span>
+                        {{ downloadingCertificateId === enrollment.courseId ? "Wird geladen..." : "Zertifikat" }}
+                      </button>
+                    </div>
                   </div>
                 </div>
-
-                <div class="document-actions">
-                  <a :href="cvFullUrl" target="_blank" rel="noopener noreferrer" class="btn btn-outline-success">
-                    CV anzeigen
-                  </a>
-
-                  <button type="button" class="btn btn-outline-danger" :disabled="deletingCv" @click="handleDeleteCv">
-                    <span v-if="deletingCv" class="spinner-border spinner-border-sm me-2"></span>
-
-                    {{ deletingCv ? "Wird gelöscht..." : "CV löschen" }}
-                  </button>
-                </div>
-              </div>
-
-              <div v-else class="empty-document">
-                <div class="empty-document-icon">
-                  PDF
-                </div>
-
-                <div>
-                  <strong class="d-block mb-1">
-                    Noch kein Lebenslauf vorhanden
-                  </strong>
-
-                  <span class="text-muted">
-                    Lade einen PDF-Lebenslauf hoch, um dich direkt bewerben
-                    zu können.
-                  </span>
-                </div>
-              </div>
-
-              <div class="upload-area mt-4">
-                <label for="cvFile" class="form-label fw-semibold">
-                  Neuen Lebenslauf auswählen
-                </label>
-
-                <input id="cvFile" ref="cvInput" type="file" accept="application/pdf,.pdf" class="form-control"
-                  @change="handleCvChange" />
-
-                <div v-if="selectedCvName" class="selected-file mt-3">
-                  <span>Ausgewählte Datei:</span>
-                  <strong>{{ selectedCvName }}</strong>
-                </div>
-
-                <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mt-3">
-                  <small class="text-muted">
-                    PDF-Datei, maximal 5 MB.
-                  </small>
-
-                  <button type="button" class="btn btn-success" :disabled="!selectedCv || uploadingCv"
-                    @click="handleUploadCv">
-                    <span v-if="uploadingCv" class="spinner-border spinner-border-sm me-2"></span>
-
-                    {{
-                      uploadingCv
-                        ? "Wird hochgeladen..."
-                        : "Lebenslauf hochladen"
-                    }}
-                  </button>
-                </div>
+                <BaseEmptyState v-else title="Noch keine Kurse"
+                  message="Deine Kurseinschreibungen werden hier angezeigt." icon="bi-book" />
               </div>
             </section>
           </div>
         </div>
 
-        <!-- Candidate-Bereich -->
-        <template v-if="isCandidate">
-          <section class="mt-4">
-            <div class="section-page-heading">
-              <div>
-                <p class="section-eyebrow">
-                  Übersicht
-                </p>
-
-                <h2 class="section-title">
-                  Deine Aktivitäten
-                </h2>
-              </div>
-            </div>
-
-            <div class="row g-4">
-              <div class="col-md-4">
-                <div class="stat-card">
-                  <span class="stat-label">
-                    Bewerbungen
-                  </span>
-
-                  <strong class="stat-value">
-                    {{ applications.length }}
-                  </strong>
-
-                  <span class="stat-description">
-                    Insgesamt eingereichte Bewerbungen
-                  </span>
-                </div>
-              </div>
-
-              <div class="col-md-4">
-                <div class="stat-card">
-                  <span class="stat-label">
-                    Kurse
-                  </span>
-
-                  <strong class="stat-value">
-                    {{ enrollments.length }}
-                  </strong>
-
-                  <span class="stat-description">
-                    Aktuelle Kurseinschreibungen
-                  </span>
-                </div>
-              </div>
-
-              <div class="col-md-4">
-                <div class="stat-card">
-                  <span class="stat-label">
-                    Lektionen
-                  </span>
-
-                  <strong class="stat-value">
-                    {{ progress.length }}
-                  </strong>
-
-                  <span class="stat-description">
-                    Erfolgreich abgeschlossene Lektionen
-                  </span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <div class="row g-4 mt-1">
-            <!-- Bewerbungen -->
-            <div class="col-lg-6">
-              <section class="content-card h-100">
-                <div class="section-heading">
-                  <div>
-                    <p class="section-eyebrow">
-                      Jobs
-                    </p>
-
-                    <h2 class="section-title">
-                      Meine Bewerbungen
-                    </h2>
-                  </div>
-
-                  <span class="count-badge">
-                    {{ applications.length }}
-                  </span>
-                </div>
-
-                <div v-if="hasApplications" class="activity-list">
-                  <article v-for="application in applications" :key="application.id" class="activity-item">
-                    <div class="activity-avatar">
-                      {{
-                        application.job?.company
-                          ?.charAt(0)
-                          ?.toUpperCase() || "J"
-                      }}
-                    </div>
-
-                    <div class="activity-content">
-                      <strong class="activity-title">
-                        {{ application.job?.title || "Job gelöscht" }}
-                      </strong>
-
-                      <span class="activity-meta">
-                        {{ application.job?.company || "Keine Firma" }}
-                      </span>
-                    </div>
-
-                    <span class="status-pill">
-                      {{ application.status || "Unbekannt" }}
-                    </span>
-                  </article>
-                </div>
-
-                <div v-else class="empty-state">
-                  <div class="empty-state-symbol">
-                    J
-                  </div>
-
-                  <strong>Noch keine Bewerbungen</strong>
-
-                  <p>
-                    Deine eingereichten Bewerbungen werden hier angezeigt.
-                  </p>
-                </div>
-              </section>
-            </div>
-
-            <!-- Kurse -->
-            <div class="col-lg-6">
-              <section class="content-card h-100">
-                <div class="section-heading">
-                  <div>
-                    <p class="section-eyebrow">
-                      Weiterbildung
-                    </p>
-
-                    <h2 class="section-title">
-                      Meine Kurse
-                    </h2>
-                  </div>
-
-                  <span class="count-badge">
-                    {{ enrollments.length }}
-                  </span>
-                </div>
-
-                <div v-if="hasEnrollments" class="activity-list">
-                  <article v-for="enrollment in enrollments" :key="enrollment.id" class="course-item">
-                    <div class="d-flex align-items-start gap-3">
-                      <div class="activity-avatar">
-                        K
-                      </div>
-
-                      <div class="flex-grow-1">
-                        <strong class="activity-title d-block">
-                          {{ enrollment.course?.title || "Kurs gelöscht" }}
-                        </strong>
-
-                        <div class="course-tags">
-                          <span>
-                            {{ enrollment.course?.level || "Kein Level" }}
-                          </span>
-
-                          <span>
-                            {{
-                              enrollment.course?.category ||
-                              "Keine Kategorie"
-                            }}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button type="button" class="btn btn-outline-success btn-sm mt-3" :disabled="downloadingCertificateId === enrollment.courseId
-                      " @click="
-                        downloadCertificate(
-                          enrollment.courseId,
-                          enrollment.course?.title
-                        )
-                        ">
-                      <span v-if="
-                        downloadingCertificateId === enrollment.courseId
-                      " class="spinner-border spinner-border-sm me-2"></span>
-
-                      {{
-                        downloadingCertificateId === enrollment.courseId
-                          ? "Wird geladen..."
-                          : "Zertifikat herunterladen"
-                      }}
-                    </button>
-                  </article>
-                </div>
-
-                <div v-else class="empty-state">
-                  <div class="empty-state-symbol">
-                    K
-                  </div>
-
-                  <strong>Noch keine Kurse</strong>
-
-                  <p>
-                    Deine Kurseinschreibungen werden hier angezeigt.
-                  </p>
-                </div>
-              </section>
-            </div>
+        <section class="card border-0 shadow-sm mt-4">
+          <div class="card-header bg-body border-bottom py-3 d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">Abgeschlossene Lektionen</h2>
+            <span class="badge text-bg-secondary">{{ progress.length }}</span>
           </div>
-
-          <!-- Lernfortschritt -->
-          <section class="content-card mt-4">
-            <div class="section-heading">
-              <div>
-                <p class="section-eyebrow">
-                  Lernfortschritt
-                </p>
-
-                <h2 class="section-title">
-                  Abgeschlossene Lektionen
-                </h2>
-              </div>
-
-              <span class="count-badge">
-                {{ progress.length }}
-              </span>
-            </div>
-
-            <div v-if="hasProgress" class="progress-list">
-              <div v-for="item in progress" :key="item.id" class="progress-item">
-                <div class="progress-check">
-                  ✓
+          <div class="card-body p-0">
+            <div v-if="hasProgress" class="list-group list-group-flush">
+              <div v-for="item in progress" :key="item.id" class="list-group-item py-3">
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                  <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-check-circle-fill text-success"></i>
+                    <div>
+                      <strong class="d-block">Lektion {{ item.lessonId }}</strong>
+                      <span class="small text-body-secondary">Abgeschlossen am {{ formatDateTime(item.completedAt)
+                        }}</span>
+                    </div>
+                  </div>
+                  <span class="badge text-bg-success">Abgeschlossen</span>
                 </div>
-
-                <div class="flex-grow-1">
-                  <strong class="d-block">
-                    Lektion {{ item.lessonId }}
-                  </strong>
-
-                  <span class="text-muted small">
-                    Abgeschlossen am
-                    {{ formatDateTime(item.completedAt) }}
-                  </span>
-                </div>
-
-                <span class="completed-label">
-                  Abgeschlossen
-                </span>
               </div>
             </div>
-
-            <div v-else class="empty-state compact">
-              <div class="empty-state-symbol">
-                ✓
-              </div>
-
-              <strong>Noch keine Lektionen abgeschlossen</strong>
-
-              <p>
-                Sobald du eine Lektion abschließt, erscheint sie hier.
-              </p>
-            </div>
-          </section>
-        </template>
+            <BaseEmptyState v-else title="Noch keine Lektionen abgeschlossen"
+              message="Sobald du eine Lektion abschließt, erscheint sie hier." icon="bi-check-circle" />
+          </div>
+        </section>
       </template>
-    </div>
-  </div>
+    </template>
+  </main>
 </template>

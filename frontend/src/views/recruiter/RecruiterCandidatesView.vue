@@ -1,5 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
+
+import PageHeader from "@/components/shared/PageHeader.vue";
 import api from "@/services/api";
 
 const candidates = ref([]);
@@ -25,7 +27,7 @@ const stats = computed(() => [
         textClass: "",
     },
     {
-        label: "Accepted",
+        label: "Angenommen",
         value: candidates.value.reduce(
             (sum, candidate) => sum + (candidate.acceptedApplications || 0),
             0
@@ -33,7 +35,7 @@ const stats = computed(() => [
         textClass: "text-success",
     },
     {
-        label: "Rejected",
+        label: "Abgelehnt",
         value: candidates.value.reduce(
             (sum, candidate) => sum + (candidate.rejectedApplications || 0),
             0
@@ -77,24 +79,26 @@ onMounted(loadCandidates);
 </script>
 
 <template>
-    <div class="container py-4">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-            <h2 class="mb-0">Kandidaten-Suche</h2>
-
-            <router-link to="/recruiter/dashboard" class="btn btn-outline-secondary">
-                Zurück zum Dashboard
-            </router-link>
-        </div>
+    <main class="container py-4">
+        <PageHeader title="Kandidatensuche"
+            description="Finde Kandidatinnen und Kandidaten anhand ihrer hinterlegten Skills.">
+            <template #actions>
+                <router-link to="/recruiter/dashboard" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>
+                    Zum Dashboard
+                </router-link>
+            </template>
+        </PageHeader>
 
         <div v-if="error" class="alert alert-danger">
             {{ error }}
         </div>
 
         <div class="row g-3 mb-4">
-            <div v-for="stat in stats" :key="stat.label" class="col-md-3">
-                <div class="card shadow-sm border-0 h-100">
+            <div v-for="stat in stats" :key="stat.label" class="col-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
-                        <h6 class="text-muted">{{ stat.label }}</h6>
+                        <h6 class="text-body-secondary">{{ stat.label }}</h6>
 
                         <h3 class="mb-0" :class="stat.textClass">
                             {{ stat.value }}
@@ -104,43 +108,51 @@ onMounted(loadCandidates);
             </div>
         </div>
 
-        <div class="card shadow-sm mb-4">
+        <div class="card border-0 shadow-sm mb-4">
             <div class="card-body">
                 <h5>Nach Skill suchen</h5>
 
-                <div class="d-flex flex-wrap gap-2">
-                    <input v-model="searchSkill" class="form-control" placeholder="z.B. PostgreSQL, ASP.NET Core, C#"
-                        @keyup.enter="loadCandidates" />
+                <div class="row g-2 align-items-center">
+                    <div class="col-12 col-lg">
+                        <input v-model="searchSkill" class="form-control"
+                            placeholder="z. B. PostgreSQL, ASP.NET Core, C#" @keyup.enter="loadCandidates" />
+                    </div>
 
-                    <button type="button" class="btn btn-primary" :disabled="loading" @click="loadCandidates">
-                        Suchen
-                    </button>
+                    <div class="col-12 col-sm-auto d-grid">
+                        <button type="button" class="btn btn-primary" :disabled="loading" @click="loadCandidates">
+                            Suchen
+                        </button>
+                    </div>
 
-                    <button type="button" class="btn btn-outline-secondary" :disabled="loading || !searchSkill"
-                        @click="clearSearch">
-                        Zurücksetzen
-                    </button>
+                    <div class="col-12 col-sm-auto d-grid">
+                        <button type="button" class="btn btn-outline-secondary" :disabled="loading || !searchSkill"
+                            @click="clearSearch">
+                            Zurücksetzen
+                        </button>
+                    </div>
                 </div>
 
-                <p v-if="searchSkill" class="text-muted small mt-2 mb-0">
+                <p v-if="searchSkill" class="text-body-secondary small mt-2 mb-0">
                     Suche nach Skill:
                     <strong>{{ searchSkill }}</strong>
                 </p>
             </div>
         </div>
 
-        <div v-if="loading" class="alert alert-info">
-            Kandidaten werden geladen...
+        <div v-if="loading" class="d-flex justify-content-center py-5">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Kandidaten werden geladen...</span>
+            </div>
         </div>
 
         <template v-else>
-            <div v-if="!hasCandidates" class="alert alert-warning">
+            <div v-if="!hasCandidates" class="text-center py-5">
                 Keine Kandidaten gefunden.
             </div>
 
             <div v-else class="row g-3">
-                <div v-for="candidate in candidates" :key="candidate.id" class="col-md-6">
-                    <div class="card shadow-sm h-100">
+                <div v-for="candidate in candidates" :key="candidate.id" class="col-12 col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start gap-3">
                                 <div>
@@ -148,12 +160,12 @@ onMounted(loadCandidates);
                                         {{ candidate.fullName || "Unbekannter Kandidat" }}
                                     </h5>
 
-                                    <p class="text-muted mb-2">
+                                    <p class="text-body-secondary mb-2">
                                         {{ candidate.email || "Keine E-Mail" }}
                                     </p>
                                 </div>
 
-                                <span class="badge bg-primary">
+                                <span class="badge text-bg-primary">
                                     {{ candidate.skillsCount || 0 }} Skills
                                 </span>
                             </div>
@@ -163,12 +175,12 @@ onMounted(loadCandidates);
 
                                 <div v-if="candidate.skills?.length" class="mt-2">
                                     <span v-for="skill in candidate.skills" :key="skill"
-                                        class="badge bg-success me-2 mb-2">
+                                        class="badge text-bg-success me-2 mb-2">
                                         {{ skill }}
                                     </span>
                                 </div>
 
-                                <p v-else class="text-muted mt-2 mb-0">
+                                <p v-else class="text-body-secondary mt-2 mb-0">
                                     Keine Skills hinterlegt.
                                 </p>
                             </div>
@@ -177,7 +189,7 @@ onMounted(loadCandidates);
                                 <div class="col-4">
                                     <div class="border rounded p-2">
                                         <strong>{{ candidate.applicationsCount || 0 }}</strong>
-                                        <div class="text-muted small">Bewerbungen</div>
+                                        <div class="text-body-secondary small">Bewerbungen</div>
                                     </div>
                                 </div>
 
@@ -186,7 +198,7 @@ onMounted(loadCandidates);
                                         <strong class="text-success">
                                             {{ candidate.acceptedApplications || 0 }}
                                         </strong>
-                                        <div class="text-muted small">Accepted</div>
+                                        <div class="text-body-secondary small">Angenommen</div>
                                     </div>
                                 </div>
 
@@ -195,12 +207,12 @@ onMounted(loadCandidates);
                                         <strong class="text-danger">
                                             {{ candidate.rejectedApplications || 0 }}
                                         </strong>
-                                        <div class="text-muted small">Rejected</div>
+                                        <div class="text-body-secondary small">Abgelehnt</div>
                                     </div>
                                 </div>
                             </div>
 
-                            <p class="text-muted small mt-3 mb-0">
+                            <p class="text-body-secondary small mt-3 mb-0">
                                 Registriert am:
                                 {{ formatDate(candidate.createdAt) }}
                             </p>
@@ -214,5 +226,5 @@ onMounted(loadCandidates);
                 </div>
             </div>
         </template>
-    </div>
+    </main>
 </template>

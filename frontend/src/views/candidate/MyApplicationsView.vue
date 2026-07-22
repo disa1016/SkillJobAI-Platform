@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 
 import BaseAlert from "@/components/shared/BaseAlert.vue";
+import PageHeader from "@/components/shared/PageHeader.vue";
 import BaseCard from "@/components/shared/BaseCard.vue";
 import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
 import BaseSpinner from "@/components/shared/BaseSpinner.vue";
@@ -34,8 +35,8 @@ onMounted(loadApplications);
 </script>
 
 <template>
-    <div class="container py-4">
-        <h2 class="mb-4">Meine Bewerbungen</h2>
+    <main class="container py-4">
+        <PageHeader title="Meine Bewerbungen" description="Behalte den Status deiner Bewerbungen und zugehörige Stellen im Blick." />
 
         <BaseSpinner v-if="loading" message="Bewerbungen werden geladen..." />
 
@@ -45,7 +46,7 @@ onMounted(loadApplications);
             <BaseEmptyState v-if="!hasApplications" message="Du hast noch keine Bewerbungen gesendet." />
 
             <div v-else class="row g-3">
-                <div v-for="application in applications" :key="application.id" class="col-md-6">
+                <div v-for="application in applications" :key="application.id" class="col-12 col-lg-6">
                     <BaseCard cardClass="h-100">
                         <h5>
                             {{ application.job?.title || "Job gelöscht" }}
@@ -76,7 +77,7 @@ onMounted(loadApplications);
                         <BaseAlert v-if="application.status === APPLICATION_STATUS.ACCEPTED" type="success" class="mt-3"
                             message="Glückwunsch! Deine Bewerbung wurde angenommen." />
 
-                        <div class="d-flex flex-wrap gap-2 mt-3">
+                        <div class="d-flex flex-column flex-sm-row flex-wrap gap-2 mt-3">
                             <router-link v-if="application.job?.id" :to="`/jobs/${application.job.id}`"
                                 class="btn btn-outline-primary btn-sm">
                                 Job ansehen
@@ -95,7 +96,7 @@ onMounted(loadApplications);
                             </router-link>
                         </div>
 
-                        <p class="text-muted mt-3 mb-0">
+                        <p class="text-body-secondary mt-3 mb-0">
                             Beworben am:
                             {{ formatDate(application.createdAt) }}
                         </p>
@@ -103,5 +104,5 @@ onMounted(loadApplications);
                 </div>
             </div>
         </template>
-    </div>
+    </main>
 </template>

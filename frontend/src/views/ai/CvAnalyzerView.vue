@@ -4,6 +4,9 @@ import {
     analyzeCv as analyzeCvRequest,
     analyzeCvPdf,
 } from "@/services/aiService";
+import BaseAlert from "@/components/shared/BaseAlert.vue";
+import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
+import PageHeader from "@/components/shared/PageHeader.vue";
 
 const cvText = ref("");
 const selectedFile = ref(null);
@@ -102,137 +105,103 @@ const analyzePdf = async () => {
 </script>
 
 <template>
-    <div class="container mt-4">
-        <h1 class="mb-4">AI CV Analyzer</h1>
+    <main class="container py-4">
+        <PageHeader title="AI CV Analyzer"
+            description="Analysiere deinen Lebenslauf als Text oder PDF und erhalte Hinweise zu Skills und Verbesserungsmöglichkeiten." />
+        <BaseAlert v-if="error" type="danger" :message="error" />
 
-        <div v-if="error" class="alert alert-danger">
-            {{ error }}
-        </div>
-
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body">
-                        <h5>Text analysieren</h5>
-
-                        <label class="form-label">Lebenslauf-Text</label>
-
-                        <textarea v-model="cvText" class="form-control mb-3" rows="8"
-                            placeholder="Füge hier deinen Lebenslauf-Text ein..." />
-
-                        <button type="button" class="btn btn-primary" :disabled="!canAnalyzeText" @click="analyzeCv">
-                            {{ loading ? "Analysiere..." : "CV analysieren" }}
-                        </button>
+        <div class="row g-4 mb-4">
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-body border-bottom">
+                        <h2 class="h5 mb-0">Text analysieren</h2>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <label for="cv-text" class="form-label">Lebenslauf-Text</label>
+                        <textarea id="cv-text" v-model="cvText" class="form-control flex-grow-1" rows="9"
+                            placeholder="Füge hier deinen Lebenslauf-Text ein..."></textarea>
+                        <div class="d-grid d-sm-block mt-3"><button type="button" class="btn btn-primary"
+                                :disabled="!canAnalyzeText" @click="analyzeCv"><span v-if="loading"
+                                    class="spinner-border spinner-border-sm me-2"></span>{{ loading ? "Wird analysiert..." : "CV analysieren" }}</button></div>
                     </div>
                 </div>
             </div>
-
-            <div class="col-md-6 mb-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body">
-                        <h5>PDF hochladen</h5>
-
-                        <label class="form-label">Lebenslauf als PDF</label>
-
-                        <input type="file" class="form-control mb-3" accept="application/pdf"
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-body border-bottom">
+                        <h2 class="h5 mb-0">PDF analysieren</h2>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <label for="cv-pdf" class="form-label">Lebenslauf als PDF</label>
+                        <input id="cv-pdf" type="file" class="form-control" accept="application/pdf"
                             @change="handleFileChange" />
-
-                        <button type="button" class="btn btn-success" :disabled="!canAnalyzePdf" @click="analyzePdf">
-                            {{ loading ? "Analysiere..." : "PDF analysieren" }}
-                        </button>
+                        <div class="form-text">Es werden ausschließlich PDF-Dateien akzeptiert.</div>
+                        <div class="d-grid d-sm-block mt-auto pt-3"><button type="button"
+                                class="btn btn-outline-primary" :disabled="!canAnalyzePdf" @click="analyzePdf"><span
+                                    v-if="loading" class="spinner-border spinner-border-sm me-2"></span>{{ loading ?
+                                        "Wird analysiert..." : "PDF analysieren" }}</button></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div v-if="result" class="card shadow-sm mb-4">
+        <div v-if="result" class="card border-0 shadow-sm mb-4">
+            <div
+                class="card-header bg-body border-bottom d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                <h2 class="h5 mb-0">Analyse-Ergebnis</h2><span class="badge text-bg-primary fs-6">Score: {{ result.score
+                    ?? 0 }}/100</span>
+            </div>
             <div class="card-body">
-                <h4>Analyse Ergebnis</h4>
-
-                <p class="display-6 text-primary">
-                    Score: {{ result.score ?? 0 }}/100
-                </p>
-
-                <h5>Skill Kategorien</h5>
-
-                <div v-if="skillCategories.length > 0" class="row mb-4">
-                    <div v-for="category in skillCategories" :key="category.name" class="col-md-6 mb-3">
-                        <div class="card h-100 border-0 bg-light">
+                <h3 class="h6 mb-3">Skill-Kategorien</h3>
+                <div v-if="skillCategories.length" class="row g-3 mb-4">
+                    <div v-for="category in skillCategories" :key="category.name" class="col-12 col-xl-6">
+                        <div class="card bg-body-tertiary border-0 h-100">
                             <div class="card-body">
-                                <h6 class="fw-bold">
-                                    {{ category.name }}
-                                </h6>
-
-                                <div class="mb-2">
-                                    <strong>Gefunden</strong>
-
-                                    <ul v-if="category.matchedSkills?.length" class="list-group mt-2">
-                                        <li v-for="skill in category.matchedSkills" :key="skill"
-                                            class="list-group-item list-group-item-success">
-                                            {{ skill }}
-                                        </li>
-                                    </ul>
-
-                                    <p v-else class="text-muted mt-2">
-                                        Keine Skills gefunden.
-                                    </p>
-                                </div>
-
-                                <div>
-                                    <strong>Fehlt noch</strong>
-
-                                    <ul v-if="category.missingSkills?.length" class="list-group mt-2">
-                                        <li v-for="skill in category.missingSkills" :key="skill"
-                                            class="list-group-item list-group-item-warning">
-                                            {{ skill }}
-                                        </li>
-                                    </ul>
-
-                                    <p v-else class="text-success mt-2 mb-0">
-                                        Keine fehlenden Skills.
-                                    </p>
-                                </div>
+                                <h4 class="h6">{{ category.name }}</h4>
+                                <p class="small fw-semibold mb-2">Gefunden</p>
+                                <div v-if="category.matchedSkills?.length" class="d-flex flex-wrap gap-2 mb-3"><span
+                                        v-for="skill in category.matchedSkills" :key="skill"
+                                        class="badge text-bg-success">{{ skill }}</span></div>
+                                <p v-else class="text-body-secondary small">Keine Skills gefunden.</p>
+                                <p class="small fw-semibold mb-2">Fehlt noch</p>
+                                <div v-if="category.missingSkills?.length" class="d-flex flex-wrap gap-2"><span
+                                        v-for="skill in category.missingSkills" :key="skill"
+                                        class="badge text-bg-warning">{{ skill }}</span></div>
+                                <p v-else class="text-success small mb-0">Keine fehlenden Skills.</p>
                             </div>
                         </div>
                     </div>
                 </div>
+                <BaseEmptyState v-else title="Keine Kategorien erkannt"
+                    message="In der Analyse wurden keine Skill-Kategorien gefunden." />
 
-                <p v-else class="text-muted">
-                    Keine Skill-Kategorien erkannt.
-                </p>
-
-                <h5>Alle gefundenen Skills</h5>
-
-                <ul v-if="skills.length > 0" class="list-group mb-3">
-                    <li v-for="skill in skills" :key="skill" class="list-group-item">
-                        {{ skill }}
-                    </li>
-                </ul>
-
-                <p v-else class="text-muted">
-                    Keine technischen Skills erkannt.
-                </p>
-
-                <h5>Empfehlungen</h5>
-
-                <ul v-if="suggestions.length > 0" class="list-group">
-                    <li v-for="suggestion in suggestions" :key="suggestion" class="list-group-item">
-                        {{ suggestion }}
-                    </li>
-                </ul>
-
-                <p v-else class="text-muted">
-                    Keine Empfehlungen vorhanden.
-                </p>
+                <div class="row g-4">
+                    <div class="col-12 col-lg-6">
+                        <h3 class="h6">Alle gefundenen Skills</h3>
+                        <ul v-if="skills.length" class="list-group list-group-flush border rounded">
+                            <li v-for="skill in skills" :key="skill" class="list-group-item">{{ skill }}</li>
+                        </ul>
+                        <p v-else class="text-body-secondary mb-0">Keine technischen Skills erkannt.</p>
+                    </div>
+                    <div class="col-12 col-lg-6">
+                        <h3 class="h6">Empfehlungen</h3>
+                        <ul v-if="suggestions.length" class="list-group list-group-flush border rounded">
+                            <li v-for="suggestion in suggestions" :key="suggestion" class="list-group-item">{{
+                                suggestion }}</li>
+                        </ul>
+                        <p v-else class="text-body-secondary mb-0">Keine Empfehlungen vorhanden.</p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div v-if="extractedText" class="card shadow-sm">
+        <div v-if="extractedText" class="card border-0 shadow-sm">
+            <div class="card-header bg-body border-bottom">
+                <h2 class="h5 mb-0">Aus PDF gelesener Text</h2>
+            </div>
             <div class="card-body">
-                <h5>Aus PDF gelesener Text</h5>
-
-                <pre class="bg-light rounded p-3 mb-0">{{ extractedText }}</pre>
+                <pre class="bg-body-tertiary border rounded p-3 mb-0 text-wrap">{{ extractedText }}</pre>
             </div>
         </div>
-    </div>
+    </main>
 </template>

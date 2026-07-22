@@ -39,7 +39,7 @@ onMounted(loadSkillGap);
 </script>
 
 <template>
-    <div class="container py-4">
+    <main class="container py-4">
         <h2 class="mb-4">Skill Gap Analyse</h2>
 
         <div v-if="loading" class="alert alert-info">
@@ -56,13 +56,13 @@ onMounted(loadSkillGap);
                 Bitte füge zuerst Skills für diesen Job hinzu.
             </div>
 
-            <div class="card mb-4 shadow-sm">
+            <div class="card border-0 shadow-sm mb-4">
                 <div class="card-body">
                     <h4>{{ skillGap.jobTitle || "Unbekannter Job" }}</h4>
 
                     <p class="mb-2">Match Score</p>
 
-                    <div class="progress mb-3" style="height: 30px">
+                    <div class="progress mb-3" role="progressbar" aria-label="Match Score">
                         <div class="progress-bar" role="progressbar" :style="`width: ${matchPercentage}%`">
                             {{ skillGap.hasJobSkills ? `${matchPercentage}%` : "Keine Skills" }}
                         </div>
@@ -70,9 +70,9 @@ onMounted(loadSkillGap);
                 </div>
             </div>
 
-            <div class="row">
+            <div class="row g-3 mb-4">
                 <div class="col-md-4">
-                    <div class="card shadow-sm mb-3 h-100">
+                    <div class="card border-0 shadow-sm h-100">
                         <div class="card-body">
                             <h5>Job Skills</h5>
 
@@ -82,7 +82,7 @@ onMounted(loadSkillGap);
                                 </li>
                             </ul>
 
-                            <p v-else class="text-muted mt-3">
+                            <p v-else class="text-body-secondary mt-3">
                                 Für diesen Job wurden noch keine Skills hinterlegt.
                             </p>
                         </div>
@@ -90,7 +90,7 @@ onMounted(loadSkillGap);
                 </div>
 
                 <div class="col-md-4">
-                    <div class="card shadow-sm mb-3 h-100">
+                    <div class="card border-0 shadow-sm h-100">
                         <div class="card-body">
                             <h5>Passende Skills</h5>
 
@@ -101,11 +101,11 @@ onMounted(loadSkillGap);
                                 </li>
                             </ul>
 
-                            <p v-else-if="skillGap.hasJobSkills" class="text-muted mt-3">
+                            <p v-else-if="skillGap.hasJobSkills" class="text-body-secondary mt-3">
                                 Keine passenden Skills gefunden.
                             </p>
 
-                            <p v-else class="text-muted mt-3">
+                            <p v-else class="text-body-secondary mt-3">
                                 Noch keine Auswertung möglich.
                             </p>
                         </div>
@@ -113,7 +113,7 @@ onMounted(loadSkillGap);
                 </div>
 
                 <div class="col-md-4">
-                    <div class="card shadow-sm mb-3 h-100">
+                    <div class="card border-0 shadow-sm h-100">
                         <div class="card-body">
                             <h5>Fehlende Skills</h5>
 
@@ -128,7 +128,7 @@ onMounted(loadSkillGap);
                                 Du erfüllst alle Skill-Anforderungen.
                             </p>
 
-                            <p v-else class="text-muted mt-3">
+                            <p v-else class="text-body-secondary mt-3">
                                 Keine fehlenden Skills berechenbar.
                             </p>
                         </div>
@@ -136,7 +136,7 @@ onMounted(loadSkillGap);
                 </div>
             </div>
 
-            <div class="card shadow-sm mb-3">
+            <div class="card border-0 shadow-sm mb-3">
                 <div class="card-body">
                     <h5>Empfohlene Kurse</h5>
 
@@ -156,5 +156,5 @@ onMounted(loadSkillGap);
                 Zurück zum Job
             </router-link>
         </template>
-    </div>
+    </main>
 </template>

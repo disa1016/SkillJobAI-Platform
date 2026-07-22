@@ -1,6 +1,9 @@
 <script setup>
 import { computed, ref } from "vue";
 import { analyzeJobMatch } from "@/services/aiService";
+import BaseAlert from "@/components/shared/BaseAlert.vue";
+import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
+import PageHeader from "@/components/shared/PageHeader.vue";
 
 const cvText = ref("");
 const jobDescription = ref("");
@@ -48,73 +51,65 @@ const analyzeMatch = async () => {
 </script>
 
 <template>
-    <div class="container mt-4">
-        <h1 class="mb-4">AI Job Matcher</h1>
+    <main class="container py-4">
+        <PageHeader title="AI Job Matcher"
+            description="Vergleiche deinen Lebenslauf mit einer Stellenbeschreibung und erkenne passende sowie fehlende Skills." />
+        <BaseAlert v-if="error" type="danger" :message="error" />
 
-        <div v-if="error" class="alert alert-danger">
-            {{ error }}
-        </div>
-
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
                 <form @submit.prevent="analyzeMatch">
-                    <div class="mb-3">
-                        <label class="form-label">Lebenslauf-Text</label>
-
-                        <textarea v-model="cvText" class="form-control" rows="6"
-                            placeholder="Füge hier deinen CV-Text ein..." required />
+                    <div class="row g-3">
+                        <div class="col-12 col-lg-6">
+                            <label for="match-cv" class="form-label">Lebenslauf-Text</label>
+                            <textarea id="match-cv" v-model="cvText" class="form-control" rows="9"
+                                placeholder="Füge hier deinen CV-Text ein..." required></textarea>
+                        </div>
+                        <div class="col-12 col-lg-6">
+                            <label for="match-job" class="form-label">Jobbeschreibung</label>
+                            <textarea id="match-job" v-model="jobDescription" class="form-control" rows="9"
+                                placeholder="Füge hier die Jobbeschreibung ein..." required></textarea>
+                        </div>
                     </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Jobbeschreibung</label>
-
-                        <textarea v-model="jobDescription" class="form-control" rows="6"
-                            placeholder="Füge hier die Jobbeschreibung ein..." required />
+                    <div class="d-grid d-sm-block mt-4">
+                        <button type="submit" class="btn btn-primary" :disabled="!canAnalyze">
+                            <span v-if="loading" class="spinner-border spinner-border-sm me-2"
+                                aria-hidden="true"></span>{{ loading ? "Wird analysiert..." : "Match berechnen" }}
+                        </button>
                     </div>
-
-                    <button type="submit" class="btn btn-primary" :disabled="!canAnalyze">
-                        {{ loading ? "Analysiere..." : "Match berechnen" }}
-                    </button>
                 </form>
             </div>
         </div>
 
-        <div v-if="result" class="card shadow-sm">
+        <div v-if="result" class="card border-0 shadow-sm">
+            <div
+                class="card-header bg-body border-bottom d-flex flex-column flex-sm-row justify-content-between gap-2 align-items-sm-center">
+                <h2 class="h5 mb-0">Matching-Ergebnis</h2><span class="badge text-bg-primary fs-6">{{ matchScore }} %
+                    Match</span>
+            </div>
             <div class="card-body">
-                <h4>Matching Ergebnis</h4>
-
-                <p class="display-6 text-primary">
-                    Match Score: {{ matchScore }}%
-                </p>
-
-                <h5>Gefundene Skills</h5>
-
-                <ul v-if="matchedSkills.length > 0" class="list-group mb-3">
-                    <li v-for="skill in matchedSkills" :key="skill" class="list-group-item">
-                        {{ skill }}
-                    </li>
-                </ul>
-
-                <p v-else class="text-muted">
-                    Keine passenden Skills gefunden.
-                </p>
-
-                <h5>Fehlende Skills</h5>
-
-                <ul v-if="missingSkills.length > 0" class="list-group mb-3">
-                    <li v-for="skill in missingSkills" :key="skill" class="list-group-item">
-                        {{ skill }}
-                    </li>
-                </ul>
-
-                <p v-else class="text-success">
-                    Keine fehlenden Skills gefunden.
-                </p>
-
-                <div v-if="result.recommendation" class="alert alert-info">
-                    {{ result.recommendation }}
+                <div class="row g-4">
+                    <div class="col-12 col-lg-6">
+                        <h3 class="h6">Gefundene Skills</h3>
+                        <ul v-if="matchedSkills.length" class="list-group list-group-flush border rounded">
+                            <li v-for="skill in matchedSkills" :key="skill" class="list-group-item"><i
+                                    class="bi bi-check-circle text-success me-2"></i>{{ skill }}</li>
+                        </ul>
+                        <BaseEmptyState v-else title="Keine Treffer"
+                            message="Es wurden keine passenden Skills gefunden." />
+                    </div>
+                    <div class="col-12 col-lg-6">
+                        <h3 class="h6">Fehlende Skills</h3>
+                        <ul v-if="missingSkills.length" class="list-group list-group-flush border rounded">
+                            <li v-for="skill in missingSkills" :key="skill" class="list-group-item"><i
+                                    class="bi bi-exclamation-circle text-warning me-2"></i>{{ skill }}</li>
+                        </ul>
+                        <BaseAlert v-else type="success" message="Keine fehlenden Skills gefunden." />
+                    </div>
                 </div>
+                <BaseAlert v-if="result.recommendation" class="mt-4 mb-0" type="info"
+                    :message="result.recommendation" />
             </div>
         </div>
-    </div>
+    </main>
 </template>

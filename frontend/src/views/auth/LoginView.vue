@@ -9,110 +9,100 @@ const router = useRouter();
 
 const email = ref("");
 const password = ref("");
-
 const loading = ref(false);
 const error = ref("");
 
 const getHomePathByRole = (role) => {
-  if (role === "Admin") {
-    return "/admin/dashboard";
-  }
-
-  if (role === "Recruiter") {
-    return "/recruiter/dashboard";
-  }
-
-  return "/dashboard";
+    if (role === "Admin") return "/admin/dashboard";
+    if (role === "Recruiter") return "/recruiter/dashboard";
+    return "/dashboard";
 };
 
 const getSafeRedirectPath = (user) => {
-  const requestedPath =
-    typeof route.query.redirect === "string"
-      ? route.query.redirect
-      : null;
+    const requestedPath =
+        typeof route.query.redirect === "string" ? route.query.redirect : null;
 
-  /*
-   * Es werden nur interne relative Pfade erlaubt.
-   * Dadurch verhindern wir offene Weiterleitungen.
-   */
-  if (
-    requestedPath &&
-    requestedPath.startsWith("/") &&
-    !requestedPath.startsWith("//")
-  ) {
-    return requestedPath;
-  }
+    if (
+        requestedPath &&
+        requestedPath.startsWith("/") &&
+        !requestedPath.startsWith("//")
+    ) {
+        return requestedPath;
+    }
 
-  return getHomePathByRole(user?.role);
+    return getHomePathByRole(user?.role);
 };
 
 const handleLogin = async () => {
-  error.value = "";
-  loading.value = true;
+    error.value = "";
+    loading.value = true;
 
-  try {
-    const data = await login({
-      email: email.value,
-      password: password.value,
-    });
+    try {
+        const data = await login({
+            email: email.value,
+            password: password.value,
+        });
 
-    await router.replace(
-      getSafeRedirectPath(data.user)
-    );
-  } catch (err) {
-    error.value =
-      err.response?.data?.message ||
-      "E-Mail oder Passwort ist falsch.";
-  } finally {
-    loading.value = false;
-  }
+        await router.replace(getSafeRedirectPath(data.user));
+    } catch (err) {
+        error.value =
+            err.response?.data?.message || "E-Mail oder Passwort ist falsch.";
+    } finally {
+        loading.value = false;
+    }
 };
 </script>
 
 <template>
-    <div class="container min-vh-100 d-flex align-items-center justify-content-center">
-        <div class="card shadow p-4" style="max-width: 420px; width: 100%">
-            <h2 class="text-center text-primary mb-3">
-                SkillJob AI
-            </h2>
+    <main class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="text-center mb-4">
+                            <i class="bi bi-person-circle display-5 text-primary" aria-hidden="true"></i>
+                            <h1 class="h3 mt-3 mb-1">Anmelden</h1>
+                            <p class="text-body-secondary mb-0">
+                                Melde dich bei SkillJob AI an.
+                            </p>
+                        </div>
 
-            <p class="text-center text-muted">
-                Login to your account
-            </p>
+                        <BaseAlert v-if="error" type="danger" :message="error" />
 
-            <BaseAlert type="danger" :message="error" />
+                        <form @submit.prevent="handleLogin">
+                            <div class="mb-3">
+                                <label for="login-email" class="form-label">E-Mail</label>
+                                <input id="login-email" v-model="email" type="email" class="form-control"
+                                    autocomplete="email" required />
+                            </div>
 
-            <form @submit.prevent="handleLogin">
-                <div class="mb-3">
-                    <label class="form-label">E-Mail</label>
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center gap-2">
+                                    <label for="login-password" class="form-label">Passwort</label>
+                                    <router-link to="/forgot-password" class="small">
+                                        Passwort vergessen?
+                                    </router-link>
+                                </div>
+                                <input id="login-password" v-model="password" type="password" class="form-control"
+                                    autocomplete="current-password" required />
+                            </div>
 
-                    <input v-model="email" type="email" class="form-control" autocomplete="email" required />
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary" :disabled="loading">
+                                    <span v-if="loading" class="spinner-border spinner-border-sm me-2"
+                                        aria-hidden="true"></span>
+                                    {{ loading ? "Anmeldung läuft..." : "Anmelden" }}
+                                </button>
+                            </div>
+                        </form>
+
+                        <p class="text-center text-body-secondary mt-4 mb-0">
+                            Noch kein Konto?
+                            <router-link to="/register">Registrieren</router-link>
+                        </p>
+                    </div>
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Passwort</label>
-
-                    <input v-model="password" type="password" class="form-control" autocomplete="current-password"
-                        required />
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100" :disabled="loading">
-                    {{ loading ? "Bitte warten..." : "Login" }}
-                </button>
-            </form>
-
-            <p class="text-center mt-3 mb-0">
-                Noch kein Konto?
-                <router-link to="/register">
-                    Registrieren
-                </router-link>
-            </p>
-
-            <p class="text-center mt-3">
-                <router-link to="/forgot-password">
-                    Passwort vergessen?
-                </router-link>
-            </p>
+            </div>
         </div>
-    </div>
+    </main>
 </template>

@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from "vue";
 import { getJobs } from "@/services/jobService";
 
 import BaseAlert from "@/components/shared/BaseAlert.vue";
+import PageHeader from "@/components/shared/PageHeader.vue";
 import BaseCard from "@/components/shared/BaseCard.vue";
 import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
 import BaseSpinner from "@/components/shared/BaseSpinner.vue";
@@ -74,21 +75,31 @@ onMounted(loadJobs);
 </script>
 
 <template>
-    <div class="container mt-4">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-            <h1 class="mb-0">Jobs</h1>
+    <main class="container py-4">
+        <PageHeader title="Stellenangebote"
+            description="Durchsuche aktuelle Stellenangebote und finde eine passende Position." />
 
-            <div class="d-flex flex-wrap gap-2">
-                <input v-model="search" type="text" class="form-control" style="max-width: 280px"
-                    placeholder="Job suchen..." @keyup.enter="searchJobs" />
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
 
-                <button type="button" class="btn btn-primary" @click="searchJobs">
-                    Suchen
-                </button>
+                <div class="row g-2 align-items-center">
+                    <div class="col-12 col-lg">
+                        <input v-model="search" type="text" class="form-control" placeholder="Job suchen..."
+                            @keyup.enter="searchJobs" />
+                    </div>
 
-                <button type="button" class="btn btn-outline-secondary" @click="clearSearch">
-                    Zurücksetzen
-                </button>
+                    <div class="col-12 col-sm-auto d-grid">
+                        <button type="button" class="btn btn-primary" @click="searchJobs">
+                            Suchen
+                        </button>
+                    </div>
+
+                    <div class="col-12 col-sm-auto d-grid">
+                        <button type="button" class="btn btn-outline-secondary" @click="clearSearch">
+                            Zurücksetzen
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -100,14 +111,14 @@ onMounted(loadJobs);
             <BaseEmptyState v-if="!hasJobs" message="Aktuell sind keine Jobs verfügbar." />
 
             <template v-else>
-                <p class="text-muted">
+                <p class="text-body-secondary">
                     {{ totalItems }} Jobs gefunden · Seite {{ page }} von {{ totalPages }}
                 </p>
 
-                <div class="row">
-                    <div v-for="job in jobs" :key="job.id" class="col-md-4 mb-3">
+                <div class="row g-3">
+                    <div v-for="job in jobs" :key="job.id" class="col-12 col-md-6 col-xl-4">
                         <BaseCard :title="job.title || 'Ohne Titel'">
-                            <p v-if="job.company" class="mb-2 text-muted">
+                            <p v-if="job.company" class="mb-2 text-body-secondary">
                                 Firma:
                                 <router-link :to="`/companies/${job.company.id}`"
                                     class="text-decoration-none fw-semibold">
@@ -119,11 +130,11 @@ onMounted(loadJobs);
                                 {{ job.description || "Keine Beschreibung vorhanden." }}
                             </p>
 
-                            <span class="badge bg-primary me-2">
+                            <span class="badge text-bg-primary me-2">
                                 {{ job.location || "Kein Standort" }}
                             </span>
 
-                            <span class="badge bg-success">
+                            <span class="badge text-bg-success">
                                 {{ job.salary || "Kein Gehalt angegeben" }}
                             </span>
 
@@ -140,5 +151,5 @@ onMounted(loadJobs);
                     :can-go-next="canGoNext" @previous="goToPreviousPage" @next="goToNextPage" />
             </template>
         </template>
-    </div>
+    </main>
 </template>

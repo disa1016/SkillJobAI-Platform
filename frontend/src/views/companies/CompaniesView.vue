@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from "vue";
 import { getCompanies } from "@/services/companyService";
 
 import BaseAlert from "@/components/shared/BaseAlert.vue";
+import PageHeader from "@/components/shared/PageHeader.vue";
 import BaseCard from "@/components/shared/BaseCard.vue";
 import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
 import BaseSpinner from "@/components/shared/BaseSpinner.vue";
@@ -73,21 +74,31 @@ onMounted(loadCompanies);
 </script>
 
 <template>
-    <div class="container mt-4">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-            <h1 class="mb-0">Firmen</h1>
+    <main class="container py-4">
+        <PageHeader title="Unternehmen"
+            description="Entdecke Unternehmen und informiere dich über mögliche Arbeitgeber." />
 
-            <div class="d-flex flex-wrap gap-2">
-                <input v-model="search" type="text" class="form-control" style="max-width: 280px"
-                    placeholder="Firma suchen..." @keyup.enter="searchCompanies" />
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
 
-                <button type="button" class="btn btn-primary" @click="searchCompanies">
-                    Suchen
-                </button>
+                <div class="row g-2 align-items-center">
+                    <div class="col-12 col-lg">
+                        <input v-model="search" type="text" class="form-control" placeholder="Firma suchen..."
+                            @keyup.enter="searchCompanies" />
+                    </div>
 
-                <button type="button" class="btn btn-outline-secondary" @click="clearSearch">
-                    Zurücksetzen
-                </button>
+                    <div class="col-12 col-sm-auto d-grid">
+                        <button type="button" class="btn btn-primary" @click="searchCompanies">
+                            Suchen
+                        </button>
+                    </div>
+
+                    <div class="col-12 col-sm-auto d-grid">
+                        <button type="button" class="btn btn-outline-secondary" @click="clearSearch">
+                            Zurücksetzen
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -99,14 +110,14 @@ onMounted(loadCompanies);
             <BaseEmptyState v-if="!hasCompanies" message="Aktuell sind keine Firmen verfügbar." />
 
             <template v-else>
-                <p class="text-muted">
+                <p class="text-body-secondary">
                     {{ totalItems }} Firmen gefunden · Seite {{ page }} von {{ totalPages }}
                 </p>
 
-                <div class="row">
-                    <div v-for="company in companies" :key="company.id" class="col-md-4 mb-3">
+                <div class="row g-3">
+                    <div v-for="company in companies" :key="company.id" class="col-12 col-md-6 col-xl-4">
                         <BaseCard :title="company.name || 'Ohne Namen'">
-                            <p class="text-muted mb-2">
+                            <p class="text-body-secondary mb-2">
                                 {{ company.location || "Kein Standort angegeben" }}
                             </p>
 
@@ -127,5 +138,5 @@ onMounted(loadCompanies);
                     :can-go-next="canGoNext" @previous="goToPreviousPage" @next="goToNextPage" />
             </template>
         </template>
-    </div>
+    </main>
 </template>

@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import api from "@/services/api";
 
 import BaseAlert from "@/components/shared/BaseAlert.vue";
+import PageHeader from "@/components/shared/PageHeader.vue";
 import BaseCard from "@/components/shared/BaseCard.vue";
 import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
 import BaseSpinner from "@/components/shared/BaseSpinner.vue";
@@ -100,26 +101,38 @@ onMounted(loadJobs);
 </script>
 
 <template>
-    <div class="container py-4">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-            <h2 class="mb-0">Recruiter Jobs</h2>
+    <main class="container py-4">
+        <PageHeader title="Meine Stellenangebote"
+            description="Verwalte veröffentlichte Stellenangebote und deren Bewerbungen.">
+            <template #actions>
+                <router-link to="/recruiter/jobs/create" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-2" aria-hidden="true"></i>
+                    Stelle erstellen
+                </router-link>
+            </template>
+        </PageHeader>
 
-            <router-link to="/recruiter/jobs/create" class="btn btn-primary">
-                + Neuen Job erstellen
-            </router-link>
-        </div>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row g-2 align-items-center">
+                    <div class="col-12 col-lg">
+                        <input v-model="search" type="text" class="form-control" placeholder="Job suchen..."
+                            @keyup.enter="searchJobs" />
+                    </div>
 
-        <div class="d-flex flex-wrap gap-2 mb-3">
-            <input v-model="search" type="text" class="form-control" style="max-width: 320px"
-                placeholder="Job suchen..." @keyup.enter="searchJobs" />
+                    <div class="col-12 col-sm-auto d-grid">
+                        <button type="button" class="btn btn-primary" @click="searchJobs">
+                            Suchen
+                        </button>
+                    </div>
 
-            <button type="button" class="btn btn-primary" @click="searchJobs">
-                Suchen
-            </button>
-
-            <button type="button" class="btn btn-outline-secondary" @click="clearSearch">
-                Zurücksetzen
-            </button>
+                    <div class="col-12 col-sm-auto d-grid">
+                        <button type="button" class="btn btn-outline-secondary" @click="clearSearch">
+                            Zurücksetzen
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <BaseSpinner v-if="loading" message="Jobs werden geladen..." />
@@ -132,14 +145,14 @@ onMounted(loadJobs);
             <BaseEmptyState v-if="!hasJobs" message="Noch keine Jobs vorhanden." />
 
             <template v-else>
-                <p class="text-muted">
+                <p class="text-body-secondary">
                     {{ totalItems }} Jobs gefunden · Seite {{ page }} von {{ totalPages }}
                 </p>
 
                 <div class="row g-3">
-                    <div v-for="job in jobs" :key="job.id" class="col-md-6">
+                    <div v-for="job in jobs" :key="job.id" class="col-12 col-lg-6">
                         <BaseCard :title="job.title || 'Ohne Titel'" cardClass="h-100">
-                            <p class="text-muted mb-1">
+                            <p class="text-body-secondary mb-1">
                                 {{ job.company?.name || "Keine Firma" }}
                                 · {{ job.location || "Kein Standort" }}
                             </p>
@@ -148,7 +161,7 @@ onMounted(loadJobs);
                                 {{ job.description || "Keine Beschreibung vorhanden." }}
                             </p>
 
-                            <span class="badge bg-success mb-3">
+                            <span class="badge text-bg-success mb-3">
                                 {{ job.salary || "Kein Gehalt angegeben" }}
                             </span>
 
@@ -176,5 +189,5 @@ onMounted(loadJobs);
                     :can-go-next="canGoNext" @previous="goToPreviousPage" @next="goToNextPage" />
             </template>
         </template>
-    </div>
+    </main>
 </template>

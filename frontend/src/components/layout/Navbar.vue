@@ -71,28 +71,37 @@ const logout = async () => {
 </script>
 
 <template>
-  <nav class="navbar navbar-expand-xl navbar-light skilljob-navbar">
-    <div class="container-fluid px-4">
-      <router-link class="navbar-brand skilljob-brand" :to="homePath">
-        <span class="brand-mark">V</span>
+  <nav class="navbar navbar-expand-xl bg-body border-bottom shadow-sm">
+    <div class="container-fluid px-3 px-lg-4">
+      <router-link
+        class="navbar-brand d-inline-flex align-items-center gap-2 fw-semibold"
+        :to="homePath"
+      >
+        <i class="bi bi-mortarboard-fill fs-4 text-primary" aria-hidden="true"></i>
         <span>SkillJob AI</span>
       </router-link>
 
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
-        aria-controls="mainNavbar" aria-expanded="false" aria-label="Navigation öffnen">
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#mainNavbar"
+        aria-controls="mainNavbar"
+        aria-expanded="false"
+        aria-label="Navigation öffnen"
+      >
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <div id="mainNavbar" class="collapse navbar-collapse">
-        <div class="navbar-nav ms-auto align-items-xl-center gap-xl-1">
+        <div class="navbar-nav ms-auto align-items-xl-center gap-xl-1 py-3 py-xl-0">
           <template v-if="!user">
-            <router-link to="/home" class="btn navbar-outline-button btn-sm">
+            <router-link to="/home" class="btn btn-outline-primary btn-sm">
               Startseite
             </router-link>
           </template>
 
           <template v-else>
-            <!-- Candidate Navigation -->
             <template v-if="isCandidate">
               <router-link class="nav-link" to="/dashboard">
                 Dashboard
@@ -103,7 +112,7 @@ const logout = async () => {
               </router-link>
 
               <router-link class="nav-link" to="/courses">
-                Courses
+                Kurse
               </router-link>
 
               <router-link class="nav-link" to="/jobs">
@@ -119,8 +128,12 @@ const logout = async () => {
               </router-link>
 
               <div class="nav-item dropdown">
-                <button type="button" class="nav-link dropdown-toggle btn btn-link text-decoration-none"
-                  data-bs-toggle="dropdown" aria-expanded="false">
+                <button
+                  type="button"
+                  class="nav-link dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
                   AI Tools
                 </button>
 
@@ -139,62 +152,19 @@ const logout = async () => {
 
                   <li>
                     <router-link class="dropdown-item" to="/ai/job-recommendations">
-                      Job Empfehlungen
+                      Job-Empfehlungen
                     </router-link>
                   </li>
 
                   <li>
                     <router-link class="dropdown-item" to="/ai/cover-letter">
-                      Cover Letter
+                      Anschreiben
                     </router-link>
-                  </li>
-                </ul>
-              </div>
-
-              <div class="nav-item dropdown ms-xl-3">
-                <button type="button"
-                  class="nav-link dropdown-toggle btn btn-link text-decoration-none fw-semibold user-menu-link"
-                  data-bs-toggle="dropdown" aria-expanded="false">
-                  <span class="user-avatar">
-                    <i class="bi bi-person"></i>
-                  </span>
-
-                  {{ displayedRole }}
-                </button>
-
-                <ul class="dropdown-menu dropdown-menu-end">
-                  <li>
-                    <router-link class="dropdown-item" to="/profile">
-                      Profil
-                    </router-link>
-                  </li>
-
-                  <li>
-                    <router-link class="dropdown-item" to="/account">
-                      Kontoeinstellungen
-                    </router-link>
-                  </li>
-
-                  <li>
-                    <router-link class="dropdown-item" to="/home">
-                      Startseite
-                    </router-link>
-                  </li>
-
-                  <li>
-                    <hr class="dropdown-divider" />
-                  </li>
-
-                  <li>
-                    <button type="button" class="dropdown-item text-danger" :disabled="logoutLoading" @click="logout">
-                      {{ logoutLoading ? "Logout..." : "Logout" }}
-                    </button>
                   </li>
                 </ul>
               </div>
             </template>
 
-            <!-- Recruiter Navigation -->
             <template v-if="isRecruiter">
               <router-link class="nav-link" to="/recruiter/dashboard">
                 Dashboard
@@ -211,108 +181,85 @@ const logout = async () => {
               <router-link class="nav-link" to="/recruiter/candidates">
                 Kandidaten
               </router-link>
-
-              <div class="nav-item dropdown ms-xl-3">
-                <button type="button"
-                  class="nav-link dropdown-toggle btn btn-link text-decoration-none fw-semibold user-menu-link"
-                  data-bs-toggle="dropdown" aria-expanded="false">
-                  <span class="user-avatar">
-                    <i class="bi bi-person"></i>
-                  </span>
-
-                  {{ user.role }}
-                </button>
-
-                <ul class="dropdown-menu dropdown-menu-end">
-                  <li>
-                    <router-link class="dropdown-item" to="/profile">
-                      Profil
-                    </router-link>
-                  </li>
-
-                  <li>
-                    <router-link class="dropdown-item" to="/account">
-                      Kontoeinstellungen
-                    </router-link>
-                  </li>
-
-                  <li>
-                    <router-link class="dropdown-item" to="/home">
-                      Startseite
-                    </router-link>
-                  </li>
-
-                  <li>
-                    <hr class="dropdown-divider" />
-                  </li>
-
-                  <li>
-                    <button type="button" class="dropdown-item text-danger" :disabled="logoutLoading" @click="logout">
-                      {{ logoutLoading ? "Logout..." : "Logout" }}
-                    </button>
-                  </li>
-                </ul>
-              </div>
             </template>
 
-            <!-- Admin Navigation -->
             <template v-if="isAdmin">
               <router-link class="nav-link" to="/admin/dashboard">
                 Admin
               </router-link>
 
               <router-link class="nav-link" to="/admin/companies">
-                Companies
+                Unternehmen
               </router-link>
 
               <router-link class="nav-link" to="/admin/users">
-                Users
+                Benutzer
               </router-link>
 
               <router-link class="nav-link" to="/admin/company-members">
-                Recruiter Assignments
+                Recruiter-Zuweisungen
               </router-link>
 
               <router-link class="nav-link" to="/recruiter/dashboard">
                 Recruiter
               </router-link>
-
-              <div class="nav-item dropdown ms-xl-3">
-                <button type="button"
-                  class="nav-link dropdown-toggle btn btn-link text-decoration-none fw-semibold user-menu-link"
-                  data-bs-toggle="dropdown" aria-expanded="false">
-                  <span class="user-avatar">
-                    <i class="bi bi-person"></i>
-                  </span>
-
-                  {{ user.role }}
-                </button>
-
-                <ul class="dropdown-menu dropdown-menu-end">
-                  <li>
-                    <router-link class="dropdown-item" to="/account">
-                      Kontoeinstellungen
-                    </router-link>
-                  </li>
-
-                  <li>
-                    <router-link class="dropdown-item" to="/home">
-                      Startseite
-                    </router-link>
-                  </li>
-
-                  <li>
-                    <hr class="dropdown-divider" />
-                  </li>
-
-                  <li>
-                    <button type="button" class="dropdown-item text-danger" :disabled="logoutLoading" @click="logout">
-                      {{ logoutLoading ? "Logout..." : "Logout" }}
-                    </button>
-                  </li>
-                </ul>
-              </div>
             </template>
+
+            <div class="nav-item dropdown ms-xl-3">
+              <button
+                type="button"
+                class="nav-link dropdown-toggle d-flex align-items-center gap-2 fw-semibold"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="bi bi-person-circle fs-5" aria-hidden="true"></i>
+                <span>{{ displayedRole }}</span>
+              </button>
+
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li v-if="!isAdmin">
+                  <router-link class="dropdown-item" to="/profile">
+                    <i class="bi bi-person me-2" aria-hidden="true"></i>
+                    Profil
+                  </router-link>
+                </li>
+
+                <li>
+                  <router-link class="dropdown-item" to="/account">
+                    <i class="bi bi-gear me-2" aria-hidden="true"></i>
+                    Kontoeinstellungen
+                  </router-link>
+                </li>
+
+                <li>
+                  <router-link class="dropdown-item" to="/home">
+                    <i class="bi bi-house me-2" aria-hidden="true"></i>
+                    Startseite
+                  </router-link>
+                </li>
+
+                <li>
+                  <hr class="dropdown-divider" />
+                </li>
+
+                <li>
+                  <button
+                    type="button"
+                    class="dropdown-item text-danger"
+                    :disabled="logoutLoading"
+                    @click="logout"
+                  >
+                    <span
+                      v-if="logoutLoading"
+                      class="spinner-border spinner-border-sm me-2"
+                      aria-hidden="true"
+                    ></span>
+                    <i v-else class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>
+                    {{ logoutLoading ? "Abmelden..." : "Abmelden" }}
+                  </button>
+                </li>
+              </ul>
+            </div>
           </template>
         </div>
       </div>

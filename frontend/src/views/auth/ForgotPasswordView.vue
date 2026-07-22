@@ -4,7 +4,6 @@ import { forgotPassword } from "@/services/authService";
 import BaseAlert from "@/components/shared/BaseAlert.vue";
 
 const email = ref("");
-
 const loading = ref(false);
 const error = ref("");
 const success = ref("");
@@ -33,40 +32,58 @@ const handleForgotPassword = async () => {
   }
 };
 </script>
+
 <template>
-  <div class="container min-vh-100 d-flex align-items-center justify-content-center">
-    <div class="card shadow p-4" style="max-width: 460px; width: 100%">
-      <h2 class="text-center text-primary mb-3">
-        Passwort vergessen
-      </h2>
+  <main class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-12 col-sm-10 col-md-7 col-lg-5">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4 p-md-5">
+            <div class="text-center mb-4">
+              <i class="bi bi-key display-5 text-primary" aria-hidden="true"></i>
+              <h1 class="h3 mt-3 mb-1">Passwort vergessen</h1>
+              <p class="text-body-secondary mb-0">
+                Gib deine E-Mail-Adresse ein. Wir senden dir weitere Anweisungen.
+              </p>
+            </div>
 
-      <BaseAlert type="danger" :message="error" />
+            <BaseAlert v-if="error" type="danger" :message="error" />
+            <BaseAlert v-if="success" type="success" :message="success" />
 
-      <BaseAlert type="success" :message="success" />
+            <form @submit.prevent="handleForgotPassword">
+              <div class="mb-4">
+                <label for="forgot-password-email" class="form-label">E-Mail</label>
+                <input
+                  id="forgot-password-email"
+                  v-model="email"
+                  type="email"
+                  class="form-control"
+                  autocomplete="email"
+                  required
+                />
+              </div>
 
-      <form @submit.prevent="handleResetPassword">
-        <div class="mb-3">
-          <label class="form-label">E-Mail</label>
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary" :disabled="loading">
+                  <span
+                    v-if="loading"
+                    class="spinner-border spinner-border-sm me-2"
+                    aria-hidden="true"
+                  ></span>
+                  {{ loading ? "Anfrage läuft..." : "Reset-Link anfordern" }}
+                </button>
+              </div>
+            </form>
 
-          <input v-model="email" type="email" class="form-control" autocomplete="email" required />
+            <p class="text-center mt-4 mb-0">
+              <router-link to="/login">
+                <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>
+                Zurück zur Anmeldung
+              </router-link>
+            </p>
+          </div>
         </div>
-
-        <div class="mb-3">
-          <label class="form-label">Neues Passwort</label>
-
-          <input v-model="newPassword" type="password" class="form-control" autocomplete="new-password" required />
-        </div>
-
-        <button type="submit" class="btn btn-primary w-100" :disabled="loading">
-          {{ loading ? "Bitte warten..." : "Passwort zurücksetzen" }}
-        </button>
-      </form>
-
-      <p class="text-center mt-3 mb-0">
-        <router-link to="/login">
-          Zurück zum Login
-        </router-link>
-      </p>
+      </div>
     </div>
-  </div>
+  </main>
 </template>

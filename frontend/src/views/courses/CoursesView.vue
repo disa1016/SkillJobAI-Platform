@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from "vue";
 import { getCourses } from "@/services/courseService";
 
 import BaseAlert from "@/components/shared/BaseAlert.vue";
+import PageHeader from "@/components/shared/PageHeader.vue";
 import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
 import BaseSpinner from "@/components/shared/BaseSpinner.vue";
 import BaseCard from "@/components/shared/BaseCard.vue";
@@ -73,21 +74,30 @@ onMounted(loadCourses);
 </script>
 
 <template>
-    <div class="container mt-4">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-            <h1 class="mb-0">Courses</h1>
+    <main class="container py-4">
+        <PageHeader title="Kurse" description="Finde Kurse, mit denen du deine fachlichen Fähigkeiten erweitern kannst." />
 
-            <div class="d-flex flex-wrap gap-2">
-                <input v-model="search" type="text" class="form-control" style="max-width: 280px"
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+
+            <div class="row g-2 align-items-center">
+                <div class="col-12 col-lg">
+                    <input v-model="search" type="text" class="form-control"
                     placeholder="Kurs suchen..." @keyup.enter="searchCourses" />
+                </div>
 
-                <button type="button" class="btn btn-primary" @click="searchCourses">
+                <div class="col-12 col-sm-auto d-grid">
+                    <button type="button" class="btn btn-primary" @click="searchCourses">
                     Suchen
-                </button>
+                    </button>
+                </div>
 
-                <button type="button" class="btn btn-outline-secondary" @click="clearSearch">
+                <div class="col-12 col-sm-auto d-grid">
+                    <button type="button" class="btn btn-outline-secondary" @click="clearSearch">
                     Zurücksetzen
-                </button>
+                    </button>
+                </div>
+            </div>
             </div>
         </div>
 
@@ -99,22 +109,22 @@ onMounted(loadCourses);
             <BaseEmptyState v-if="!hasCourses" message="Aktuell sind keine Kurse verfügbar." />
 
             <template v-else>
-                <p class="text-muted">
+                <p class="text-body-secondary">
                     {{ totalItems }} Kurse gefunden · Seite {{ page }} von {{ totalPages }}
                 </p>
 
-                <div class="row">
-                    <div v-for="course in courses" :key="course.id" class="col-md-4 mb-3">
+                <div class="row g-3">
+                    <div v-for="course in courses" :key="course.id" class="col-12 col-md-6 col-xl-4">
                         <BaseCard :title="course.title || 'Unbekannter Kurs'">
                             <p class="card-text">
                                 {{ course.description || "Keine Beschreibung vorhanden." }}
                             </p>
 
-                            <span class="badge bg-primary me-2">
+                            <span class="badge text-bg-primary me-2">
                                 {{ course.level || "Kein Level" }}
                             </span>
 
-                            <span class="badge bg-secondary">
+                            <span class="badge text-bg-secondary">
                                 {{ course.category || "Keine Kategorie" }}
                             </span>
 
@@ -131,5 +141,5 @@ onMounted(loadCourses);
                     :can-go-next="canGoNext" @previous="goToPreviousPage" @next="goToNextPage" />
             </template>
         </template>
-    </div>
+    </main>
 </template>

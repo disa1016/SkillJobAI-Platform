@@ -4,19 +4,14 @@ import { useRouter } from "vue-router";
 import { register } from "@/services/authService";
 import BaseAlert from "@/components/shared/BaseAlert.vue";
 
-
 const router = useRouter();
 
 const fullName = ref("");
 const email = ref("");
 const password = ref("");
-const role = ref("Student");
-
 const loading = ref(false);
 const error = ref("");
 const success = ref("");
-
-
 
 const handleRegister = async () => {
   error.value = "";
@@ -30,8 +25,7 @@ const handleRegister = async () => {
       password: password.value,
     });
 
-    success.value =
-      "Registrierung erfolgreich.";
+    success.value = "Registrierung erfolgreich.";
 
     await router.replace(
       data.user?.role === "Admin"
@@ -40,10 +34,6 @@ const handleRegister = async () => {
           ? "/recruiter/dashboard"
           : "/dashboard"
     );
-
-    success.value = "Registrierung erfolgreich.";
-
-    
   } catch (err) {
     error.value =
       err.response?.data?.message || "Registrierung fehlgeschlagen.";
@@ -54,51 +44,56 @@ const handleRegister = async () => {
 </script>
 
 <template>
-  <div class="container min-vh-100 d-flex align-items-center justify-content-center">
-    <div class="card shadow p-4" style="max-width: 460px; width: 100%">
-      <h2 class="text-center text-primary mb-3">
-        SkillJob AI
-      </h2>
+  <main class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-12 col-sm-10 col-md-7 col-lg-5">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4 p-md-5">
+            <div class="text-center mb-4">
+              <i class="bi bi-person-plus display-5 text-primary" aria-hidden="true"></i>
+              <h1 class="h3 mt-3 mb-1">Konto erstellen</h1>
+              <p class="text-body-secondary mb-0">
+                Registriere dich bei SkillJob AI.
+              </p>
+            </div>
 
-      <p class="text-center text-muted">
-        Create your account
-      </p>
+            <BaseAlert v-if="error" type="danger" :message="error" />
+            <BaseAlert v-if="success" type="success" :message="success" />
 
-      <BaseAlert v-if="error" type="danger" :message="error" />
+            <form @submit.prevent="handleRegister">
+              <div class="mb-3">
+                <label for="register-name" class="form-label">Name</label>
+                <input id="register-name" v-model="fullName" type="text" class="form-control" autocomplete="name"
+                  required />
+              </div>
 
-      <BaseAlert v-if="success" type="success" :message="success" />
+              <div class="mb-3">
+                <label for="register-email" class="form-label">E-Mail</label>
+                <input id="register-email" v-model="email" type="email" class="form-control" autocomplete="email"
+                  required />
+              </div>
 
-      <form @submit.prevent="handleRegister">
-        <div class="mb-3">
-          <label class="form-label">Name</label>
+              <div class="mb-4">
+                <label for="register-password" class="form-label">Passwort</label>
+                <input id="register-password" v-model="password" type="password" class="form-control"
+                  autocomplete="new-password" required />
+              </div>
 
-          <input v-model="fullName" type="text" class="form-control" autocomplete="name" required />
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary" :disabled="loading">
+                  <span v-if="loading" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                  {{ loading ? "Registrierung läuft..." : "Registrieren" }}
+                </button>
+              </div>
+            </form>
+
+            <p class="text-center text-body-secondary mt-4 mb-0">
+              Schon ein Konto?
+              <router-link to="/login">Anmelden</router-link>
+            </p>
+          </div>
         </div>
-
-        <div class="mb-3">
-          <label class="form-label">E-Mail</label>
-
-          <input v-model="email" type="email" class="form-control" autocomplete="email" required />
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Passwort</label>
-
-          <input v-model="password" type="password" class="form-control" autocomplete="new-password" required />
-        </div>
-
-     
-        <button type="submit" class="btn btn-primary w-100" :disabled="loading">
-          {{ loading ? "Bitte warten..." : "Registrieren" }}
-        </button>
-      </form>
-
-      <p class="text-center mt-3 mb-0">
-        Schon ein Konto?
-        <router-link to="/login">
-          Login
-        </router-link>
-      </p>
+      </div>
     </div>
-  </div>
+  </main>
 </template>

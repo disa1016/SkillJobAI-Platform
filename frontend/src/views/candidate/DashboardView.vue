@@ -5,6 +5,7 @@ import BaseAlert from "@/components/shared/BaseAlert.vue";
 import BaseCard from "@/components/shared/BaseCard.vue";
 import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
 import BaseSpinner from "@/components/shared/BaseSpinner.vue";
+import PageHeader from "@/components/shared/PageHeader.vue";
 
 import { getCandidateDashboard } from "@/services/candidateService";
 import { getMatchBadgeClass } from "@/utils/badge";
@@ -20,20 +21,17 @@ const stats = computed(() => [
   {
     title: "Meine Bewerbungen",
     value: dashboard.value?.applicationsCount ?? 0,
-    cardClass: "border-primary",
-    textClass: "text-primary",
+    icon: "bi-file-earmark-text",
   },
   {
     title: "Meine Kurse",
     value: dashboard.value?.enrollmentsCount ?? 0,
-    cardClass: "border-success",
-    textClass: "text-success",
+    icon: "bi-journal-bookmark",
   },
   {
     title: "Abgeschlossene Lektionen",
     value: dashboard.value?.completedLessonsCount ?? 0,
-    cardClass: "border-warning",
-    textClass: "text-warning",
+    icon: "bi-check2-circle",
   },
 ]);
 
@@ -59,128 +57,117 @@ onMounted(loadDashboard);
 </script>
 
 <template>
-  <div class="container py-4">
-    <div class="mb-4">
-      <h1 class="mb-2">
-        Willkommen {{ user?.fullName || "" }}
-      </h1>
+  <main class="container py-4">
+    <PageHeader :title="`Willkommen${user?.fullName ? `, ${user.fullName}` : ''}`"
+      description="Hier findest du einen Überblick über deine Bewerbungen, Skills und Empfehlungen.">
+      <template #actions>
+        <router-link to="/profile/skills" class="btn btn-outline-primary">
+          <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>
+          Skills bearbeiten
+        </router-link>
+      </template>
+    </PageHeader>
 
-      <p class="text-muted mb-0">
-        Rolle: {{ user?.role || "Unbekannt" }}
-      </p>
-    </div>
+    <BaseSpinner v-if="loading" message="Dashboard wird geladen..." />
 
-    <BaseSpinner v-if="loading" text="Dashboard wird geladen..." />
-
-    <BaseAlert v-else-if="error" type="danger">
-      {{ error }}
-    </BaseAlert>
+    <BaseAlert v-else-if="error" type="danger" :message="error" />
 
     <template v-else-if="dashboard">
-      <div class="row g-3">
-        <div v-for="stat in stats" :key="stat.title" class="col-md-4">
-          <BaseCard :card-class="stat.cardClass">
-            <h5>{{ stat.title }}</h5>
+      <div class="row g-3 mb-4">
+        <div v-for="stat in stats" :key="stat.title" class="col-12 col-md-4">
+          <BaseCard>
+            <div class="d-flex justify-content-between align-items-start gap-3">
+              <div>
+                <p class="text-body-secondary mb-2">{{ stat.title }}</p>
+                <p class="h2 mb-0">{{ stat.value }}</p>
+              </div>
 
-            <p class="display-5 mb-0" :class="stat.textClass">
-              {{ stat.value }}
-            </p>
+              <i class="bi fs-3 text-primary" :class="stat.icon" aria-hidden="true"></i>
+            </div>
           </BaseCard>
         </div>
       </div>
 
-      <BaseCard class="mt-4">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-          <h4 class="mb-0">Meine Skills</h4>
-
-          <router-link to="/profile/skills" class="btn btn-outline-primary btn-sm">
-            Skills bearbeiten
-          </router-link>
-        </div>
-
-        <div v-if="hasUserSkills">
-          <span
-            v-for="skill in dashboard.userSkills"
-            :key="skill"
-            class="badge bg-success me-2 mb-2"
-          >
-            {{ skill }}
-          </span>
-        </div>
-
-        <BaseEmptyState
-          v-else
-          title="Keine Skills hinterlegt"
-          text="Du hast noch keine Skills hinterlegt."
-        />
-      </BaseCard>
-
-      <BaseCard v-if="hasMissingSkills" class="mt-4">
-        <h4 class="mb-3">Empfohlene Skills</h4>
-
-        <span
-          v-for="skill in dashboard.missingSkills"
-          :key="skill"
-          class="badge bg-danger me-2 mb-2"
-        >
-          ✗ {{ skill }}
-        </span>
-      </BaseCard>
-
-      <BaseCard v-if="hasRecommendedCourses" class="mt-4">
-        <h4 class="mb-3">Empfohlene Kurse</h4>
-
-        <router-link
-          v-for="course in dashboard.recommendedCourses"
-          :key="course.id"
-          :to="`/courses/${course.id}`"
-          class="badge bg-primary me-2 mb-2 text-decoration-none"
-        >
-          {{ course.title }}
-        </router-link>
-      </BaseCard>
-
-      <BaseCard v-if="hasTopJobMatches" class="mt-4">
-        <h4 class="mb-3">Top Job Matches</h4>
-
-        <div
-          v-for="job in dashboard.topJobMatches"
-          :key="job.id"
-          class="border rounded p-3 mb-3"
-        >
-          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-            <div>
-              <h5 class="mb-1">
-                {{ job.title }}
-              </h5>
-
-              <p class="text-muted mb-0">
-                {{ job.company?.name || "Keine Firma" }}
-              </p>
+      <div class="row g-4">
+        <div class="col-12 col-xl-7">
+          <BaseCard title="Meine Skills">
+            <div v-if="hasUserSkills" class="d-flex flex-wrap gap-2">
+              <span v-for="skill in dashboard.userSkills" :key="skill" class="badge text-bg-success">
+                {{ skill }}
+              </span>
             </div>
 
-            <span
-              class="badge"
-              :class="getMatchBadgeClass(job.matchPercentage)"
-            >
-              {{ job.matchPercentage }}%
-            </span>
-          </div>
-
-          <router-link
-            :to="`/jobs/${job.id}`"
-            class="btn btn-outline-primary btn-sm"
-          >
-            Job ansehen
-          </router-link>
+            <BaseEmptyState v-else title="Keine Skills hinterlegt" message="Du hast noch keine Skills hinterlegt."
+              icon="bi-lightbulb">
+              <template #actions>
+                <router-link to="/profile/skills" class="btn btn-primary btn-sm">
+                  Skills hinzufügen
+                </router-link>
+              </template>
+            </BaseEmptyState>
+          </BaseCard>
         </div>
-      </BaseCard>
+
+        <div class="col-12 col-xl-5">
+          <BaseCard title="Empfohlene Skills">
+            <div v-if="hasMissingSkills" class="d-flex flex-wrap gap-2">
+              <span v-for="skill in dashboard.missingSkills" :key="skill" class="badge text-bg-danger">
+                {{ skill }}
+              </span>
+            </div>
+
+            <BaseEmptyState v-else title="Keine offenen Skill-Empfehlungen"
+              message="Aktuell wurden keine fehlenden Skills ermittelt." icon="bi-check-circle" />
+          </BaseCard>
+        </div>
+
+        <div class="col-12">
+          <BaseCard title="Empfohlene Kurse">
+            <div v-if="hasRecommendedCourses" class="d-flex flex-wrap gap-2">
+              <router-link v-for="course in dashboard.recommendedCourses" :key="course.id" :to="`/courses/${course.id}`"
+                class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-book me-2" aria-hidden="true"></i>
+                {{ course.title }}
+              </router-link>
+            </div>
+
+            <BaseEmptyState v-else title="Keine Kursempfehlungen"
+              message="Aktuell sind keine passenden Kurse verfügbar." icon="bi-journal-x" />
+          </BaseCard>
+        </div>
+
+        <div class="col-12">
+          <BaseCard title="Top Job Matches" body-class="p-0">
+            <div v-if="hasTopJobMatches" class="list-group list-group-flush">
+              <div v-for="job in dashboard.topJobMatches" :key="job.id" class="list-group-item p-3 p-md-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                  <div>
+                    <h3 class="h5 mb-1">{{ job.title }}</h3>
+                    <p class="text-body-secondary mb-0">
+                      {{ job.company?.name || "Keine Firma" }}
+                    </p>
+                  </div>
+
+                  <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="badge" :class="getMatchBadgeClass(job.matchPercentage)">
+                      {{ job.matchPercentage }} % Match
+                    </span>
+
+                    <router-link :to="`/jobs/${job.id}`" class="btn btn-outline-primary btn-sm">
+                      Job ansehen
+                    </router-link>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <BaseEmptyState v-else title="Keine Job-Matches"
+              message="Aktuell konnten keine passenden Stellenangebote gefunden werden." icon="bi-briefcase" />
+          </BaseCard>
+        </div>
+      </div>
     </template>
 
-    <BaseEmptyState
-      v-else
-      title="Keine Dashboard-Daten"
-      text="Es konnten keine Dashboard-Daten gefunden werden."
-    />
-  </div>
+    <BaseEmptyState v-else title="Keine Dashboard-Daten" message="Es konnten keine Dashboard-Daten gefunden werden." />
+  </main>
 </template>

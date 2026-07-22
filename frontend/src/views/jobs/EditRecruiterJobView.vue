@@ -2,6 +2,10 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import api from "../../services/api";
+import BaseAlert from "@/components/shared/BaseAlert.vue";
+import BaseEmptyState from "@/components/shared/BaseEmptyState.vue";
+import BaseSpinner from "@/components/shared/BaseSpinner.vue";
+import PageHeader from "@/components/shared/PageHeader.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -174,114 +178,102 @@ onMounted(loadData);
 </script>
 
 <template>
-    <div class="container py-4">
-        <h2 class="mb-4">Job bearbeiten</h2>
+    <main class="container py-4">
+        <PageHeader title="Job bearbeiten"
+            description="Aktualisiere die Stellendaten und verwalte die benötigten Skills.">
+            <template #actions>
+                <button type="button" class="btn btn-outline-secondary" @click="goBack"><i class="bi bi-arrow-left me-1"
+                        aria-hidden="true"></i>Zurück</button>
+            </template>
+        </PageHeader>
 
-        <div v-if="loading" class="alert alert-info">
-            Job wird geladen...
-        </div>
-
-        <div v-else-if="error" class="alert alert-danger">
-            {{ error }}
-        </div>
+        <BaseSpinner v-if="loading" message="Job wird geladen..." />
 
         <template v-else>
-            <div v-if="success" class="alert alert-success">
-                {{ success }}
-            </div>
+            <BaseAlert v-if="error" type="danger" :message="error" />
+            <BaseAlert v-if="success" type="success" :message="success" />
 
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h4 class="mb-3">Job Details</h4>
-
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-body border-bottom">
+                    <h2 class="h5 mb-0">Jobdetails</h2>
+                </div>
+                <div class="card-body p-4">
                     <form @submit.prevent="updateJob">
-                        <div class="mb-3">
-                            <label class="form-label">Titel</label>
-
-                            <input v-model="form.title" class="form-control" required />
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="edit-job-title" class="form-label">Titel</label>
+                                <input id="edit-job-title" v-model="form.title" class="form-control" required />
+                            </div>
+                            <div class="col-12">
+                                <label for="edit-job-description" class="form-label">Beschreibung</label>
+                                <textarea id="edit-job-description" v-model="form.description" rows="6"
+                                    class="form-control" required></textarea>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="edit-job-location" class="form-label">Standort</label>
+                                <input id="edit-job-location" v-model="form.location" class="form-control" required />
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="edit-job-salary" class="form-label">Gehalt</label>
+                                <input id="edit-job-salary" v-model="form.salary" class="form-control" />
+                            </div>
+                            <div class="col-12">
+                                <label for="edit-job-company" class="form-label">Firma</label>
+                                <select id="edit-job-company" v-model="form.companyId" class="form-select" required>
+                                    <option value="" disabled>Firma auswählen</option>
+                                    <option v-for="company in companies" :key="company.id" :value="company.id">{{
+                                        company.name || "Unbekannte Firma" }}</option>
+                                </select>
+                            </div>
                         </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Beschreibung</label>
-
-                            <textarea v-model="form.description" rows="5" class="form-control" required />
+                        <div class="d-grid d-sm-block mt-4">
+                            <button type="submit" class="btn btn-primary" :disabled="!canUpdateJob">
+                                <span v-if="saving" class="spinner-border spinner-border-sm me-2"
+                                    aria-hidden="true"></span>
+                                {{ saving ? "Wird gespeichert..." : "Änderungen speichern" }}
+                            </button>
                         </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Standort</label>
-
-                            <input v-model="form.location" class="form-control" required />
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Gehalt</label>
-
-                            <input v-model="form.salary" class="form-control" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Firma</label>
-
-                            <select v-model="form.companyId" class="form-select" required>
-                                <option value="" disabled>Firma auswählen</option>
-
-                                <option v-for="company in companies" :key="company.id" :value="company.id">
-                                    {{ company.name || "Unbekannte Firma" }}
-                                </option>
-                            </select>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary" :disabled="!canUpdateJob">
-                            {{ saving ? "Wird gespeichert..." : "Änderungen speichern" }}
-                        </button>
                     </form>
                 </div>
             </div>
 
-            <div class="card shadow-sm">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-body border-bottom">
+                    <h2 class="h5 mb-0">Benötigte Skills</h2>
+                </div>
                 <div class="card-body">
-                    <h4 class="mb-3">Benötigte Skills</h4>
-
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-8">
-                            <select v-model="selectedSkillId" class="form-select" :disabled="updatingSkills">
+                    <div class="row g-3 align-items-end mb-4">
+                        <div class="col-12 col-md-8">
+                            <label for="job-skill" class="form-label">Skill</label>
+                            <select id="job-skill" v-model="selectedSkillId" class="form-select"
+                                :disabled="updatingSkills">
                                 <option value="">Skill auswählen</option>
-
-                                <option v-for="skill in availableSkills" :key="skill.id" :value="skill.id">
-                                    {{ skill.name }}
-                                </option>
+                                <option v-for="skill in availableSkills" :key="skill.id" :value="skill.id">{{ skill.name
+                                    }}</option>
                             </select>
                         </div>
-
-                        <div class="col-md-4">
-                            <button type="button" class="btn btn-success w-100"
+                        <div class="col-12 col-md-4 d-grid">
+                            <button type="button" class="btn btn-outline-primary"
                                 :disabled="!selectedSkillId || updatingSkills" @click="addSkillToJob">
-                                Skill hinzufügen
+                                <span v-if="updatingSkills" class="spinner-border spinner-border-sm me-2"
+                                    aria-hidden="true"></span>Skill hinzufügen
                             </button>
                         </div>
                     </div>
 
-                    <div v-if="!hasJobSkills" class="alert alert-warning">
-                        Für diesen Job wurden noch keine Skills hinterlegt.
-                    </div>
-
-                    <ul v-else class="list-group">
+                    <ul v-if="hasJobSkills" class="list-group list-group-flush border rounded">
                         <li v-for="skill in jobSkills" :key="skill.id"
-                            class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ skill.name }}
-
-                            <button type="button" class="btn btn-outline-danger btn-sm" :disabled="updatingSkills"
-                                @click="removeSkillFromJob(skill.id)">
-                                Entfernen
-                            </button>
+                            class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                            <span>{{ skill.name }}</span>
+                            <button type="button"
+                                class="btn btn-sm btn-outline-danger align-self-start align-self-sm-auto"
+                                :disabled="updatingSkills" @click="removeSkillFromJob(skill.id)">Entfernen</button>
                         </li>
                     </ul>
+                    <BaseEmptyState v-else title="Keine Skills hinterlegt"
+                        message="Für diesen Job wurden noch keine benötigten Skills festgelegt." />
                 </div>
             </div>
-
-            <button type="button" class="btn btn-secondary mt-3" @click="goBack">
-                Zurück
-            </button>
         </template>
-    </div>
+    </main>
 </template>

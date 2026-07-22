@@ -1,0 +1,263 @@
+/*
+ * SkillJobAI Bootstrap Theme
+ *
+ * Bootstrap 5 bleibt das Layout- und Komponentensystem.
+ * Diese Datei definiert nur die SkillJobAI-Markenwirkung.
+ */
+
+:root {
+  --skilljob-primary: #157553;
+  --skilljob-primary-dark: #0d5d40;
+  --skilljob-primary-hover: #116847;
+  --skilljob-primary-light: #e8f4ee;
+  --skilljob-primary-lighter: #f2f8f5;
+
+  --skilljob-text: #10252c;
+  --skilljob-muted: #5f696e;
+  --skilljob-border: #e1e7e4;
+  --skilljob-background: #f8fbf9;
+  --skilljob-surface: #ffffff;
+
+  --bs-primary: var(--skilljob-primary);
+  --bs-primary-rgb: 21, 117, 83;
+  --bs-success: var(--skilljob-primary);
+  --bs-success-rgb: 21, 117, 83;
+
+  --bs-body-color: var(--skilljob-text);
+  --bs-body-color-rgb: 16, 37, 44;
+  --bs-body-bg: var(--skilljob-background);
+  --bs-body-bg-rgb: 248, 251, 249;
+
+  --bs-secondary-color: var(--skilljob-muted);
+  --bs-border-color: var(--skilljob-border);
+
+  --bs-link-color: var(--skilljob-primary);
+  --bs-link-color-rgb: 21, 117, 83;
+  --bs-link-hover-color: var(--skilljob-primary-dark);
+  --bs-link-hover-color-rgb: 13, 93, 64;
+
+  --bs-focus-ring-color: rgba(21, 117, 83, 0.22);
+  --bs-border-radius: 0.65rem;
+  --bs-border-radius-sm: 0.45rem;
+  --bs-border-radius-lg: 0.9rem;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  background-color: var(--skilljob-background);
+  color: var(--skilljob-text);
+  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Bootstrap color utilities */
+
+.bg-primary,
+.text-bg-primary {
+  background-color: var(--skilljob-primary) !important;
+}
+
+.text-primary {
+  color: var(--skilljob-primary) !important;
+}
+
+.border-primary {
+  border-color: var(--skilljob-primary) !important;
+}
+
+.bg-primary-subtle {
+  background-color: var(--skilljob-primary-light) !important;
+}
+
+.text-primary-emphasis {
+  color: var(--skilljob-primary-dark) !important;
+}
+
+.bg-body-tertiary {
+  background-color: var(--skilljob-primary-lighter) !important;
+}
+
+/* Buttons */
+
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--skilljob-primary);
+  --bs-btn-border-color: var(--skilljob-primary);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--skilljob-primary-dark);
+  --bs-btn-hover-border-color: var(--skilljob-primary-dark);
+  --bs-btn-focus-shadow-rgb: 21, 117, 83;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--skilljob-primary-dark);
+  --bs-btn-active-border-color: var(--skilljob-primary-dark);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: var(--skilljob-primary);
+  --bs-btn-disabled-border-color: var(--skilljob-primary);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--skilljob-primary);
+  --bs-btn-border-color: var(--skilljob-primary);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--skilljob-primary);
+  --bs-btn-hover-border-color: var(--skilljob-primary);
+  --bs-btn-focus-shadow-rgb: 21, 117, 83;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--skilljob-primary-dark);
+  --bs-btn-active-border-color: var(--skilljob-primary-dark);
+}
+
+.btn {
+  font-weight: 600;
+}
+
+/* Cards and surfaces */
+
+.card {
+  --bs-card-border-color: var(--skilljob-border);
+  --bs-card-cap-bg: var(--skilljob-surface);
+  background-color: var(--skilljob-surface);
+}
+
+.card.shadow-sm {
+  box-shadow: 0 0.35rem 1.1rem rgba(16, 37, 44, 0.07) !important;
+}
+
+.card-header {
+  color: var(--skilljob-text);
+}
+
+/* Navbar and dropdowns */
+
+.navbar {
+  min-height: 64px;
+  background-color: rgba(255, 255, 255, 0.97) !important;
+  border-color: var(--skilljob-border) !important;
+  box-shadow: 0 0.2rem 0.9rem rgba(16, 37, 44, 0.06) !important;
+}
+
+.navbar-brand {
+  color: var(--skilljob-text);
+  font-weight: 700 !important;
+}
+
+.navbar-brand:hover,
+.navbar-brand:focus {
+  color: var(--skilljob-primary-dark);
+}
+
+.navbar .nav-link {
+  color: #1f3339;
+  font-weight: 500;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link:focus,
+.navbar .nav-link.router-link-active {
+  color: var(--skilljob-primary);
+}
+
+.dropdown-menu {
+  --bs-dropdown-border-color: var(--skilljob-border);
+  --bs-dropdown-link-hover-color: var(--skilljob-primary-dark);
+  --bs-dropdown-link-hover-bg: var(--skilljob-primary-light);
+  --bs-dropdown-link-active-color: #fff;
+  --bs-dropdown-link-active-bg: var(--skilljob-primary);
+  box-shadow: 0 0.5rem 1.25rem rgba(16, 37, 44, 0.1);
+}
+
+/* Forms */
+
+.form-control,
+.form-select,
+.input-group-text {
+  border-color: var(--skilljob-border);
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+  border-color: rgba(21, 117, 83, 0.65);
+  box-shadow: 0 0 0 0.25rem rgba(21, 117, 83, 0.14);
+}
+
+.form-check-input:checked {
+  background-color: var(--skilljob-primary);
+  border-color: var(--skilljob-primary);
+}
+
+/* Lists, tables and pagination */
+
+.list-group {
+  --bs-list-group-border-color: var(--skilljob-border);
+  --bs-list-group-active-bg: var(--skilljob-primary);
+  --bs-list-group-active-border-color: var(--skilljob-primary);
+}
+
+.table {
+  --bs-table-hover-bg: rgba(21, 117, 83, 0.045);
+  --bs-table-border-color: var(--skilljob-border);
+}
+
+.pagination {
+  --bs-pagination-color: var(--skilljob-primary);
+  --bs-pagination-hover-color: var(--skilljob-primary-dark);
+  --bs-pagination-hover-bg: var(--skilljob-primary-light);
+  --bs-pagination-focus-color: var(--skilljob-primary-dark);
+  --bs-pagination-focus-box-shadow: 0 0 0 0.25rem rgba(21, 117, 83, 0.14);
+  --bs-pagination-active-bg: var(--skilljob-primary);
+  --bs-pagination-active-border-color: var(--skilljob-primary);
+}
+
+/* Feedback components */
+
+.progress-bar {
+  background-color: var(--skilljob-primary);
+}
+
+.spinner-border.text-primary,
+.spinner-grow.text-primary {
+  color: var(--skilljob-primary) !important;
+}
+
+.alert-primary {
+  --bs-alert-color: var(--skilljob-primary-dark);
+  --bs-alert-bg: var(--skilljob-primary-light);
+  --bs-alert-border-color: #cce7d9;
+  --bs-alert-link-color: var(--skilljob-primary-dark);
+}
+
+.badge.bg-primary,
+.badge.text-bg-primary {
+  background-color: var(--skilljob-primary) !important;
+}
+
+/* Landing-page-like hero sections built with Bootstrap utilities */
+
+main > section.bg-body-tertiary:first-child {
+  background:
+    radial-gradient(circle at 12% 20%, rgba(21, 117, 83, 0.12), transparent 30%),
+    radial-gradient(circle at 88% 75%, rgba(21, 117, 83, 0.09), transparent 28%),
+    linear-gradient(135deg, #f7fbf9 0%, var(--skilljob-primary-light) 100%) !important;
+}
+
+main > section.bg-body-tertiary:last-child {
+  background: linear-gradient(180deg, var(--skilljob-primary-lighter), #fff) !important;
+}
+
+/* Small responsive refinements */
+
+@media (max-width: 767.98px) {
+  .navbar .btn,
+  main .d-grid .btn {
+    width: 100%;
+  }
+
+  .display-3 {
+    font-size: clamp(2.4rem, 14vw, 3.7rem);
+  }
+}

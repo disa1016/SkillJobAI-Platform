@@ -17,41 +17,41 @@ const totalJobs = computed(() => jobs.value.length);
 const hasJobs = computed(() => jobs.value.length > 0);
 
 const companyStats = computed(() => [
-  {
-    label: "Offene Jobs",
-    value: totalJobs.value,
-  },
-  {
-    label: "Standort",
-    value: company.value?.location || "Keine Angabe",
-  },
-  {
-    label: "Seit",
-    value: formatDate(company.value?.createdAt),
-  },
+    {
+        label: "Offene Jobs",
+        value: totalJobs.value,
+    },
+    {
+        label: "Standort",
+        value: company.value?.location || "Keine Angabe",
+    },
+    {
+        label: "Seit",
+        value: formatDate(company.value?.createdAt),
+    },
 ]);
 
 const loadCompany = async () => {
-  loading.value = true;
-  error.value = "";
+    loading.value = true;
+    error.value = "";
 
-  try {
-    const data = await getCompanyById(route.params.id);
+    try {
+        const data = await getCompanyById(route.params.id);
 
-    company.value = data;
-    jobs.value = data.jobs || [];
-  } catch {
-    error.value = "Firmendetails konnten nicht geladen werden.";
-  } finally {
-    loading.value = false;
-  }
+        company.value = data;
+        jobs.value = data.jobs || [];
+    } catch {
+        error.value = "Firmendetails konnten nicht geladen werden.";
+    } finally {
+        loading.value = false;
+    }
 };
 
 onMounted(loadCompany);
 </script>
 
 <template>
-    <div class="container mt-4">
+    <main class="container py-4">
         <div v-if="loading" class="alert alert-info">
             Firmendetails werden geladen...
         </div>
@@ -61,19 +61,18 @@ onMounted(loadCompany);
         </div>
 
         <template v-else-if="company">
-            <div class="card shadow-sm mb-4">
+            <div class="card border-0 shadow-sm mb-4">
                 <div class="card-body">
                     <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
-                        <img v-if="company.logoUrl" :src="company.logoUrl" :alt="company.name"
-                            style="width: 80px; height: 80px; object-fit: contain"
-                            class="border rounded p-2 bg-light" />
+                        <img v-if="company.logoUrl" :src="company.logoUrl" :alt="company.name" width="80" height="80"
+                            class="border rounded p-2 bg-body-tertiary object-fit-contain flex-shrink-0" />
 
                         <div>
                             <h1 class="mb-1">
                                 {{ company.name || "Unbekannte Firma" }}
                             </h1>
 
-                            <p class="text-muted mb-0">
+                            <p class="text-body-secondary mb-0">
                                 {{ company.location || "Kein Standort angegeben" }}
                             </p>
                         </div>
@@ -93,8 +92,8 @@ onMounted(loadCompany);
 
                     <div class="row g-3 mt-3">
                         <div v-for="stat in companyStats" :key="stat.label" class="col-md-4">
-                            <div class="border rounded p-3 bg-light h-100">
-                                <h6 class="text-muted mb-1">
+                            <div class="border rounded p-3 bg-body-tertiary h-100">
+                                <h6 class="text-body-secondary mb-1">
                                     {{ stat.label }}
                                 </h6>
 
@@ -123,13 +122,13 @@ onMounted(loadCompany);
 
             <div v-else class="row g-3">
                 <div v-for="job in jobs" :key="job.id" class="col-md-6">
-                    <div class="card h-100 shadow-sm">
+                    <div class="card h-100 border-0 shadow-sm">
                         <div class="card-body">
                             <h5>
                                 {{ job.title || "Ohne Titel" }}
                             </h5>
 
-                            <p class="text-muted mb-2">
+                            <p class="text-body-secondary mb-2">
                                 {{ job.location || company.location || "Kein Standort angegeben" }}
                             </p>
 
@@ -147,5 +146,5 @@ onMounted(loadCompany);
                 </div>
             </div>
         </template>
-    </div>
+    </main>
 </template>
