@@ -7,6 +7,9 @@ using SkillJobAI.Api.Entities;
 using SkillJobAI.Api.Models;
 using SkillJobAI.Api.Services;
 using SkillJobAI.Api.Tests.Helpers;
+using Microsoft.Extensions.Logging;
+
+
 
 namespace SkillJobAI.Api.Tests.Services;
 
@@ -680,39 +683,47 @@ public class UserServiceTests
             storedUser.Role);
     }
 
-    private static UserService CreateUserService(
-        AppDbContext context)
-    {
-        var currentDirectory =
-            Directory.GetCurrentDirectory();
+  private static UserService CreateUserService(
+    AppDbContext context)
+{
+    var currentDirectory =
+        Directory.GetCurrentDirectory();
 
-        var webRootPath =
-            Path.Combine(
-                currentDirectory,
-                "wwwroot");
+    var webRootPath =
+        Path.Combine(
+            currentDirectory,
+            "wwwroot");
 
-        Directory.CreateDirectory(
-            webRootPath);
+    Directory.CreateDirectory(
+        webRootPath);
 
-        var environment =
-            new Mock<IWebHostEnvironment>();
+    var environment =
+        new Mock<IWebHostEnvironment>();
 
-        environment
-            .SetupGet(value => value.ContentRootPath)
-            .Returns(currentDirectory);
+    environment
+        .SetupGet(value => value.ContentRootPath)
+        .Returns(currentDirectory);
 
-        environment
-            .SetupGet(value => value.WebRootPath)
-            .Returns(webRootPath);
+    environment
+        .SetupGet(value => value.WebRootPath)
+        .Returns(webRootPath);
 
-        environment
-            .SetupGet(value => value.EnvironmentName)
-            .Returns("Testing");
+    environment
+        .SetupGet(value => value.EnvironmentName)
+        .Returns("Testing");
 
-        return new UserService(
-            context,
-            environment.Object);
-    }
+    var passwordService =
+        new PasswordService();
+
+    var logger =
+        Mock.Of<ILogger<UserService>>();
+
+    return new UserService(
+        context,
+        environment.Object,
+        passwordService,
+        logger);
+}
 
     private static AppUser CreateUser()
     {
